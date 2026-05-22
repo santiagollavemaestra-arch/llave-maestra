@@ -462,7 +462,7 @@ function enviarMailNotificacion(asignado, nombreCliente, propiedad) {
       to_name: NOMBRES[asignado],
       cliente: nombreCliente || 'Sin nombre',
       propiedad: propiedad || 'Sin especificar',
-      link: 'https://llave-maestra.netlify.app'
+      link: 'https://santiagollavemaestra-arch.github.io/llave-maestra/'
     }).then(() => console.log('Mail enviado a', emailDestino))
       .catch(err => console.log('EmailJS error:', err));
   };
@@ -474,8 +474,8 @@ function enviarNotificacion(titulo, cuerpo) {
   if (Notification.permission !== 'granted') return;
   new Notification(titulo, {
     body: cuerpo,
-    icon: 'https://llave-maestra.netlify.app/favicon.ico',
-    badge: 'https://llave-maestra.netlify.app/favicon.ico',
+    icon: 'https://santiagollavemaestra-arch.github.io/llave-maestra//favicon.ico',
+    badge: 'https://santiagollavemaestra-arch.github.io/llave-maestra//favicon.ico',
     tag: 'llave-maestra-consulta',
     renotify: true
   });
