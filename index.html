@@ -612,10 +612,9 @@ onValue(consultasRef, snapshot => {
 });
 
 function siguienteEnRotacion() {
-  const activos = Object.values(consultas).filter(c => !['Cerrado','Sin interés'].includes(c.estado));
   const conteos = {};
   EQUIPO.forEach(m => conteos[m] = 0);
-  activos.forEach(c => { if (c.asignado) conteos[c.asignado]++; });
+  Object.values(consultas).forEach(c => { if (c.asignado) conteos[c.asignado]++; });
   return EQUIPO.reduce((a, b) => conteos[a] <= conteos[b] ? a : b);
 }
 
