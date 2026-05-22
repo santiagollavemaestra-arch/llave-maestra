@@ -628,7 +628,7 @@ function render() {
 function renderRotacion() {
   const sig = siguienteEnRotacion();
   const conteos = {};
-  EQUIPO.forEach(m => conteos[m] = Object.values(consultas).filter(c => c.asignado===m && !['Cerrado','Sin interés'].includes(c.estado)).length);
+  EQUIPO.forEach(m => conteos[m] = Object.values(consultas).filter(c => c.asignado===m).length);
   document.getElementById('rotacion-list').innerHTML = EQUIPO.map(m => `
     <div class="rot-item">
       <div class="rot-avatar" style="background:${COLORES[m]}">${NOMBRES[m][0]}</div>
