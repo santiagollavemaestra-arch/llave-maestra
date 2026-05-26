@@ -280,6 +280,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
 /* EMPTY */
 .empty{text-align:center;padding:48px 20px;color:var(--gray-400)}
 .empty-icon{font-size:40px;margin-bottom:12px}
+
+/* GALERÍA DE PROPIEDAD */
+.galeria-prop{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:16px}
+.galeria-prop img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer}
+.galeria-prop img:first-child{grid-column:span 3;aspect-ratio:16/9}
+.ficha-tag{display:inline-block;background:var(--gray-100);color:var(--gray-600);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin:2px}
+.ficha-amenity{display:inline-block;background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin:2px}
+.share-btn{width:100%;padding:12px;background:var(--blue-light);border:1.5px solid var(--blue);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--blue);cursor:pointer;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -374,6 +382,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
     <div id="alarmas"></div>
   </div>
   <div id="lista"></div>
+</div>
+
+<!-- MODAL FICHA PROPIEDAD -->
+<div class="modal-overlay" id="modal-ficha-prop">
+  <div class="modal"><div class="modal-handle"></div><div id="ficha-prop-content"></div></div>
 </div>
 
 <!-- LIGHTBOX -->
@@ -955,7 +968,7 @@ window._abrirDetalle = (id) => {
     '<div class="respuesta-ia-txt" id="resp-txt-'+id+'"></div>'+
     (waLink?'<a id="resp-wa-'+id+'" href="'+waLink+'" target="_blank" class="wa-btn" style="margin:0">📱 Enviar por WhatsApp</a>':'')+
     '</div>'+
-    '<div id="matching-'+id+'" style="font-size:12px;color:var(--purple);padding:8px 0">'+(c.obs?'✨ Analizando propiedades compatibles...':'')+'</div>'+
+    (c.obs ? '<button onclick="window._matchingConsulta(\''+id+'\')" style="width:100%;margin-bottom:10px;padding:11px;background:var(--purple-light);border:1.5px solid var(--purple);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--purple);cursor:pointer">🏠 Ver propiedades compatibles con IA</button><div id="matching-'+id+'"></div>' : '')+
     '<div class="detail-section"><div class="detail-section-title">Datos</div>'+
     (c.propiedad?'<div class="detail-row"><span class="detail-key">Propiedad</span><span class="detail-val">'+c.propiedad+'</span></div>':'')+
     (c.canal?'<div class="detail-row"><span class="detail-key">Canal</span><span class="detail-val">'+c.canal+'</span></div>':'')+
@@ -972,12 +985,19 @@ window._abrirDetalle = (id) => {
     '<div class="btn-row"><button class="btn-primary" onclick="cerrarModal(\'modal-detalle\')">Cerrar</button></div>';
 
   document.getElementById('modal-detalle').classList.add('open');
-  if(c.obs) generarMatchingIA(id,c);
 };
 
 // ============================================================
-// MATCHING IA
+// MATCHING IA - solo cuando se pide
 // ============================================================
+window._matchingConsulta = (id) => {
+  const c = consultas[id];
+  if(!c) return;
+  const btn = document.querySelector('[onclick="window._matchingConsulta(\''+id+'\')"]');
+  if(btn) { btn.textContent = '⏳ Analizando...'; btn.disabled = true; }
+  generarMatchingIA(id, c);
+};
+
 async function generarMatchingIA(id,c){
   if(matchCache[id]){
     const el=document.getElementById('matching-'+id);
@@ -1390,6 +1410,148 @@ function renderPropiedades(){
 // ============================================================
 // LIGHTBOX
 // ============================================================
+// ============================================================
+// FICHA DE PROPIEDAD
+// ============================================================
+window.abrirFichaProp = (id) => {
+  const p = propiedades[id];
+  if(!p) return;
+  const todasFotos = p.fotos?.length ? p.fotos : p.foto ? [p.foto] : [];
+  const ams = (p.amenities||[]).map(a => '<span class="ficha-amenity">'+a+'</span>').join('');
+  const shareUrl = 'https://santiagollavemaestra-arch.github.io/llave-maestra/?prop='+id;
+  
+  let galeriaHtml = '';
+  if(todasFotos.length) {
+    galeriaHtml = '<div class="galeria-prop">'+
+      todasFotos.map((f,i) => '<img src="'+f+'" onclick="abrirLightbox('+JSON.stringify(todasFotos)+','+i+')" loading="lazy">').join('')+
+      '</div>';
+  }
+
+  document.getElementById('ficha-prop-content').innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">'+
+    '<div>'+
+    '<div style="font-size:11px;color:var(--gray-400);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">'+(p.tipo||'')+' en '+(p.operacion||'')+(p.barrio?' · '+p.barrio:'')+'</div>'+
+    '<div style="font-family:\'DM Serif Display\',serif;font-size:22px;line-height:1.2">'+(p.titulo||p.direccion||'')+'</div>'+
+    '</div>'+
+    '<span class="prop-estado-badge '+(p.estado==='Disponible'?'prop-disponible':p.estado==='Reservada'?'prop-reservada':'prop-vendida')+'">'+(p.estado||'Disponible')+'</span>'+
+    '</div>'+
+    (p.precio ? '<div style="font-size:24px;font-weight:900;color:var(--green);margin-bottom:16px">'+p.precio+'</div>' : '')+
+    galeriaHtml+
+    '<div style="margin-bottom:16px">'+
+    (p.ambientes ? '<span class="ficha-tag">'+p.ambientes+' ambientes</span>' : '')+
+    (p.dormitorios ? '<span class="ficha-tag">'+p.dormitorios+' dorm.</span>' : '')+
+    (p.banos ? '<span class="ficha-tag">'+p.banos+' baños</span>' : '')+
+    (p.toilette==='Sí' ? '<span class="ficha-tag">Toilette</span>' : '')+
+    (p.cochera&&p.cochera!=='No' ? '<span class="ficha-tag">'+p.cochera+'</span>' : '')+
+    (p.supCubierta ? '<span class="ficha-tag">'+p.supCubierta+' m² cub.</span>' : '')+
+    (p.supTotal ? '<span class="ficha-tag">'+p.supTotal+' m² tot.</span>' : '')+
+    (p.piso ? '<span class="ficha-tag">Piso '+p.piso+(p.ascensor?' · Asc. '+p.ascensor:'')+'</span>' : '')+
+    (p.calefaccion ? '<span class="ficha-tag">'+p.calefaccion+'</span>' : '')+
+    (p.orientacion ? '<span class="ficha-tag">'+p.orientacion+'</span>' : '')+
+    (p.antiguedad ? '<span class="ficha-tag">'+p.antiguedad+'</span>' : '')+
+    '</div>'+
+    (ams ? '<div style="margin-bottom:16px">'+ams+'</div>' : '')+
+    (p.desc ? '<div style="font-size:14px;color:var(--gray-600);line-height:1.7;margin-bottom:16px;white-space:pre-wrap">'+p.desc+'</div>' : '')+
+    '<button onclick="matchingInverso(\''+id+'\',p)" style="width:100%;margin-bottom:10px;padding:11px;background:var(--purple-light);border:1.5px solid var(--purple);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--purple);cursor:pointer">👥 ¿A quién le recomiendo esta propiedad?</button>'+
+    '<div id="matching-inv-'+id+'" style="margin-bottom:10px"></div>'+
+    '<button class="share-btn" onclick="compartirPropiedad(\''+id+'\')">🔗 Copiar link para compartir</button>'+
+    '<div class="btn-row"><button class="btn-primary" onclick="cerrarModal(\'modal-ficha-prop\')">Cerrar</button></div>';
+
+  document.getElementById('modal-ficha-prop').classList.add('open');
+};
+
+// Matching inverso: dada una propiedad, encontrar consultas compatibles
+window.matchingInverso = async (propId, p) => {
+  const btn = document.querySelector('[onclick="matchingInverso(\''+propId+'\',p)"]');
+  if(btn) { btn.textContent = '⏳ Analizando consultas...'; btn.disabled = true; }
+  
+  const consActivas = Object.entries(consultas)
+    .filter(([,c]) => !['Cerrado','Sin interés'].includes(c.estado) && c.obs)
+    .map(([id,c]) => id+': '+c.nombre+' busca: '+c.obs);
+
+  if(!consActivas.length) {
+    const div = document.getElementById('matching-inv-'+propId);
+    if(div) div.innerHTML = '<div style="font-size:12px;color:var(--gray-400);padding:6px 0">No hay consultas activas con descripción de búsqueda.</div>';
+    if(btn) { btn.textContent = '👥 ¿A quién le recomiendo esta propiedad?'; btn.disabled = false; }
+    return;
+  }
+
+  const GEMINI_KEY = ['AIzaSyCe30RUHpcLr','SC0SEon60R_tMEfc1','SLADM'].join('');
+  try {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_KEY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{parts:[{text:
+          'Propiedad a recomendar: '+[p.tipo,p.operacion,p.barrio,p.ambientes?p.ambientes+' amb':'',p.precio,p.desc?.substring(0,150)].filter(Boolean).join(' | ')+
+          '
+
+Consultas activas:
+'+consActivas.join('
+')+
+          '
+
+Respondé SOLO JSON: {"matches":[{"id":"ID","score":85,"razon":"razón breve"}]} Máx 3, score>40.'
+        }]}],
+        generationConfig:{maxOutputTokens:400,temperature:0.3}
+      })
+    });
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const txt = data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const m = txt.match(/\{[\s\S]*\}/);
+    if(!m) throw new Error('No JSON');
+    const result = JSON.parse(m[0]);
+    const div = document.getElementById('matching-inv-'+propId);
+    if(!result.matches?.length) {
+      if(div) div.innerHTML = '<div style="font-size:12px;color:var(--gray-400);padding:6px 0">No encontré consultas muy compatibles.</div>';
+    } else {
+      if(div) div.innerHTML = '<div style="background:var(--purple-light);border:1.5px solid var(--purple);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px">'+
+        '<div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:8px">👥 Clientes que podrían estar interesados:</div>'+
+        result.matches.map(m => {
+          const c = consultas[m.id];
+          if(!c) return '';
+          return '<div style="background:#fff;border-radius:6px;padding:8px;margin-bottom:6px">'+
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
+            '<span style="font-size:13px;font-weight:700">'+c.nombre+'</span>'+
+            '<span style="font-size:10px;background:var(--purple-light);color:var(--purple);padding:2px 6px;border-radius:10px;font-weight:700">'+m.score+'% compatible</span>'+
+            '</div>'+
+            '<div style="font-size:11px;color:var(--purple);font-style:italic;margin-bottom:6px">'+m.razon+'</div>'+
+            (c.tel?'<a href="https://wa.me/549'+c.tel.replace(/\D/g,'')+'" target="_blank" style="display:block;text-align:center;padding:6px;background:#25D366;color:#fff;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none">📱 Contactar a '+c.nombre+'</a>':'')+'</div>';
+        }).join('')+'</div>';
+    }
+  } catch(e) {
+    const div = document.getElementById('matching-inv-'+propId);
+    if(div) div.innerHTML = '<div style="font-size:12px;color:var(--red);padding:6px 0">Error. Esperá 1 minuto e intentá de nuevo.</div>';
+  }
+  if(btn) { btn.textContent = '👥 ¿A quién le recomiendo esta propiedad?'; btn.disabled = false; }
+};
+
+window.compartirPropiedad = (id) => {
+  const url = 'https://santiagollavemaestra-arch.github.io/llave-maestra/?prop='+id;
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(()=>alert('✅ Link copiado: '+url));
+  } else {
+    prompt('Copiá este link:', url);
+  }
+};
+
+// Verificar si hay una propiedad en la URL para mostrarla
+const urlParams = new URLSearchParams(window.location.search);
+const propParam = urlParams.get('prop');
+if(propParam) {
+  // Esperar a que carguen las propiedades y mostrar la ficha
+  const checkProp = setInterval(() => {
+    if(propiedades[propParam]) {
+      clearInterval(checkProp);
+      // Modo público - mostrar solo la propiedad
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('user-screen').classList.add('oculto');
+      window.abrirFichaProp(propParam);
+    }
+  }, 200);
+  setTimeout(() => clearInterval(checkProp), 5000);
+}
+
 window.abrirLightbox = (fotos,idx) => {
   lbFotos=fotos;lbIdx=idx;
   document.getElementById('lb-img').src=fotos[idx];
