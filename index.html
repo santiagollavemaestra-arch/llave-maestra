@@ -1140,13 +1140,8 @@ function abrirDetalle(id) {
     </div>
     ${info?`<div class="countdown-detalle ${info.tipo}">⏰ ${info.texto}</div>`:''}
     ${waLink?`<a href="${waLink}" target="_blank" class="wa-btn">📱 Abrir WhatsApp — ${c.tel}</a>`:''}
-    ${c.obs ? `<button onclick="window._generarRespuesta('${id}')" style="width:100%;margin-bottom:10px;padding:11px;background:var(--green-light);border:1.5px solid var(--green);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--green);cursor:pointer">🤖 Generar respuesta con IA</button>
-    <div id="respuesta-ia-${id}" style="display:none;background:var(--gray-50);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px">
-      <div style="font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Respuesta sugerida por IA:</div>
-      <div id="respuesta-ia-txt-${id}" style="font-size:13px;color:var(--black);line-height:1.5;margin-bottom:8px"></div>
-      ${waLink?`<a id="respuesta-wa-${id}" href="${waLink}" target="_blank" class="wa-btn" style="margin:0">📱 Enviar por WhatsApp</a>`:''}
-    </div>` : ''}
-    ${matchHtml || `<div id="matching-placeholder-${id}" style="font-size:12px;color:var(--purple);padding:8px 0">${c.obs ? '✨ Analizando propiedades compatibles...' : ''}</div>`}
+    ${c.obs ? '<button onclick="window._generarRespuesta(\''+id+'\')" style="width:100%;margin-bottom:10px;padding:11px;background:var(--green-light);border:1.5px solid var(--green);border-radius:var(--radius-sm);font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;color:var(--green);cursor:pointer">🤖 Generar respuesta con IA</button><div id="respuesta-ia-'+id+'" style="display:none;background:var(--gray-50);border-radius:8px;padding:12px;margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px">RESPUESTA SUGERIDA POR IA:</div><div id="respuesta-ia-txt-'+id+'" style="font-size:13px;line-height:1.5;margin-bottom:8px"></div>'+(waLink?'<a id="respuesta-wa-'+id+'" href="'+waLink+'" target="_blank" class="wa-btn" style="margin:0">📱 Enviar por WhatsApp</a>':'')+'</div>' : ''}
+    ${matchHtml || (c.obs ? '<div id="matching-placeholder-'+id+'" style="font-size:12px;color:var(--purple);padding:8px 0">✨ Analizando propiedades compatibles...</div>' : '')}
     <div class="detail-section">
       <div class="detail-section-title">Datos de la consulta</div>
       ${c.propiedad?`<div class="detail-row"><span class="detail-key">Propiedad</span><span class="detail-val">${c.propiedad}</span></div>`:''}
