@@ -472,7 +472,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
           <option value="USD">USD</option>
           <option value="ARS">$</option>
         </select>
-        <input class="form-input" id="p-precio-num" placeholder="Ej: 120000" type="number" min="0" oninput="window._formatearPrecio(this)">
+        <input class="form-input" id="p-precio-num" placeholder="Ej: 120000" type="text" inputmode="numeric" oninput="window._limpiarPrecio(this)">
         <span id="p-precio-periodo" style="font-size:13px;color:var(--gray-400);white-space:nowrap;min-width:40px"></span>
       </div>
       <div id="p-precio-preview" style="font-size:13px;color:var(--green);font-weight:700;margin-top:4px"></div>
@@ -1365,7 +1365,11 @@ function renderPropiedades() {
       const estadoCls = p.estado==='Disponible'?'prop-disponible':p.estado==='Reservada'?'prop-reservada':'prop-vendida';
       return `<div class="prop-ficha">
         <span class="prop-estado-badge ${estadoCls}">${p.estado||'Disponible'}</span>
-        ${p.fotos && p.fotos.length ? `<div class="prop-galeria">${p.fotos.map((f,i)=>`<img src="${f}" alt="${p.titulo}" onclick="window._abrirLightbox(${JSON.stringify(p.fotos)},${i})">`).join('')}</div>` : p.foto ? `<img class="prop-img" src="${p.foto}" alt="${p.titulo}" onclick="window._abrirLightbox(['${p.foto}'],0)" style="cursor:pointer">` : '<div class="prop-img">📷 Sin foto</div>'}
+        ${(() => {
+          const todasFotos = p.fotos?.length ? p.fotos : p.foto ? [p.foto] : [];
+          if (!todasFotos.length) return '<div style="height:72px;display:flex;align-items:center;justify-content:center;color:var(--gray-400);font-size:12px;margin-bottom:8px">📷 Sin fotos</div>';
+          return `<div class="prop-galeria">${todasFotos.map((f,i)=>`<img src="${f}" alt="${p.titulo||''}" onclick="window._abrirLightbox(${JSON.stringify(todasFotos)},${i})">`).join('')}</div>`;
+        })()}
         <div class="prop-body">
           <div class="prop-operacion">${p.tipo||''} · ${p.operacion||''}${p.barrio?' · '+p.barrio:''}</div>
           <div class="prop-titulo">${p.titulo||p.direccion||''}</div>
@@ -1398,7 +1402,8 @@ window._guardarPropiedad = () => {
   if (!direccion && !titulo) { alert('Ingresá la dirección'); return; }
 
   const moneda = document.getElementById('p-moneda')?.value || 'USD';
-  const precioNum = document.getElementById('p-precio-num')?.value || '';
+  const precioNumRaw = (document.getElementById('p-precio-num')?.value || '').replace(/\D/g,'');
+  const precioNum = precioNumRaw;
   const periodo = document.getElementById('p-precio-periodo')?.textContent || '';
   const precioFormato = precioNum ? (moneda==='USD' ? `USD ${parseInt(precioNum).toLocaleString('es-AR')}${periodo}` : `$${parseInt(precioNum).toLocaleString('es-AR')}${periodo}`) : '';
 
@@ -1412,7 +1417,7 @@ window._guardarPropiedad = () => {
     tipo:          document.getElementById('p-tipo').value,
     operacion:     document.getElementById('p-operacion').value,
     precio:        precioFormato,
-    precioNum:     parseInt(precioNum) || 0,
+    precioNum:     parseInt((precioNum||'').replace(/\D/g,'')) || 0,
     moneda,
     supTotal:      document.getElementById('p-sup-total').value || '',
     supCubierta:   document.getElementById('p-sup-cubierta').value || '',
@@ -1442,7 +1447,7 @@ window._guardarPropiedad = () => {
   });
   document.getElementById('p-fotos-preview').innerHTML = '';
   document.getElementById('p-barrio-detectado').style.display = 'none';
-  document.getElementById('p-precio-preview').textContent = '';
+  const pp = document.getElementById('p-precio-preview'); if(pp) pp.textContent = '';
   ['pileta','gimnasio','quincho','laundry','sum','jardín','terraza','balcon','seguridad','coworking','vista-mar','amoblado']
     .forEach(a => { const el = document.getElementById('am-'+a); if(el) el.checked = false; });
   fotosSubidas = [];
@@ -1775,14 +1780,18 @@ window._actualizarCamposTipo = () => {
   if (camposDepto) camposDepto.style.display = soloDepto.includes(tipo) ? 'block' : 'none';
 };
 
-// Preview precio formateado
-window._formatearPrecio = (input) => {
+// Formatear precio con separador de miles mientras escribe
+window._limpiarPrecio = (input) => {
+  // Sacar todo lo que no sea número
+  let raw = input.value.replace(/\D/g, '');
+  const num = parseInt(raw) || 0;
+  // Formatear con puntos como separador de miles (estilo AR)
+  input.value = num ? num.toLocaleString('es-AR') : '';
+  // Preview
   const moneda = document.getElementById('p-moneda')?.value || 'USD';
   const periodo = document.getElementById('p-precio-periodo')?.textContent || '';
-  const num = parseInt(input.value) || 0;
-  if (!num) { document.getElementById('p-precio-preview').textContent = ''; return; }
-  const fmt = num.toLocaleString('es-AR');
-  document.getElementById('p-precio-preview').textContent = moneda === 'USD' ? `USD ${fmt}${periodo}` : `$${fmt}${periodo}`;
+  const preview = document.getElementById('p-precio-preview');
+  if (preview) preview.textContent = num ? (moneda==='USD' ? `USD ${num.toLocaleString('es-AR')}${periodo}` : `$${num.toLocaleString('es-AR')}${periodo}`) : '';
 };
 
 // Generador de descripción con IA usando Anthropic API
