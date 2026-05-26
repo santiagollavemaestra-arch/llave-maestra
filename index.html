@@ -197,14 +197,31 @@
   .stats-btn { background:var(--white); border:1.5px solid var(--gray-200); border-radius:var(--radius-sm); padding:8px 14px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; }
 
   /* NOTAS */
-  .nota-item { padding:8px 10px; background:var(--gray-50); border-radius:var(--radius-sm); margin-bottom:6px; }
+  .nota-item { padding:8px 10px; background:var(--gray-50); border-radius:var(--radius-sm); margin-bottom:6px; position:relative; }
   .nota-autor { font-size:11px; font-weight:700; margin-bottom:2px; }
-  .nota-texto { font-size:13px; color:var(--gray-600); line-height:1.4; }
+  .nota-texto { font-size:13px; color:var(--gray-600); line-height:1.4; padding-right:48px; }
   .nota-fecha { font-size:10px; color:var(--gray-400); margin-top:3px; }
+  .nota-acciones { position:absolute; top:8px; right:8px; display:flex; gap:4px; }
+  .nota-btn { background:none; border:none; cursor:pointer; font-size:12px; padding:2px 4px; border-radius:4px; color:var(--gray-400); }
+  .nota-btn:hover { background:var(--gray-200); }
   .nota-input-row { display:flex; gap:8px; margin-top:8px; }
   .nota-input { flex:1; padding:10px 12px; border:1.5px solid var(--gray-200); border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; }
   .nota-input:focus { border-color:var(--black); }
   .nota-send { background:var(--black); color:var(--white); border:none; border-radius:var(--radius-sm); padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
+
+  /* PROPIEDADES */
+  .props-tab { background:var(--white); border-radius:var(--radius); padding:16px; margin-bottom:10px; box-shadow:var(--shadow); }
+  .prop-ficha { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:10px; overflow:hidden; }
+  .prop-img { width:100%; height:160px; object-fit:cover; background:var(--gray-100); display:flex; align-items:center; justify-content:center; color:var(--gray-400); font-size:13px; }
+  .prop-body { padding:12px 14px; }
+  .prop-titulo { font-size:15px; font-weight:700; color:var(--black); margin-bottom:4px; }
+  .prop-precio { font-size:14px; font-weight:700; color:var(--green); margin-bottom:6px; }
+  .prop-desc { font-size:12px; color:var(--gray-600); line-height:1.4; margin-bottom:10px; }
+  .prop-acciones { display:flex; gap:8px; }
+  .prop-btn-sel { flex:1; background:var(--black); color:var(--white); border:none; border-radius:var(--radius-sm); padding:8px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700; cursor:pointer; }
+  .prop-btn-del { background:var(--red-light); color:var(--red); border:none; border-radius:var(--radius-sm); padding:8px 12px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700; cursor:pointer; }
+  .prop-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media(max-width:500px) { .prop-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -276,6 +293,7 @@
   <div class="tab" onclick="switchTab('mariana')" id="tab-mariana">Mariana <span class="tab-count" id="cnt-mariana">0</span></div>
   <div class="tab" onclick="switchTab('milagros')" id="tab-milagros">Milagros <span class="tab-count" id="cnt-milagros">0</span></div>
   <div class="tab" onclick="switchTab('gabriel')" id="tab-gabriel">Gabriel <span class="tab-count" id="cnt-gabriel">0</span></div>
+  <div class="tab" onclick="switchTab('propiedades')" id="tab-propiedades">🏠 Propiedades</div>
 </div>
 
 <div class="content">
@@ -334,6 +352,28 @@
 
 <div class="modal-overlay" id="modal-detalle">
   <div class="modal"><div class="modal-handle"></div><div id="detalle-content"></div></div>
+</div>
+
+<div class="modal-overlay" id="modal-nueva-prop">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nueva propiedad</div>
+    <div class="form-group"><label class="form-label">Dirección / Título</label><input class="form-input" id="p-titulo" placeholder="Ej: Cerrito 28, 2 amb." type="text"></div>
+    <div class="form-group"><label class="form-label">Precio</label><input class="form-input" id="p-precio" placeholder="Ej: USD 120.000 o $800.000/mes" type="text"></div>
+    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="p-desc" placeholder="Características principales..."></textarea></div>
+    <div class="form-group"><label class="form-label">Foto <span style="font-weight:400;color:var(--gray-400)">(URL de imagen)</span></label><input class="form-input" id="p-foto" placeholder="https://..." type="url"></div>
+    <div class="form-group"><label class="form-label">Operación</label>
+      <select class="form-select" id="p-operacion">
+        <option value="Venta">Venta</option>
+        <option value="Alquiler">Alquiler</option>
+        <option value="Alquiler temporal">Alquiler temporal</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="cerrarModal('modal-nueva-prop')">Cancelar</button>
+      <button class="btn-primary" onclick="window._guardarPropiedad()">Guardar</button>
+    </div>
+  </div>
 </div>
 
 <div class="stats-modal" id="stats-modal">
@@ -808,6 +848,10 @@ function abrirDetalle(id) {
               <div class="nota-autor" style="color:${COLORES[n.autor]||'#000'}">${NOMBRES[n.autor]||n.autor}</div>
               <div class="nota-texto">${n.texto}</div>
               <div class="nota-fecha">${new Date(n.fecha).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+              <div class="nota-acciones">
+                <button class="nota-btn" onclick="window._editarNota('${id}','${nid}','${n.texto.replace(/'/g,"\'")}')">✏️</button>
+                <button class="nota-btn" onclick="window._eliminarNota('${id}','${nid}')">🗑</button>
+              </div>
             </div>`).join('');
         })()}
       </div>
@@ -1000,10 +1044,88 @@ window.switchTab = (tab) => {
   tabActual = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
-  renderLista();
+  if (tab === 'propiedades') renderPropiedades();
+  else renderLista();
 };
 
 window.cerrarModal = (id) => document.getElementById(id).classList.remove('open');
+
+// ============================================================
+// PROPIEDADES
+// ============================================================
+let propiedades = {};
+const propsRef = ref(db, 'propiedades');
+onValue(propsRef, snapshot => {
+  propiedades = snapshot.val() || {};
+  if (tabActual === 'propiedades') renderPropiedades();
+});
+
+function renderPropiedades() {
+  const lista = document.getElementById('lista-consultas');
+  const arr = Object.entries(propiedades).map(([id,p]) => ({...p,id}));
+
+  let html = `<button class="btn-nueva" onclick="document.getElementById('modal-nueva-prop').classList.add('open')">+ Nueva propiedad</button>`;
+
+  if (arr.length === 0) {
+    html += `<div class="empty"><div class="empty-icon">🏠</div><div>No hay propiedades cargadas todavía</div></div>`;
+  } else {
+    html += `<div class="prop-grid">`;
+    html += arr.map(p => `
+      <div class="prop-ficha">
+        ${p.foto ? `<img class="prop-img" src="${p.foto}" alt="${p.titulo}" onerror="this.style.display='none'">` : '<div class="prop-img">Sin foto</div>'}
+        <div class="prop-body">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-bottom:4px">${p.operacion||''}</div>
+          <div class="prop-titulo">${p.titulo||''}</div>
+          <div class="prop-precio">${p.precio||''}</div>
+          <div class="prop-desc">${p.desc||''}</div>
+          <div class="prop-acciones">
+            <button class="prop-btn-del" onclick="window._eliminarPropiedad('${p.id}')">🗑</button>
+          </div>
+        </div>
+      </div>`).join('');
+    html += `</div>`;
+  }
+  lista.innerHTML = html;
+}
+
+window._guardarPropiedad = () => {
+  const titulo = document.getElementById('p-titulo').value.trim();
+  if (!titulo) { alert('Ingresá la dirección o título'); return; }
+  push(propsRef, {
+    titulo,
+    precio:    document.getElementById('p-precio').value.trim(),
+    desc:      document.getElementById('p-desc').value.trim(),
+    foto:      document.getElementById('p-foto').value.trim(),
+    operacion: document.getElementById('p-operacion').value,
+    fecha:     Date.now(),
+    cargadoPor: usuarioActivo
+  });
+  ['p-titulo','p-precio','p-desc','p-foto'].forEach(id => document.getElementById(id).value='');
+  cerrarModal('modal-nueva-prop');
+};
+
+window._eliminarPropiedad = (id) => {
+  if (!confirm('¿Eliminar esta propiedad?')) return;
+  remove(ref(db, `propiedades/${id}`));
+};
+
+// ============================================================
+// NOTAS — editar y eliminar
+// ============================================================
+window._eliminarNota = (consultaId, notaId) => {
+  if (!confirm('¿Eliminar esta nota?')) return;
+  remove(ref(db, `consultas/${consultaId}/notas/${notaId}`));
+  // Re-renderizar notas
+  const c = {...consultas[consultaId], id: consultaId};
+  setTimeout(() => abrirDetalle(consultaId), 300);
+};
+
+window._editarNota = (consultaId, notaId, textoActual) => {
+  const nuevo = prompt('Editá la nota:', textoActual);
+  if (nuevo === null || !nuevo.trim()) return;
+  update(ref(db, `consultas/${consultaId}/notas/${notaId}`), { texto: nuevo.trim() });
+  setTimeout(() => abrirDetalle(consultaId), 300);
+};
 
 document.getElementById('stats-modal').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('open');
