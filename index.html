@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1203,8 +1203,7 @@ async function generarMatchingIA(c) {
 LO QUE BUSCA EL CLIENTE: "${c.obs}"
 
 PROPIEDADES DISPONIBLES:
-${disponibles.map((p,i) => `${i+1}. ID:${p.id} | ${p.tipo} | ${p.operacion} | ${p.barrio} | ${p.ambientes} amb | ${p.sup}m² | ${p.precio} | Amenities: ${p.amenities} | ${p.desc}`).join('
-')}
+${disponibles.map((p,i) => (i+1)+'. ID:'+p.id+' | '+p.tipo+' | '+p.operacion+' | '+(p.barrio||'')+' | '+(p.ambientes||'')+' amb | '+(p.sup||'')+'m² | '+(p.precio||'')+' | Amenities: '+(p.amenities||[]).join(',')+ ' | '+(p.desc||'')).join('\n')}
 
 Respondé SOLO con JSON válido, sin texto extra:
 {"matches":[{"id":"ID_PROPIEDAD","score":85,"razon":"explicación breve en español"}]}
