@@ -1,33 +1,33 @@
-const CACHE_NAME = 'llave-maestra-v3';
+const VERSION = '2.1'; // Cambiar este número con cada deploy
+const CACHE = 'keynet-' + VERSION;
 
-self.addEventListener('install', event => {
+self.addEventListener('install', e => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
-  // Borrar caches viejos
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(key => caches.delete(key)))
-    ).then(() => clients.claim())
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => clients.claim())
+      .then(() => {
+        // Notificar a todos los clientes que recarguen
+        self.clients.matchAll().then(clients => {
+          clients.forEach(client => client.postMessage({type: 'UPDATE_AVAILABLE'}));
+        });
+      })
   );
 });
 
-// Siempre ir a la red, sin cachear
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    fetch(event.request).catch(() => new Response('Sin conexión'))
-  );
+self.addEventListener('fetch', e => {
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
 
-self.addEventListener('push', event => {
-  if (!event.data) return;
-  const data = event.data.json();
-  self.registration.showNotification(data.title, {
-    body: data.body,
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    tag: 'llave-maestra',
-    renotify: true
+self.addEventListener('push', e => {
+  if (!e.data) return;
+  const d = e.data.json();
+  self.registration.showNotification(d.title, {
+    body: d.body, icon: '/llave-maestra/icon-192.png',
+    badge: '/llave-maestra/icon-192.png', tag: 'keynet', renotify: true
   });
 });

@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="/llave-maestra/icon-192.png">
 <meta name="theme-color" content="#0a0a0a">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJA9Mqz_27Z4pRWiXyuV9K1tgJsb27YKA&libraries=places&language=es&region=AR"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJA9Mqz_27Z4pRWiXyuV9K1tgJsb27YKA&libraries=places&language=es&region=AR&loading=async"></script>
 <script>emailjs.init("Vjf16OOzV2i7xWz7x");</script>
 <style>
 :root {
@@ -1568,7 +1568,18 @@ document.getElementById('stats-modal').addEventListener('click', function(e) {
 
 // Service Worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/llave-maestra/sw.js').catch(e => console.log('SW:', e));
+  navigator.serviceWorker.register('/llave-maestra/sw.js').then(reg => {
+    // Escuchar mensajes del SW para auto-recargar
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data?.type === 'UPDATE_AVAILABLE') {
+        // Mostrar banner de actualización
+        const banner = document.createElement('div');
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#1a1a1a;color:white;text-align:center;padding:10px;z-index:9999;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600';
+        banner.innerHTML = '🔄 Nueva versión disponible — <button onclick="window.location.reload()" style="background:white;color:black;border:none;padding:4px 12px;border-radius:20px;cursor:pointer;font-weight:700;margin-left:8px">Actualizar ahora</button>';
+        document.body.prepend(banner);
+      }
+    });
+  }).catch(e => console.log('SW:', e));
 }
 </script>
 </body>
