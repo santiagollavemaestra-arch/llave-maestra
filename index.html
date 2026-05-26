@@ -591,6 +591,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
   </div>
 </div>
 
+<!-- MODAL EDITAR PROPIEDAD -->
+<div class="modal-overlay" id="modal-editar-prop">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar propiedad</div>
+    <input type="hidden" id="edit-prop-id">
+    <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="edit-titulo" type="text"></div>
+    <div class="form-group"><label class="form-label">Precio</label><input class="form-input" id="edit-precio" type="text"></div>
+    <div class="form-group"><label class="form-label">Barrio</label><input class="form-input" id="edit-barrio" type="text"></div>
+    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="edit-desc" style="min-height:120px"></textarea></div>
+    <div class="form-group"><label class="form-label">Estado</label>
+      <select class="form-select" id="edit-estado">
+        <option>Disponible</option><option>Reservada</option><option>Vendida/Alquilada</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="cerrarModal('modal-editar-prop')">Cancelar</button>
+      <button class="btn-primary" onclick="window._guardarEdicionProp()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL PROPIETARIO -->
 <div class="modal-overlay" id="modal-propietario">
   <div class="modal">
@@ -1384,7 +1406,7 @@ function renderPropiedades(){
     const todasFotos=p.fotos?.length?p.fotos:p.foto?[p.foto]:[];
     const estadoCls=p.estado==='Disponible'?'prop-disponible':p.estado==='Reservada'?'prop-reservada':'prop-vendida';
     const pr=propietarios[p.propietarioId];
-    return '<div class="prop-ficha">'+
+    return '<div class="prop-ficha" onclick="window.abrirFichaProp(\''+p.id+'\')">'+
       '<span class="prop-estado-badge '+estadoCls+'">'+(p.estado||'Disponible')+'</span>'+
       (todasFotos.length?
         '<div class="prop-fotos-wrap">'+todasFotos.map((f,i)=>'<img src="'+f+'" class="prop-foto-thumb" onclick="abrirLightbox('+JSON.stringify(todasFotos)+','+i+')" loading="lazy">').join('')+'</div>':
@@ -1395,7 +1417,7 @@ function renderPropiedades(){
       '<div class="prop-precio">'+(p.precio||'')+'</div>'+
       (p.ambientes?'<div class="prop-info">'+(p.ambientes+' amb')+(p.dormitorios?' · '+p.dormitorios+' dorm.':'')+(p.supCubierta?' · '+p.supCubierta+'m²':p.supTotal?' · '+p.supTotal+'m²':'')+'</div>':'')+
       (pr?'<div class="prop-propietario">👤 '+pr.nombre+'</div>':'')+
-      '<div style="display:flex;gap:6px;align-items:center;margin-top:6px">'+
+      '<div style="display:flex;gap:6px;align-items:center;margin-top:6px" onclick="event.stopPropagation()">'+
       '<select onchange="window._cambiarEstadoProp(\''+p.id+'\',this.value)" style="flex:1;padding:5px;border:1.5px solid var(--gray-200);border-radius:6px;font-size:11px;font-family:\'DM Sans\',sans-serif">'+
       '<option '+(p.estado==='Disponible'?'selected':'')+'>Disponible</option>'+
       '<option '+(p.estado==='Reservada'?'selected':'')+'>Reservada</option>'+
@@ -1454,6 +1476,10 @@ window.abrirFichaProp = (id) => {
     (p.desc ? '<div style="font-size:14px;color:var(--gray-600);line-height:1.7;margin-bottom:16px;white-space:pre-wrap">'+p.desc+'</div>' : '')+
     '<button onclick="matchingInverso(\''+id+'\',p)" style="width:100%;margin-bottom:10px;padding:11px;background:var(--purple-light);border:1.5px solid var(--purple);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--purple);cursor:pointer">👥 ¿A quién le recomiendo esta propiedad?</button>'+
     '<div id="matching-inv-'+id+'" style="margin-bottom:10px"></div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:10px">'+
+    '<button onclick="window._abrirEditarProp(\''+id+'\');event.stopPropagation()" style="flex:1;padding:11px;background:var(--gray-100);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--gray-600);cursor:pointer">✏️ Editar</button>'+
+    '<button onclick="compartirPropiedad(\''+id+'\');event.stopPropagation()" style="flex:1;padding:11px;background:var(--blue-light);border:1.5px solid var(--blue);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--blue);cursor:pointer">🔗 Compartir</button>'+
+    '</div>'+
     '<button class="share-btn" onclick="compartirPropiedad(\''+id+'\')">🔗 Copiar link para compartir</button>'+
     '<div class="btn-row"><button class="btn-primary" onclick="cerrarModal(\'modal-ficha-prop\')">Cerrar</button></div>';
 
@@ -1516,6 +1542,33 @@ window.matchingInverso = async (propId, p) => {
     if(div) div.innerHTML = '<div style="font-size:12px;color:var(--red);padding:6px 0">Error. Esperá 1 minuto e intentá de nuevo.</div>';
   }
   if(btn) { btn.textContent = '👥 ¿A quién le recomiendo esta propiedad?'; btn.disabled = false; }
+};
+
+window._abrirEditarProp = (id) => {
+  const p = propiedades[id];
+  if(!p) return;
+  document.getElementById('edit-prop-id').value = id;
+  document.getElementById('edit-titulo').value = p.titulo||p.direccion||'';
+  document.getElementById('edit-precio').value = p.precio||'';
+  document.getElementById('edit-barrio').value = p.barrio||'';
+  document.getElementById('edit-desc').value = p.desc||'';
+  document.getElementById('edit-estado').value = p.estado||'Disponible';
+  cerrarModal('modal-ficha-prop');
+  document.getElementById('modal-editar-prop').classList.add('open');
+};
+
+window._guardarEdicionProp = () => {
+  const id = document.getElementById('edit-prop-id').value;
+  if(!id) return;
+  update(ref(db,'propiedades/'+id), {
+    titulo: document.getElementById('edit-titulo').value.trim(),
+    precio: document.getElementById('edit-precio').value.trim(),
+    barrio: document.getElementById('edit-barrio').value.trim(),
+    desc: document.getElementById('edit-desc').value.trim(),
+    estado: document.getElementById('edit-estado').value,
+  });
+  cerrarModal('modal-editar-prop');
+  setTimeout(() => renderPropiedades(), 500);
 };
 
 window.compartirPropiedad = (id) => {
