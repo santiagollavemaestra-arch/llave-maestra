@@ -453,7 +453,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
     <div class="form-group">
       <label class="form-label">Dirección</label>
       <input class="form-input" id="p-direccion" placeholder="Ej: Cerrito 28, Mar del Plata" type="text" autocomplete="off">
-      <div id="p-barrio-detectado" style="font-size:12px;color:var(--green);margin-top:4px;display:none">✓ <span id="p-barrio-txt"></span></div>
+      <div id="p-ciudad-detectada" style="font-size:12px;color:var(--green);margin-top:4px;display:none">✓ Ciudad: <span id="p-barrio-txt"></span></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Barrio</label>
+      <input class="form-input" id="p-barrio-manual" placeholder="Ej: Güemes, La Perla, Los Troncos..." type="text">
     </div>
 
     <div class="form-group">
@@ -736,7 +740,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
 </div>
 
 <!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="if(event.target===this)window._cerrarLightbox()">
+<div class="lightbox" id="lightbox" style="display:none" onclick="if(event.target===this)window._cerrarLightbox()">
   <button class="lightbox-close" onclick="window._cerrarLightbox()">✕</button>
   <img id="lightbox-img" src="" alt="">
   <div class="lightbox-nav">
@@ -1404,7 +1408,7 @@ window._guardarPropiedad = () => {
   push(propsRef, {
     titulo:        titulo || propDireccionCompleta || direccion,
     direccion:     propDireccionCompleta || direccion,
-    barrio:        propBarrio || '',
+    barrio:        document.getElementById('p-barrio-manual')?.value.trim() || propBarrio || '',
     tipo:          document.getElementById('p-tipo').value,
     operacion:     document.getElementById('p-operacion').value,
     precio:        precioFormato,
@@ -1433,7 +1437,7 @@ window._guardarPropiedad = () => {
   });
 
   // Reset
-  ['p-titulo','p-desc','p-direccion','p-precio-num','p-sup-total','p-sup-cubierta','p-piso'].forEach(id => {
+  ['p-titulo','p-desc','p-direccion','p-precio-num','p-sup-total','p-sup-cubierta','p-piso','p-barrio-manual'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value='';
   });
   document.getElementById('p-fotos-preview').innerHTML = '';
@@ -1445,6 +1449,7 @@ window._guardarPropiedad = () => {
   propBarrio = '';
   propDireccionCompleta = '';
   cerrarModal('modal-nueva-prop');
+  setTimeout(() => { if (seccionActual === 'propiedades') renderPropiedades(); }, 500);
 };
 
 window._cambiarEstadoProp = (id, estado) => update(ref(db,`propiedades/${id}`), {estado});
@@ -1498,6 +1503,7 @@ window._guardarPropietario = () => {
   });
   ['pr-nombre','pr-tel','pr-email','pr-obs'].forEach(id => document.getElementById(id).value='');
   cerrarModal('modal-nuevo-prop');
+  setTimeout(() => { if (seccionActual === 'propietarios') renderPropietarios(); }, 500);
 };
 
 window._eliminarPropietario = (id) => {
@@ -1749,9 +1755,9 @@ window._abrirLightbox = (fotos, idx) => {
   _lbFotos = fotos; _lbIdx = idx;
   document.getElementById('lightbox-img').src = fotos[idx];
   document.getElementById('lightbox-counter').textContent = `${idx+1} / ${fotos.length}`;
-  document.getElementById('lightbox').classList.add('open');
+  document.getElementById('lightbox').style.display = 'flex';
 };
-window._cerrarLightbox = () => document.getElementById('lightbox').classList.remove('open');
+window._cerrarLightbox = () => { document.getElementById('lightbox').style.display = 'none'; };
 window._lightboxNav = (dir) => {
   _lbIdx = (_lbIdx + dir + _lbFotos.length) % _lbFotos.length;
   document.getElementById('lightbox-img').src = _lbFotos[_lbIdx];
