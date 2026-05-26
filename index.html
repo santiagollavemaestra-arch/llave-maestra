@@ -66,31 +66,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
 .perfil-activo{display:none;align-items:center;gap:6px}
 .perfil-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff}
 .perfil-nombre{font-size:12px;font-weight:700;color:#fff}
-.stats-btn-header{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:7px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
 
-/* NAVEGACIÓN PRINCIPAL - BARRA INFERIOR */
-.nav-bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--gray-200);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;transition:all .2s;border:none;background:none;font-family:'DM Sans',sans-serif}
-.nav-icon{font-size:22px;line-height:1;margin-bottom:3px}
-.nav-label{font-size:10px;font-weight:600;color:var(--gray-400);letter-spacing:0.3px}
-.nav-item.active .nav-label{color:var(--black)}
-.nav-badge{position:absolute;top:-2px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}
-.nav-icon-wrap{position:relative}
+
+/* TABS PRINCIPALES */
+.tabs-main{background:#fff;display:flex;border-bottom:2px solid var(--gray-200);position:sticky;top:29px;z-index:95}
+.tab-main{flex:1;padding:13px 4px;font-size:12px;font-weight:600;color:var(--gray-400);cursor:pointer;border-bottom:3px solid transparent;text-align:center;transition:all .2s;white-space:nowrap}
+.tab-main.active{color:var(--black);border-bottom-color:var(--black)}
+.tab-main-icon{font-size:16px;display:block;margin-bottom:2px}
 
 /* SUBTABS DE CONSULTAS */
-.subtabs{background:#fff;display:flex;border-bottom:1px solid var(--gray-200);overflow-x:auto;scrollbar-width:none;position:sticky;top:65px;z-index:90}
+.subtabs{background:#fff;display:flex;border-bottom:1px solid var(--gray-200);overflow-x:auto;scrollbar-width:none;position:sticky;top:89px;z-index:90}
 .subtabs::-webkit-scrollbar{display:none}
 .subtab{flex:none;padding:10px 14px;font-size:12px;font-weight:500;color:var(--gray-400);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
 .subtab.active{color:var(--black);border-bottom-color:var(--black);font-weight:700}
 .subtab-count{display:inline-block;background:var(--gray-100);color:var(--gray-600);font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:3px}
 .subtab.active .subtab-count{background:var(--black);color:#fff}
-
-/* SECCIONES */
-.seccion{display:none}
-.seccion.activa{display:block}
-
-/* AJUSTE PARA BARRA INFERIOR */
-body{padding-bottom:70px}
 
 /* CONTENT */
 .content{padding:14px;max-width:680px;margin:0 auto}
@@ -323,7 +313,26 @@ body{padding-bottom:70px}
       <div class="perfil-avatar" id="perfil-avatar"></div>
       <span class="perfil-nombre" id="perfil-nombre"></span>
     </div>
-    <button class="stats-btn-header" onclick="window._abrirStats()">📊 Estadísticas</button>
+
+  </div>
+</div>
+
+<!-- TABS PRINCIPALES -->
+<div class="tabs-main">
+  <div class="tab-main active" onclick="switchSeccion('consultas')" id="nav-consultas">
+    <span class="tab-main-icon">💬</span>Consultas
+  </div>
+  <div class="tab-main" onclick="switchSeccion('propiedades')" id="nav-propiedades">
+    <span class="tab-main-icon">🏠</span>Propiedades
+  </div>
+  <div class="tab-main" onclick="switchSeccion('propietarios')" id="nav-propietarios">
+    <span class="tab-main-icon">👤</span>Propietarios
+  </div>
+  <div class="tab-main" onclick="switchSeccion('visitas')" id="nav-visitas">
+    <span class="tab-main-icon">📅</span>Visitas
+  </div>
+  <div class="tab-main" onclick="window._abrirStats()" id="nav-stats">
+    <span class="tab-main-icon">📊</span>Stats
   </div>
 </div>
 
@@ -726,35 +735,16 @@ body{padding-bottom:70px}
   </div>
 </div>
 
-<!-- NAVEGACIÓN INFERIOR -->
-<nav class="nav-bottom">
-  <button class="nav-item active" id="nav-consultas" onclick="switchSeccion('consultas')">
-    <div class="nav-icon-wrap">
-      <span class="nav-icon">💬</span>
-      <span class="nav-badge" id="nav-badge-consultas" style="display:none">0</span>
-    </div>
-    <span class="nav-label">Consultas</span>
-  </button>
-  <button class="nav-item" id="nav-propiedades" onclick="switchSeccion('propiedades')">
-    <span class="nav-icon">🏠</span>
-    <span class="nav-label">Propiedades</span>
-  </button>
-  <button class="nav-item" id="nav-propietarios" onclick="switchSeccion('propietarios')">
-    <span class="nav-icon">👤</span>
-    <span class="nav-label">Propietarios</span>
-  </button>
-  <button class="nav-item" id="nav-visitas" onclick="switchSeccion('visitas')">
-    <div class="nav-icon-wrap">
-      <span class="nav-icon">📅</span>
-      <span class="nav-badge" id="nav-badge-visitas" style="display:none">0</span>
-    </div>
-    <span class="nav-label">Visitas</span>
-  </button>
-  <button class="nav-item" id="nav-stats" onclick="window._abrirStats()">
-    <span class="nav-icon">📊</span>
-    <span class="nav-label">Estadísticas</span>
-  </button>
-</nav>
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)window._cerrarLightbox()">
+  <button class="lightbox-close" onclick="window._cerrarLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+  <div class="lightbox-nav">
+    <button class="lightbox-btn" onclick="window._lightboxNav(-1)">◀</button>
+    <button class="lightbox-btn" onclick="window._lightboxNav(1)">▶</button>
+  </div>
+  <div class="lightbox-counter" id="lightbox-counter"></div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
@@ -1371,7 +1361,7 @@ function renderPropiedades() {
       const estadoCls = p.estado==='Disponible'?'prop-disponible':p.estado==='Reservada'?'prop-reservada':'prop-vendida';
       return `<div class="prop-ficha">
         <span class="prop-estado-badge ${estadoCls}">${p.estado||'Disponible'}</span>
-        ${p.fotos && p.fotos.length ? `<div class="prop-galeria">${p.fotos.map(f=>`<img src="${f}" alt="${p.titulo}">`).join('')}</div>` : p.foto ? `<img class="prop-img" src="${p.foto}" alt="${p.titulo}">` : '<div class="prop-img">📷 Sin foto</div>'}
+        ${p.fotos && p.fotos.length ? `<div class="prop-galeria">${p.fotos.map((f,i)=>`<img src="${f}" alt="${p.titulo}" onclick="window._abrirLightbox(${JSON.stringify(p.fotos)},${i})">`).join('')}</div>` : p.foto ? `<img class="prop-img" src="${p.foto}" alt="${p.titulo}" onclick="window._abrirLightbox(['${p.foto}'],0)" style="cursor:pointer">` : '<div class="prop-img">📷 Sin foto</div>'}
         <div class="prop-body">
           <div class="prop-operacion">${p.tipo||''} · ${p.operacion||''}${p.barrio?' · '+p.barrio:''}</div>
           <div class="prop-titulo">${p.titulo||p.direccion||''}</div>
@@ -1753,6 +1743,21 @@ window._setFiltroEstado = (estado, btn) => {
 
 window.cerrarModal = (id) => document.getElementById(id).classList.remove('open');
 
+// LIGHTBOX
+let _lbFotos = [], _lbIdx = 0;
+window._abrirLightbox = (fotos, idx) => {
+  _lbFotos = fotos; _lbIdx = idx;
+  document.getElementById('lightbox-img').src = fotos[idx];
+  document.getElementById('lightbox-counter').textContent = `${idx+1} / ${fotos.length}`;
+  document.getElementById('lightbox').classList.add('open');
+};
+window._cerrarLightbox = () => document.getElementById('lightbox').classList.remove('open');
+window._lightboxNav = (dir) => {
+  _lbIdx = (_lbIdx + dir + _lbFotos.length) % _lbFotos.length;
+  document.getElementById('lightbox-img').src = _lbFotos[_lbIdx];
+  document.getElementById('lightbox-counter').textContent = `${_lbIdx+1} / ${_lbFotos.length}`;
+};
+
 // Mostrar/ocultar campos según tipo de propiedad
 window._actualizarCamposTipo = () => {
   const tipo = document.getElementById('p-tipo')?.value;
@@ -1776,6 +1781,7 @@ window._formatearPrecio = (input) => {
 
 // Generador de descripción con IA usando Anthropic API
 window._generarDescripcion = async () => {
+  // Usamos el endpoint de Anthropic con el header correcto
   const tipo = document.getElementById('p-tipo')?.value || '';
   const operacion = document.getElementById('p-operacion')?.value || '';
   const direccion = document.getElementById('p-direccion')?.value || '';
@@ -1829,7 +1835,10 @@ Escribí una descripción de 3 párrafos: 1) Introducción destacando lo mejor, 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
@@ -1841,6 +1850,7 @@ Escribí una descripción de 3 párrafos: 1) Introducción destacando lo mejor, 
     document.getElementById('p-desc').value = texto;
   } catch(e) {
     document.getElementById('p-desc').value = 'Error generando descripción. Completála manualmente.';
+    console.log('Error IA:', e);
   }
   loading.style.display = 'none';
 };
