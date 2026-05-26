@@ -406,11 +406,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
     <div class="form-group"><label class="form-label">Precio</label><input class="form-input" id="p-precio" placeholder="Ej: USD 120.000 o $800.000/mes" type="text"></div>
     <div class="form-group">
       <label class="form-label">Operación</label>
-      <select class="form-select" id="p-operacion">
+      <select class="form-select" id="p-operacion" onchange="window._actualizarMoneda()">
         <option value="Venta">Venta</option>
         <option value="Alquiler">Alquiler</option>
         <option value="Alquiler temporal">Alquiler temporal</option>
       </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Precio</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="form-select" id="p-moneda" style="width:100px;flex-shrink:0">
+          <option value="USD">USD</option>
+          <option value="ARS">$</option>
+        </select>
+        <input class="form-input" id="p-precio-num" placeholder="Ej: 120000" type="number" min="0">
+        <span id="p-precio-periodo" style="font-size:13px;color:var(--gray-400);white-space:nowrap"></span>
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Estado</label>
@@ -432,9 +443,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
     </div>
     <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="p-desc" placeholder="Características: ambientes, m², barrio, amenities..."></textarea></div>
     <div class="form-group">
-      <label class="form-label">Fotos <span style="font-weight:400;color:var(--gray-400)">(hasta 5 fotos)</span></label>
+      <label class="form-label">Fotos <span style="font-weight:400;color:var(--gray-400)">(hasta 20 fotos)</span></label>
       <input type="file" id="p-fotos-input" accept="image/*" multiple style="display:none" onchange="window._previsualizarFotos(this)">
-      <button type="button" onclick="document.getElementById('p-fotos-input').click()" style="width:100%;padding:12px;border:1.5px dashed var(--gray-200);border-radius:var(--radius-sm);background:var(--gray-50);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--gray-600);cursor:pointer">📷 Seleccionar fotos desde el celular o computadora</button>
+      <button type="button" onclick="document.getElementById('p-fotos-input').click()" style="width:100%;padding:12px;border:1.5px dashed var(--gray-200);border-radius:var(--radius-sm);background:var(--gray-50);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--gray-600);cursor:pointer">📷 Seleccionar fotos (hasta 20)</button>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;background:var(--purple-light);border-radius:var(--radius-sm)">
+        <label style="position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0">
+          <input type="checkbox" id="p-embellecer" checked style="opacity:0;width:0;height:0">
+          <span onclick="document.getElementById('p-embellecer').click();this.style.background=document.getElementById('p-embellecer').checked?'var(--purple)':'var(--gray-200)'" id="toggle-embellecer" style="position:absolute;cursor:pointer;inset:0;background:var(--purple);border-radius:22px;transition:.3s"></span>
+          <span id="toggle-ball" style="position:absolute;content:'';height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;transform:translateX(18px)"></span>
+        </label>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--purple)">✨ Embellecimiento automático</div>
+          <div style="font-size:11px;color:var(--gray-600)">Mejora brillo, contraste y nitidez de las fotos</div>
+        </div>
+      </div>
       <div id="p-fotos-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
     <div class="btn-row">
@@ -1113,7 +1135,14 @@ window._guardarPropiedad = () => {
     direccion:   propDireccionCompleta || direccion,
     barrio:      propBarrio || '',
     propietarioId: propietarioId||null,
-    precio:      document.getElementById('p-precio').value.trim(),
+    precio:      (() => {
+      const moneda = document.getElementById('p-moneda')?.value || 'USD';
+      const num = document.getElementById('p-precio-num')?.value || '';
+      const periodo = document.getElementById('p-precio-periodo')?.textContent || '';
+      if (!num) return '';
+      const numFormato = parseInt(num).toLocaleString('es-AR');
+      return moneda === 'USD' ? `USD ${numFormato}${periodo}` : `$${numFormato}${periodo}`;
+    })(),
     desc:        document.getElementById('p-desc').value.trim(),
     fotos:       fotosSubidas.length ? [...fotosSubidas] : [],
     foto:        fotosSubidas[0] || '',
@@ -1122,7 +1151,7 @@ window._guardarPropiedad = () => {
     fecha:       Date.now(), cargadoPor: usuarioActivo
   });
   // Reset
-  ['p-titulo','p-precio','p-desc','p-direccion'].forEach(id => document.getElementById(id).value='');
+  ['p-titulo','p-desc','p-direccion','p-precio-num'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('p-fotos-preview').innerHTML = '';
   document.getElementById('p-barrio-detectado').style.display = 'none';
   fotosSubidas = [];
@@ -1263,6 +1292,39 @@ window._setFiltroEstado = (estado, btn) => {
 
 window.cerrarModal = (id) => document.getElementById(id).classList.remove('open');
 
+// Toggle embellecimiento visual
+document.addEventListener('change', function(e) {
+  if (e.target.id === 'p-embellecer') {
+    const ball = document.getElementById('toggle-ball');
+    const span = document.getElementById('toggle-embellecer');
+    if (e.target.checked) {
+      ball.style.transform = 'translateX(18px)';
+      span.style.background = 'var(--purple)';
+    } else {
+      ball.style.transform = 'translateX(0)';
+      span.style.background = 'var(--gray-200)';
+    }
+  }
+});
+
+// Moneda según operación
+window._actualizarMoneda = () => {
+  const op = document.getElementById('p-operacion')?.value;
+  const moneda = document.getElementById('p-moneda');
+  const periodo = document.getElementById('p-precio-periodo');
+  if (!moneda || !periodo) return;
+  if (op === 'Venta') {
+    moneda.value = 'USD';
+    periodo.textContent = '';
+  } else if (op === 'Alquiler') {
+    moneda.value = 'ARS';
+    periodo.textContent = '/mes';
+  } else if (op === 'Alquiler temporal') {
+    moneda.value = 'USD';
+    periodo.textContent = '/noche';
+  }
+};
+
 // ============================================================
 // GOOGLE PLACES AUTOCOMPLETE
 // ============================================================
@@ -1318,7 +1380,7 @@ let fotosSubidas = []; // URLs de las fotos subidas
 
 window._previsualizarFotos = async (input) => {
   const preview = document.getElementById('p-fotos-preview');
-  const files = Array.from(input.files).slice(0, 5);
+  const files = Array.from(input.files).slice(0, 20);
 
   for (const file of files) {
     // Mostrar preview local mientras sube
@@ -1341,7 +1403,15 @@ window._previsualizarFotos = async (input) => {
         method: 'POST', body: formData
       });
       const data = await res.json();
-      fotosSubidas.push(data.secure_url);
+      
+      // Aplicar embellecimiento si está activado
+      const embellecer = document.getElementById('p-embellecer')?.checked;
+      let urlFinal = data.secure_url;
+      if (embellecer) {
+        // Insertar transformaciones de Cloudinary: mejora automática
+        urlFinal = data.secure_url.replace('/upload/', '/upload/e_improve,e_auto_brightness,e_auto_contrast,e_sharpen:50,q_auto,f_auto/');
+      }
+      fotosSubidas.push(urlFinal);
 
       // Actualizar preview con botón eliminar
       const divId = 'prev-' + file.name.replace(/[^a-z0-9]/gi,'');
