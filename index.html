@@ -1482,15 +1482,7 @@ window.matchingInverso = async (propId, p) => {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         contents:[{parts:[{text:
-          'Propiedad a recomendar: '+[p.tipo,p.operacion,p.barrio,p.ambientes?p.ambientes+' amb':'',p.precio,p.desc?.substring(0,150)].filter(Boolean).join(' | ')+
-          '
-
-Consultas activas:
-'+consActivas.join('
-')+
-          '
-
-Respondé SOLO JSON: {"matches":[{"id":"ID","score":85,"razon":"razón breve"}]} Máx 3, score>40.'
+          'Propiedad: '+[p.tipo,p.operacion,p.barrio,p.ambientes?p.ambientes+' amb':'',p.precio,p.desc?.substring(0,150)].filter(Boolean).join(' | ')+'\n\nConsultas:\n'+consActivas.join('\n')+'\n\nResponde SOLO JSON valido: {matches:[{id,score,razon}]} max 3 score mayor 40.'
         }]}],
         generationConfig:{maxOutputTokens:400,temperature:0.3}
       })
