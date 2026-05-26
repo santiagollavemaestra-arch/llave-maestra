@@ -12,6 +12,7 @@
 <link rel="apple-touch-icon" href="/llave-maestra/icon-192.png">
 <meta name="theme-color" content="#0a0a0a">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJA9Mqz_27Z4pRWiXyuV9K1tgJsb27YKA&libraries=places&language=es&region=AR"></script>
 <script>emailjs.init("Vjf16OOzV2i7xWz7x");</script>
 <style>
 :root {
@@ -424,8 +425,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
         <option value="">— Sin propietario asignado —</option>
       </select>
     </div>
+    <div class="form-group">
+      <label class="form-label">Dirección</label>
+      <input class="form-input" id="p-direccion" placeholder="Ej: Cerrito 28, Mar del Plata" type="text" autocomplete="off">
+      <div id="p-barrio-detectado" style="font-size:12px;color:var(--green);margin-top:4px;display:none">✓ Barrio detectado: <span id="p-barrio-txt"></span></div>
+    </div>
     <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="p-desc" placeholder="Características: ambientes, m², barrio, amenities..."></textarea></div>
-    <div class="form-group"><label class="form-label">URL de foto <span style="font-weight:400;color:var(--gray-400)">(opcional)</span></label><input class="form-input" id="p-foto" placeholder="https://..." type="url"></div>
+    <div class="form-group">
+      <label class="form-label">Fotos <span style="font-weight:400;color:var(--gray-400)">(hasta 5 fotos)</span></label>
+      <input type="file" id="p-fotos-input" accept="image/*" multiple style="display:none" onchange="window._previsualizarFotos(this)">
+      <button type="button" onclick="document.getElementById('p-fotos-input').click()" style="width:100%;padding:12px;border:1.5px dashed var(--gray-200);border-radius:var(--radius-sm);background:var(--gray-50);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--gray-600);cursor:pointer">📷 Seleccionar fotos desde el celular o computadora</button>
+      <div id="p-fotos-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+    </div>
     <div class="btn-row">
       <button class="btn-secondary" onclick="cerrarModal('modal-nueva-prop')">Cancelar</button>
       <button class="btn-primary" onclick="window._guardarPropiedad()">Guardar</button>
@@ -950,10 +961,7 @@ function actualizarSelectPropiedades() {
 }
 
 function actualizarSelectPropietarios() {
-  const sel = document.getElementById('p-propietario');
-  if (!sel) return;
-  const opts = Object.entries(propietarios).map(([id,p]) => `<option value="${id}">${p.nombre}</option>`).join('');
-  sel.innerHTML = '<option value="">— Sin propietario asignado —</option>' + opts;
+  renderSelectPropietarioConBusqueda();
 }
 
 document.getElementById('f-propiedad-sel').addEventListener('change', function() {
@@ -1068,10 +1076,11 @@ function renderPropiedades() {
       const estadoCls = p.estado==='Disponible'?'prop-disponible':p.estado==='Reservada'?'prop-reservada':'prop-vendida';
       return `<div class="prop-ficha">
         <span class="prop-estado-badge ${estadoCls}">${p.estado||'Disponible'}</span>
-        ${p.foto ? `<img class="prop-img" src="${p.foto}" alt="${p.titulo}" onerror="this.parentElement.querySelector('.prop-img').style.display='none'">` : '<div class="prop-img">📷 Sin foto</div>'}
+        ${p.fotos && p.fotos.length ? `<div class="prop-galeria">${p.fotos.map(f=>`<img src="${f}" alt="${p.titulo}">`).join('')}</div>` : p.foto ? `<img class="prop-img" src="${p.foto}" alt="${p.titulo}">` : '<div class="prop-img">📷 Sin foto</div>'}
         <div class="prop-body">
-          <div class="prop-operacion">${p.operacion||''}</div>
+          <div class="prop-operacion">${p.operacion||''}${p.barrio?' · '+p.barrio:''}</div>
           <div class="prop-titulo">${p.titulo||''}</div>
+          ${p.direccion && p.direccion !== p.titulo ? `<div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">${p.direccion}</div>` : ''}
           <div class="prop-precio">${p.precio||''}</div>
           ${p.desc?`<div class="prop-desc">${p.desc.substring(0,80)}${p.desc.length>80?'...':''}</div>`:''}
           ${propietario?`<div class="prop-propietario">👤 ${propietario}</div>`:''}
@@ -1096,18 +1105,29 @@ function renderPropiedades() {
 
 window._guardarPropiedad = () => {
   const titulo = document.getElementById('p-titulo').value.trim();
-  if (!titulo) { alert('Ingresá la dirección o título'); return; }
+  const direccion = document.getElementById('p-direccion').value.trim();
+  if (!titulo && !direccion) { alert('Ingresá la dirección o título'); return; }
   const propietarioId = document.getElementById('p-propietario').value;
   push(propsRef, {
-    titulo, propietarioId: propietarioId||null,
-    precio:    document.getElementById('p-precio').value.trim(),
-    desc:      document.getElementById('p-desc').value.trim(),
-    foto:      document.getElementById('p-foto').value.trim(),
-    operacion: document.getElementById('p-operacion').value,
-    estado:    document.getElementById('p-estado').value,
-    fecha:     Date.now(), cargadoPor: usuarioActivo
+    titulo:      titulo || direccion,
+    direccion:   propDireccionCompleta || direccion,
+    barrio:      propBarrio || '',
+    propietarioId: propietarioId||null,
+    precio:      document.getElementById('p-precio').value.trim(),
+    desc:        document.getElementById('p-desc').value.trim(),
+    fotos:       fotosSubidas.length ? [...fotosSubidas] : [],
+    foto:        fotosSubidas[0] || '',
+    operacion:   document.getElementById('p-operacion').value,
+    estado:      document.getElementById('p-estado').value,
+    fecha:       Date.now(), cargadoPor: usuarioActivo
   });
-  ['p-titulo','p-precio','p-desc','p-foto'].forEach(id => document.getElementById(id).value='');
+  // Reset
+  ['p-titulo','p-precio','p-desc','p-direccion'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('p-fotos-preview').innerHTML = '';
+  document.getElementById('p-barrio-detectado').style.display = 'none';
+  fotosSubidas = [];
+  propBarrio = '';
+  propDireccionCompleta = '';
   cerrarModal('modal-nueva-prop');
 };
 
@@ -1242,6 +1262,116 @@ window._setFiltroEstado = (estado, btn) => {
 };
 
 window.cerrarModal = (id) => document.getElementById(id).classList.remove('open');
+
+// ============================================================
+// GOOGLE PLACES AUTOCOMPLETE
+// ============================================================
+let autocompletePropiedad = null;
+let propBarrio = '';
+let propDireccionCompleta = '';
+
+function initAutocomplete() {
+  const input = document.getElementById('p-direccion');
+  if (!input || !window.google) return;
+  autocompletePropiedad = new google.maps.places.Autocomplete(input, {
+    componentRestrictions: { country: 'ar' },
+    fields: ['address_components', 'formatted_address', 'geometry'],
+    language: 'es'
+  });
+  autocompletePropiedad.addListener('place_changed', () => {
+    const place = autocompletePropiedad.getPlace();
+    propDireccionCompleta = place.formatted_address || input.value;
+    propBarrio = '';
+    // Detectar barrio/sublocality
+    if (place.address_components) {
+      for (const comp of place.address_components) {
+        if (comp.types.includes('sublocality') || comp.types.includes('neighborhood')) {
+          propBarrio = comp.long_name;
+          break;
+        }
+        if (!propBarrio && comp.types.includes('locality')) {
+          propBarrio = comp.long_name;
+        }
+      }
+    }
+    if (propBarrio) {
+      document.getElementById('p-barrio-detectado').style.display = 'block';
+      document.getElementById('p-barrio-txt').textContent = propBarrio;
+    }
+    // Auto-completar título si está vacío
+    const titulo = document.getElementById('p-titulo');
+    if (!titulo.value.trim()) titulo.value = propDireccionCompleta;
+  });
+}
+
+// Inicializar cuando el modal de nueva propiedad se abra
+document.getElementById('modal-nueva-prop').addEventListener('click', function() {
+  if (!autocompletePropiedad) setTimeout(initAutocomplete, 300);
+});
+
+// ============================================================
+// CLOUDINARY - SUBIDA DE FOTOS
+// ============================================================
+const CLOUD_NAME = 'dgaixfvxa';
+const UPLOAD_PRESET = 'keynet_props';
+let fotosSubidas = []; // URLs de las fotos subidas
+
+window._previsualizarFotos = async (input) => {
+  const preview = document.getElementById('p-fotos-preview');
+  const files = Array.from(input.files).slice(0, 5);
+
+  for (const file of files) {
+    // Mostrar preview local mientras sube
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const div = document.createElement('div');
+      div.className = 'foto-preview-item';
+      div.id = 'prev-' + file.name.replace(/[^a-z0-9]/gi,'');
+      div.innerHTML = `<img src="${e.target.result}"><div class="foto-uploading">Subiendo...</div>`;
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+
+    // Subir a Cloudinary
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+        method: 'POST', body: formData
+      });
+      const data = await res.json();
+      fotosSubidas.push(data.secure_url);
+
+      // Actualizar preview con botón eliminar
+      const divId = 'prev-' + file.name.replace(/[^a-z0-9]/gi,'');
+      const div = document.getElementById(divId);
+      if (div) {
+        const idx = fotosSubidas.length - 1;
+        div.innerHTML = `<img src="${data.secure_url}"><button class="foto-preview-del" onclick="window._quitarFoto(${idx},this.parentElement)">✕</button>`;
+      }
+    } catch(e) {
+      console.log('Error subiendo foto:', e);
+    }
+  }
+  input.value = ''; // Reset input para permitir subir más
+};
+
+window._quitarFoto = (idx, el) => {
+  fotosSubidas.splice(idx, 1);
+  el.remove();
+};
+
+// ============================================================
+// PROPIETARIOS CON BÚSQUEDA
+// ============================================================
+function renderSelectPropietarioConBusqueda() {
+  const arr = Object.entries(propietarios).sort((a,b) => a[1].nombre.localeCompare(b[1].nombre));
+  const sel = document.getElementById('p-propietario');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Sin propietario —</option>' +
+    arr.map(([id,p]) => `<option value="${id}">${p.nombre}${p.tel?' — '+p.tel:''}</option>`).join('');
+}
 
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); });
