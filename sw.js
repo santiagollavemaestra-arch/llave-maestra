@@ -1,4 +1,4 @@
-const VERSION = '2.1'; // Cambiar este número con cada deploy
+const VERSION = '2.2'; // Cambiar este número con cada deploy
 const CACHE = 'keynet-' + VERSION;
 
 self.addEventListener('install', e => {
