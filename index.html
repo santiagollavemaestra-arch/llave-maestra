@@ -2,8 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="app-version" content="202605260512">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="app-version" content="202605260527"ame="viewport" content="width=device-width, initial-scale=1.0">
 <title>Llave Maestra — CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <link rel="manifest" href="/llave-maestra/manifest.json">
@@ -69,13 +68,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
 .perfil-nombre{font-size:12px;font-weight:700;color:#fff}
 .stats-btn-header{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:7px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
 
-/* TABS */
-.tabs{background:#fff;display:flex;border-bottom:1px solid var(--gray-200);overflow-x:auto;scrollbar-width:none;position:sticky;top:89px;z-index:90}
-.tabs::-webkit-scrollbar{display:none}
-.tab{flex:none;padding:12px 14px;font-size:12px;font-weight:500;color:var(--gray-400);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
-.tab.active{color:var(--black);border-bottom-color:var(--black);font-weight:700}
-.tab-count{display:inline-block;background:var(--gray-100);color:var(--gray-600);font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:3px}
-.tab.active .tab-count{background:var(--black);color:#fff}
+/* NAVEGACIÓN PRINCIPAL - BARRA INFERIOR */
+.nav-bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--gray-200);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;transition:all .2s;border:none;background:none;font-family:'DM Sans',sans-serif}
+.nav-icon{font-size:22px;line-height:1;margin-bottom:3px}
+.nav-label{font-size:10px;font-weight:600;color:var(--gray-400);letter-spacing:0.3px}
+.nav-item.active .nav-label{color:var(--black)}
+.nav-badge{position:absolute;top:-2px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.nav-icon-wrap{position:relative}
+
+/* SUBTABS DE CONSULTAS */
+.subtabs{background:#fff;display:flex;border-bottom:1px solid var(--gray-200);overflow-x:auto;scrollbar-width:none;position:sticky;top:65px;z-index:90}
+.subtabs::-webkit-scrollbar{display:none}
+.subtab{flex:none;padding:10px 14px;font-size:12px;font-weight:500;color:var(--gray-400);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.subtab.active{color:var(--black);border-bottom-color:var(--black);font-weight:700}
+.subtab-count{display:inline-block;background:var(--gray-100);color:var(--gray-600);font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:3px}
+.subtab.active .subtab-count{background:var(--black);color:#fff}
+
+/* SECCIONES */
+.seccion{display:none}
+.seccion.activa{display:block}
+
+/* AJUSTE PARA BARRA INFERIOR */
+body{padding-bottom:70px}
 
 /* CONTENT */
 .content{padding:14px;max-width:680px;margin:0 auto}
@@ -312,15 +327,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
   </div>
 </div>
 
-<!-- TABS -->
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('todas')" id="tab-todas">Todas <span class="tab-count" id="cnt-todas">0</span></div>
-  <div class="tab" onclick="switchTab('santiago')" id="tab-santiago">Santiago <span class="tab-count" id="cnt-santiago">0</span></div>
-  <div class="tab" onclick="switchTab('mariana')" id="tab-mariana">Mariana <span class="tab-count" id="cnt-mariana">0</span></div>
-  <div class="tab" onclick="switchTab('milagros')" id="tab-milagros">Milagros <span class="tab-count" id="cnt-milagros">0</span></div>
-  <div class="tab" onclick="switchTab('gabriel')" id="tab-gabriel">Gabriel <span class="tab-count" id="cnt-gabriel">0</span></div>
-  <div class="tab" onclick="switchTab('propiedades')" id="tab-propiedades">🏠 Propiedades</div>
-  <div class="tab" onclick="switchTab('propietarios')" id="tab-propietarios">👤 Propietarios</div>
+<!-- SUBTABS CONSULTAS -->
+<div class="subtabs" id="subtabs-consultas">
+  <div class="subtab active" onclick="switchSubTab('todas')" id="tab-todas">Todas <span class="subtab-count" id="cnt-todas">0</span></div>
+  <div class="subtab" onclick="switchSubTab('santiago')" id="tab-santiago">Santiago <span class="subtab-count" id="cnt-santiago">0</span></div>
+  <div class="subtab" onclick="switchSubTab('mariana')" id="tab-mariana">Mariana <span class="subtab-count" id="cnt-mariana">0</span></div>
+  <div class="subtab" onclick="switchSubTab('milagros')" id="tab-milagros">Milagros <span class="subtab-count" id="cnt-milagros">0</span></div>
+  <div class="subtab" onclick="switchSubTab('gabriel')" id="tab-gabriel">Gabriel <span class="subtab-count" id="cnt-gabriel">0</span></div>
 </div>
 
 <!-- CONTENT -->
@@ -635,6 +648,74 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
   </div>
 </div>
 
+<!-- MODAL NUEVA VISITA -->
+<div class="modal-overlay" id="modal-nueva-visita">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Agendar visita</div>
+
+    <div class="form-group">
+      <label class="form-label">Propiedad</label>
+      <select class="form-select" id="v-propiedad">
+        <option value="">— Seleccioná una propiedad —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cliente / Interesado</label>
+      <select class="form-select" id="v-consulta">
+        <option value="">— Seleccioná una consulta activa —</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group">
+        <label class="form-label">Fecha</label>
+        <input class="form-input" id="v-fecha" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hora</label>
+        <input class="form-input" id="v-hora" type="time">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Agente responsable</label>
+      <select class="form-select" id="v-agente">
+        <option value="santiago">Santiago</option>
+        <option value="mariana">Mariana</option>
+        <option value="milagros">Milagros</option>
+        <option value="gabriel">Gabriel</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Observaciones <span style="font-weight:400;color:var(--gray-400)">(opcional)</span></label>
+      <input class="form-input" id="v-obs" placeholder="Ej: traer llave B, timbre 3B..." type="text">
+    </div>
+
+    <!-- NOTIFICACIONES -->
+    <div style="background:var(--gray-50);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);margin-bottom:10px">Notificaciones automáticas</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:8px">
+        <input type="checkbox" id="v-notif-cliente" checked style="width:16px;height:16px">
+        <div>
+          <div style="font-weight:600">Avisar al cliente por WhatsApp</div>
+          <div style="font-size:11px;color:var(--gray-400)">Se abrirá WhatsApp con el mensaje listo</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+        <input type="checkbox" id="v-notif-propietario" style="width:16px;height:16px">
+        <div>
+          <div style="font-weight:600">Avisar al propietario por WhatsApp</div>
+          <div style="font-size:11px;color:var(--gray-400)">Solo si la propiedad tiene propietario asignado</div>
+        </div>
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="cerrarModal('modal-nueva-visita')">Cancelar</button>
+      <button class="btn-primary" onclick="window._guardarVisita()">Agendar visita</button>
+    </div>
+  </div>
+</div>
+
 <!-- STATS MODAL -->
 <div class="stats-modal" id="stats-modal">
   <div class="stats-content">
@@ -644,6 +725,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
     <div class="btn-row"><button class="btn-primary" onclick="document.getElementById('stats-modal').classList.remove('open')">Cerrar</button></div>
   </div>
 </div>
+
+<!-- NAVEGACIÓN INFERIOR -->
+<nav class="nav-bottom">
+  <button class="nav-item active" id="nav-consultas" onclick="switchSeccion('consultas')">
+    <div class="nav-icon-wrap">
+      <span class="nav-icon">💬</span>
+      <span class="nav-badge" id="nav-badge-consultas" style="display:none">0</span>
+    </div>
+    <span class="nav-label">Consultas</span>
+  </button>
+  <button class="nav-item" id="nav-propiedades" onclick="switchSeccion('propiedades')">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Propiedades</span>
+  </button>
+  <button class="nav-item" id="nav-propietarios" onclick="switchSeccion('propietarios')">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">Propietarios</span>
+  </button>
+  <button class="nav-item" id="nav-visitas" onclick="switchSeccion('visitas')">
+    <div class="nav-icon-wrap">
+      <span class="nav-icon">📅</span>
+      <span class="nav-badge" id="nav-badge-visitas" style="display:none">0</span>
+    </div>
+    <span class="nav-label">Visitas</span>
+  </button>
+  <button class="nav-item" id="nav-stats" onclick="window._abrirStats()">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Estadísticas</span>
+  </button>
+</nav>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
@@ -905,6 +1016,15 @@ function renderCounts() {
     const n = activas.filter(c => c.asignado===m).length;
     document.getElementById('cnt-'+m).textContent = n + (n===1?' activa':' activas');
   });
+  // Badge en nav
+  const badge = document.getElementById('nav-badge-consultas');
+  const vencidas = arr.filter(c => { const i = countdownInfo(c); return i?.tipo==='vencida'; }).length;
+  if (badge) { badge.style.display = vencidas>0?'flex':'none'; badge.textContent = vencidas; }
+  // Badge visitas hoy
+  const hoy = new Date().toISOString().split('T')[0];
+  const visitasHoy = Object.values(visitas).filter(v=>v.fecha===hoy).length;
+  const badgeV = document.getElementById('nav-badge-visitas');
+  if (badgeV) { badgeV.style.display = visitasHoy>0?'flex':'none'; badgeV.textContent = visitasHoy; }
 }
 
 function renderAlarmas() {
@@ -1438,22 +1558,186 @@ window._abrirStats = () => {
 // ============================================================
 // TABS Y FILTROS
 // ============================================================
-window.switchTab = (tab) => {
-  tabActual = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
+// ============================================================
+// VISITAS
+// ============================================================
+let visitas = {};
+const visitasRef = ref(db, 'visitas');
+onValue(visitasRef, snap => {
+  visitas = snap.val() || {};
+  if (tabActual === 'visitas') renderVisitas();
+});
 
-  // Mostrar/ocultar elementos según tab
-  const esProp = tab === 'propiedades' || tab === 'propietarios';
-  document.getElementById('buscador-area').style.display = esProp ? 'none' : 'block';
-  document.getElementById('rotacion-bar').style.display = esProp ? 'none' : 'block';
-  document.getElementById('stats-bar').style.display = esProp ? 'none' : 'grid';
-  document.getElementById('alarmas-container').style.display = esProp ? 'none' : 'block';
+function actualizarSelectsVisita() {
+  // Propiedades
+  const selProp = document.getElementById('v-propiedad');
+  if (selProp) {
+    const opts = Object.entries(propiedades)
+      .filter(([,p]) => p.estado !== 'Vendida/Alquilada')
+      .map(([id,p]) => `<option value="${id}">${p.titulo||p.direccion}</option>`).join('');
+    selProp.innerHTML = '<option value="">— Seleccioná una propiedad —</option>' + opts;
+  }
+  // Consultas activas
+  const selCons = document.getElementById('v-consulta');
+  if (selCons) {
+    const arr = Object.entries(consultas)
+      .filter(([,c]) => !['Cerrado','Sin interés'].includes(c.estado))
+      .sort((a,b) => (a[1].nombre||'').localeCompare(b[1].nombre||''));
+    const opts = arr.map(([id,c]) => `<option value="${id}">${c.nombre||'Sin nombre'}${c.tel?' — '+c.tel:''}</option>`).join('');
+    selCons.innerHTML = '<option value="">— Seleccioná un interesado —</option>' + opts;
+  }
+}
 
-  if (tab === 'propiedades') renderPropiedades();
-  else if (tab === 'propietarios') renderPropietarios();
+function renderVisitas() {
+  const lista = document.getElementById('lista-consultas');
+  const hoy = new Date().toISOString().split('T')[0];
+  const arr = Object.entries(visitas)
+    .map(([id,v]) => ({...v,id}))
+    .sort((a,b) => (a.fecha+a.hora) > (b.fecha+b.hora) ? 1 : -1);
+
+  // Separar próximas y pasadas
+  const proximas = arr.filter(v => v.fecha >= hoy);
+  const pasadas = arr.filter(v => v.fecha < hoy);
+
+  let html = `<button class="btn-nueva" onclick="window._abrirNuevaVisita()">+ Agendar visita</button>`;
+
+  if (!arr.length) {
+    html += `<div class="empty"><div class="empty-icon">📅</div><div>No hay visitas agendadas</div></div>`;
+  } else {
+    if (proximas.length) {
+      html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-bottom:8px">PRÓXIMAS (${proximas.length})</div>`;
+      html += proximas.map(v => renderVisitaCard(v, hoy)).join('');
+    }
+    if (pasadas.length) {
+      html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin:16px 0 8px">REALIZADAS (${pasadas.length})</div>`;
+      html += pasadas.map(v => renderVisitaCard(v, hoy, true)).join('');
+    }
+  }
+  lista.innerHTML = html;
+  document.getElementById('buscador-area').style.display = 'none';
+  document.getElementById('rotacion-bar').style.display = 'none';
+  document.getElementById('stats-bar').style.display = 'none';
+  document.getElementById('alarmas-container').style.display = 'none';
+}
+
+function renderVisitaCard(v, hoy, pasada=false) {
+  const esHoy = v.fecha === hoy;
+  const prop = v.propiedadId && propiedades[v.propiedadId] ? propiedades[v.propiedadId] : null;
+  const cons = v.consultaId && consultas[v.consultaId] ? consultas[v.consultaId] : null;
+  const fechaDisplay = new Date(v.fecha + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'2-digit', month:'long'});
+
+  return `<div class="visita-card ${esHoy?'visita-hoy':''} ${pasada?'visita-pasada':''}">
+    <div class="visita-fecha-badge">📅 ${fechaDisplay} a las ${v.hora}hs</div>
+    <div class="visita-propiedad">🏠 ${prop?.titulo||prop?.direccion||v.propiedadTitulo||'Sin propiedad'}</div>
+    <div class="visita-cliente">👤 ${cons?.nombre||v.clienteNombre||'Sin cliente'}${cons?.tel?' — 📱 '+cons.tel:''}</div>
+    <div class="visita-agente">Agente: ${NOMBRES[v.agente]||v.agente} ${v.obs?'· '+v.obs:''}</div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      ${cons?.tel?`<a href="https://wa.me/549${cons.tel.replace(/\D/g,'')}" target="_blank" style="flex:1;text-align:center;padding:7px;background:#25D366;color:white;border-radius:var(--radius-sm);font-size:12px;font-weight:700;text-decoration:none">📱 Cliente</a>`:''}
+      ${!pasada?`<button onclick="window._eliminarVisita('${v.id}')" style="padding:7px 12px;background:var(--red-light);color:var(--red);border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer">🗑</button>`:''}
+    </div>
+  </div>`;
+}
+
+window._abrirNuevaVisita = () => {
+  actualizarSelectsVisita();
+  // Poner fecha de hoy por defecto
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('v-fecha').value = hoy;
+  document.getElementById('v-hora').value = '10:00';
+  // Poner agente activo por defecto
+  const sel = document.getElementById('v-agente');
+  if (sel && usuarioActivo) sel.value = usuarioActivo;
+  document.getElementById('modal-nueva-visita').classList.add('open');
+};
+
+window._guardarVisita = () => {
+  const propiedadId = document.getElementById('v-propiedad').value;
+  const consultaId = document.getElementById('v-consulta').value;
+  const fecha = document.getElementById('v-fecha').value;
+  const hora = document.getElementById('v-hora').value;
+  if (!fecha || !hora) { alert('Ingresá fecha y hora'); return; }
+
+  const prop = propiedadId && propiedades[propiedadId] ? propiedades[propiedadId] : null;
+  const cons = consultaId && consultas[consultaId] ? consultas[consultaId] : null;
+  const agente = document.getElementById('v-agente').value;
+  const obs = document.getElementById('v-obs').value.trim();
+  const fechaDisplay = new Date(fecha + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+
+  push(visitasRef, {
+    propiedadId: propiedadId||null,
+    propiedadTitulo: prop?.titulo||prop?.direccion||'',
+    consultaId: consultaId||null,
+    clienteNombre: cons?.nombre||'',
+    fecha, hora, agente, obs,
+    cargadoPor: usuarioActivo,
+    timestamp: Date.now()
+  });
+
+  // Notificación al cliente
+  if (document.getElementById('v-notif-cliente').checked && cons?.tel) {
+    const msg = encodeURIComponent(
+      `Hola ${cons.nombre||''}! Te confirmamos la visita para el ${fechaDisplay} a las ${hora}hs a la propiedad ${prop?.titulo||prop?.direccion||''}. Cualquier consulta estamos a disposición. Llave Maestra Desarrollos Inmobiliarios.`
+    );
+    window.open(`https://wa.me/549${cons.tel.replace(/\D/g,'')}?text=${msg}`, '_blank');
+  }
+
+  // Notificación al propietario
+  if (document.getElementById('v-notif-propietario').checked && prop?.propietarioId) {
+    const propietario = propietarios[prop.propietarioId];
+    if (propietario?.tel) {
+      setTimeout(() => {
+        const msg = encodeURIComponent(
+          `Hola ${propietario.nombre}! Le informamos que el ${fechaDisplay} a las ${hora}hs se realizará una visita a su propiedad ${prop.titulo||prop.direccion||''}. Agente responsable: ${NOMBRES[agente]||agente}. Llave Maestra Desarrollos Inmobiliarios.`
+        );
+        window.open(`https://wa.me/549${propietario.tel.replace(/\D/g,'')}?text=${msg}`, '_blank');
+      }, 1000);
+    }
+  }
+
+  cerrarModal('modal-nueva-visita');
+};
+
+window._eliminarVisita = (id) => {
+  if (!confirm('¿Eliminar esta visita?')) return;
+  remove(ref(db, `visitas/${id}`));
+};
+
+let seccionActual = 'consultas';
+
+window.switchSeccion = (seccion) => {
+  seccionActual = seccion;
+  // Actualizar nav
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.getElementById('nav-'+seccion);
+  if (navEl) navEl.classList.add('active');
+
+  // Mostrar/ocultar subtabs de consultas
+  const subtabs = document.getElementById('subtabs-consultas');
+  if (subtabs) subtabs.style.display = seccion === 'consultas' ? 'flex' : 'none';
+
+  // Mostrar/ocultar elementos de consultas
+  const esConsultas = seccion === 'consultas';
+  document.getElementById('buscador-area').style.display = esConsultas ? 'block' : 'none';
+  document.getElementById('rotacion-bar').style.display = esConsultas ? 'block' : 'none';
+  document.getElementById('stats-bar').style.display = esConsultas ? 'grid' : 'none';
+  document.getElementById('alarmas-container').style.display = esConsultas ? 'block' : 'none';
+
+  if (seccion === 'propiedades') renderPropiedades();
+  else if (seccion === 'propietarios') renderPropietarios();
+  else if (seccion === 'visitas') renderVisitas();
   else renderLista();
 };
+
+window.switchSubTab = (tab) => {
+  tabActual = tab;
+  document.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
+  const el = document.getElementById('tab-'+tab);
+  if (el) el.classList.add('active');
+  renderLista();
+};
+
+// Mantener compatibilidad con switchTab
+window.switchTab = window.switchSubTab;
 
 window._filtrar = () => {
   filtroBusqueda = document.getElementById('search-input').value.trim();
