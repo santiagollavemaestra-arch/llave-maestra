@@ -2004,27 +2004,7 @@ document.getElementById('stats-modal').addEventListener('click', function(e) {
 });
 
 // Service Worker
-// AUTO-UPDATE: chequea versión nueva cada vez que se abre la app
-const APP_VERSION = '202605260512';
-
-async function chequearActualizacion() {
-  try {
-    // Buscar la versión del servidor agregando timestamp para evitar cache
-    const res = await fetch(window.location.href + '?v=' + Date.now(), {cache: 'no-store'});
-    const html = await res.text();
-    const match = html.match(/name="app-version" content="(\d+)"/);
-    if (match && match[1] !== APP_VERSION) {
-      // Hay versión nueva — recargar automáticamente
-      window.location.reload(true);
-    }
-  } catch(e) {}
-}
-
-// Chequear al abrir y cada 5 minutos
-chequearActualizacion();
-setInterval(chequearActualizacion, 5 * 60 * 1000);
-
-// Service Worker solo para notificaciones push
+// Service Worker para notificaciones push
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/llave-maestra/sw.js').catch(e => {});
 }
