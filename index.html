@@ -1100,9 +1100,9 @@ function renderPropiedades() {
         <span class="prop-estado-badge ${estadoCls}">${p.estado||'Disponible'}</span>
         ${p.fotos && p.fotos.length ? `<div class="prop-galeria">${p.fotos.map(f=>`<img src="${f}" alt="${p.titulo}">`).join('')}</div>` : p.foto ? `<img class="prop-img" src="${p.foto}" alt="${p.titulo}">` : '<div class="prop-img">📷 Sin foto</div>'}
         <div class="prop-body">
-          <div class="prop-operacion">${p.operacion||''}${p.barrio?' · '+p.barrio:''}</div>
-          <div class="prop-titulo">${p.titulo||''}</div>
-          ${p.direccion && p.direccion !== p.titulo ? `<div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">${p.direccion}</div>` : ''}
+          <div class="prop-operacion">${p.tipo||''} · ${p.operacion||''}${p.barrio?' · '+p.barrio:''}</div>
+          <div class="prop-titulo">${p.titulo||p.direccion||''}</div>
+          ${p.ambientes?`<div style="font-size:11px;color:var(--gray-600);margin-bottom:2px">${p.ambientes} amb.${p.dormitorios?' · '+p.dormitorios+' dorm.':''}${p.banos?' · '+p.banos+' baño'+( p.banos>1?'s':''):''} ${p.supCubierta?'· '+p.supCubierta+'m²':p.supTotal?'· '+p.supTotal+'m²':''}</div>`:''}
           <div class="prop-precio">${p.precio||''}</div>
           ${p.desc?`<div class="prop-desc">${p.desc.substring(0,80)}${p.desc.length>80?'...':''}</div>`:''}
           ${propietario?`<div class="prop-propietario">👤 ${propietario}</div>`:''}
@@ -1126,34 +1126,58 @@ function renderPropiedades() {
 }
 
 window._guardarPropiedad = () => {
-  const titulo = document.getElementById('p-titulo').value.trim();
   const direccion = document.getElementById('p-direccion').value.trim();
-  if (!titulo && !direccion) { alert('Ingresá la dirección o título'); return; }
-  const propietarioId = document.getElementById('p-propietario').value;
+  const titulo = document.getElementById('p-titulo').value.trim();
+  if (!direccion && !titulo) { alert('Ingresá la dirección'); return; }
+
+  const moneda = document.getElementById('p-moneda')?.value || 'USD';
+  const precioNum = document.getElementById('p-precio-num')?.value || '';
+  const periodo = document.getElementById('p-precio-periodo')?.textContent || '';
+  const precioFormato = precioNum ? (moneda==='USD' ? `USD ${parseInt(precioNum).toLocaleString('es-AR')}${periodo}` : `$${parseInt(precioNum).toLocaleString('es-AR')}${periodo}`) : '';
+
+  const amenities = ['pileta','gimnasio','quincho','laundry','sum','jardín','terraza','balcon','seguridad','coworking','vista-mar','amoblado']
+    .filter(a => document.getElementById('am-'+a)?.checked);
+
   push(propsRef, {
-    titulo:      titulo || direccion,
-    direccion:   propDireccionCompleta || direccion,
-    barrio:      propBarrio || '',
-    propietarioId: propietarioId||null,
-    precio:      (() => {
-      const moneda = document.getElementById('p-moneda')?.value || 'USD';
-      const num = document.getElementById('p-precio-num')?.value || '';
-      const periodo = document.getElementById('p-precio-periodo')?.textContent || '';
-      if (!num) return '';
-      const numFormato = parseInt(num).toLocaleString('es-AR');
-      return moneda === 'USD' ? `USD ${numFormato}${periodo}` : `$${numFormato}${periodo}`;
-    })(),
-    desc:        document.getElementById('p-desc').value.trim(),
-    fotos:       fotosSubidas.length ? [...fotosSubidas] : [],
-    foto:        fotosSubidas[0] || '',
-    operacion:   document.getElementById('p-operacion').value,
-    estado:      document.getElementById('p-estado').value,
-    fecha:       Date.now(), cargadoPor: usuarioActivo
+    titulo:        titulo || propDireccionCompleta || direccion,
+    direccion:     propDireccionCompleta || direccion,
+    barrio:        propBarrio || '',
+    tipo:          document.getElementById('p-tipo').value,
+    operacion:     document.getElementById('p-operacion').value,
+    precio:        precioFormato,
+    precioNum:     parseInt(precioNum) || 0,
+    moneda,
+    supTotal:      document.getElementById('p-sup-total').value || '',
+    supCubierta:   document.getElementById('p-sup-cubierta').value || '',
+    ambientes:     document.getElementById('p-ambientes').value || '',
+    dormitorios:   document.getElementById('p-dormitorios').value || '',
+    banos:         document.getElementById('p-banos').value || '',
+    toilette:      document.getElementById('p-toilette').value || '',
+    cochera:       document.getElementById('p-cochera').value || '',
+    antiguedad:    document.getElementById('p-antiguedad').value || '',
+    piso:          document.getElementById('p-piso')?.value || '',
+    ascensor:      document.getElementById('p-ascensor')?.value || '',
+    calefaccion:   document.getElementById('p-calefaccion').value || '',
+    orientacion:   document.getElementById('p-orientacion').value || '',
+    amenities,
+    desc:          document.getElementById('p-desc').value.trim(),
+    fotos:         fotosSubidas.length ? [...fotosSubidas] : [],
+    foto:          fotosSubidas[0] || '',
+    propietarioId: document.getElementById('p-propietario').value || null,
+    estado:        'Disponible',
+    fecha:         Date.now(),
+    cargadoPor:    usuarioActivo
   });
+
   // Reset
-  ['p-titulo','p-desc','p-direccion','p-precio-num'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['p-titulo','p-desc','p-direccion','p-precio-num','p-sup-total','p-sup-cubierta','p-piso'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
   document.getElementById('p-fotos-preview').innerHTML = '';
   document.getElementById('p-barrio-detectado').style.display = 'none';
+  document.getElementById('p-precio-preview').textContent = '';
+  ['pileta','gimnasio','quincho','laundry','sum','jardín','terraza','balcon','seguridad','coworking','vista-mar','amoblado']
+    .forEach(a => { const el = document.getElementById('am-'+a); if(el) el.checked = false; });
   fotosSubidas = [];
   propBarrio = '';
   propDireccionCompleta = '';
@@ -1291,6 +1315,98 @@ window._setFiltroEstado = (estado, btn) => {
 };
 
 window.cerrarModal = (id) => document.getElementById(id).classList.remove('open');
+
+// Mostrar/ocultar campos según tipo de propiedad
+window._actualizarCamposTipo = () => {
+  const tipo = document.getElementById('p-tipo')?.value;
+  const residencial = ['Departamento','Casa','PH'];
+  const soloDepto = ['Departamento','PH'];
+  const camposRes = document.getElementById('campos-residenciales');
+  const camposDepto = document.getElementById('campos-depto');
+  if (camposRes) camposRes.style.display = residencial.includes(tipo) ? 'block' : 'none';
+  if (camposDepto) camposDepto.style.display = soloDepto.includes(tipo) ? 'block' : 'none';
+};
+
+// Preview precio formateado
+window._formatearPrecio = (input) => {
+  const moneda = document.getElementById('p-moneda')?.value || 'USD';
+  const periodo = document.getElementById('p-precio-periodo')?.textContent || '';
+  const num = parseInt(input.value) || 0;
+  if (!num) { document.getElementById('p-precio-preview').textContent = ''; return; }
+  const fmt = num.toLocaleString('es-AR');
+  document.getElementById('p-precio-preview').textContent = moneda === 'USD' ? `USD ${fmt}${periodo}` : `$${fmt}${periodo}`;
+};
+
+// Generador de descripción con IA usando Anthropic API
+window._generarDescripcion = async () => {
+  const tipo = document.getElementById('p-tipo')?.value || '';
+  const operacion = document.getElementById('p-operacion')?.value || '';
+  const direccion = document.getElementById('p-direccion')?.value || '';
+  const barrio = document.getElementById('p-barrio-txt')?.textContent || '';
+  const supTotal = document.getElementById('p-sup-total')?.value || '';
+  const supCub = document.getElementById('p-sup-cubierta')?.value || '';
+  const ambientes = document.getElementById('p-ambientes')?.value || '';
+  const dormitorios = document.getElementById('p-dormitorios')?.value || '';
+  const banos = document.getElementById('p-banos')?.value || '';
+  const toilette = document.getElementById('p-toilette')?.value || '';
+  const cochera = document.getElementById('p-cochera')?.value || '';
+  const antiguedad = document.getElementById('p-antiguedad')?.value || '';
+  const piso = document.getElementById('p-piso')?.value || '';
+  const ascensor = document.getElementById('p-ascensor')?.value || '';
+  const calefaccion = document.getElementById('p-calefaccion')?.value || '';
+  const orientacion = document.getElementById('p-orientacion')?.value || '';
+  const moneda = document.getElementById('p-moneda')?.value || 'USD';
+  const precioNum = document.getElementById('p-precio-num')?.value || '';
+  const periodo = document.getElementById('p-precio-periodo')?.textContent || '';
+  const precio = precioNum ? (moneda === 'USD' ? `USD ${parseInt(precioNum).toLocaleString('es-AR')}${periodo}` : `$${parseInt(precioNum).toLocaleString('es-AR')}${periodo}`) : '';
+
+  // Amenities
+  const amenities = ['pileta','gimnasio','quincho','laundry','sum','jardín','terraza','balcon','seguridad','coworking','vista-mar','amoblado']
+    .filter(a => document.getElementById('am-'+a)?.checked)
+    .map(a => a.replace('-',' '));
+
+  const loading = document.getElementById('p-desc-loading');
+  loading.style.display = 'block';
+  document.getElementById('p-desc').value = '';
+
+  const prompt = `Sos un experto en marketing inmobiliario en Mar del Plata, Argentina. Generá una descripción profesional y atractiva para portales inmobiliarios (Zonaprop, Argenprop) con estos datos:
+
+Tipo: ${tipo}
+Operación: ${operacion}
+Dirección: ${direccion}${barrio?' — Barrio: '+barrio:''}
+${precio?'Precio: '+precio:''}
+${supTotal?'Superficie total: '+supTotal+' m²':''}${supCub?', cubierta: '+supCub+' m²':''}
+${ambientes?'Ambientes: '+ambientes:''}
+${dormitorios?'Dormitorios: '+dormitorios:''}
+${banos?'Baños: '+banos:''}
+${toilette==='Sí'?'Toilette de recepción: Sí':''}
+${cochera&&cochera!=='No'?'Cochera: '+cochera:''}
+${piso?'Piso: '+piso+(ascensor?', Ascensor: '+ascensor:''):''}
+${calefaccion?'Calefacción: '+calefaccion:''}
+${orientacion?'Orientación: '+orientacion:''}
+${antiguedad?'Antigüedad: '+antiguedad:''}
+${amenities.length?'Amenities: '+amenities.join(', '):''}
+
+Escribí una descripción de 3 párrafos: 1) Introducción destacando lo mejor, 2) Descripción de ambientes y características, 3) Ubicación y servicios. Tono profesional pero cálido. Sin inventar datos que no están en los campos. En español argentino.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{role: 'user', content: prompt}]
+      })
+    });
+    const data = await res.json();
+    const texto = data.content?.[0]?.text || '';
+    document.getElementById('p-desc').value = texto;
+  } catch(e) {
+    document.getElementById('p-desc').value = 'Error generando descripción. Completála manualmente.';
+  }
+  loading.style.display = 'none';
+};
 
 // Toggle embellecimiento visual
 document.addEventListener('change', function(e) {
