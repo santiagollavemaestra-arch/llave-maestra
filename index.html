@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="app-version" content="202605260512">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Llave Maestra — CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
@@ -402,66 +403,218 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Nueva propiedad</div>
-    <div class="form-group"><label class="form-label">Dirección / Título</label><input class="form-input" id="p-titulo" placeholder="Ej: Cerrito 28, 2 amb. en suite" type="text"></div>
-    <div class="form-group"><label class="form-label">Precio</label><input class="form-input" id="p-precio" placeholder="Ej: USD 120.000 o $800.000/mes" type="text"></div>
-    <div class="form-group">
-      <label class="form-label">Operación</label>
-      <select class="form-select" id="p-operacion" onchange="window._actualizarMoneda()">
-        <option value="Venta">Venta</option>
-        <option value="Alquiler">Alquiler</option>
-        <option value="Alquiler temporal">Alquiler temporal</option>
-      </select>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group">
+        <label class="form-label">Operación</label>
+        <select class="form-select" id="p-operacion" onchange="window._actualizarMoneda()">
+          <option value="Venta">Venta</option>
+          <option value="Alquiler">Alquiler</option>
+          <option value="Alquiler temporal">Alquiler temporal</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo de propiedad</label>
+        <select class="form-select" id="p-tipo" onchange="window._actualizarCamposTipo()">
+          <option value="Departamento">Departamento</option>
+          <option value="Casa">Casa</option>
+          <option value="PH">PH</option>
+          <option value="Local comercial">Local comercial</option>
+          <option value="Oficina">Oficina</option>
+          <option value="Terreno">Terreno</option>
+          <option value="Galpon">Galpón</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
     </div>
+
+    <div class="form-group">
+      <label class="form-label">Dirección</label>
+      <input class="form-input" id="p-direccion" placeholder="Ej: Cerrito 28, Mar del Plata" type="text" autocomplete="off">
+      <div id="p-barrio-detectado" style="font-size:12px;color:var(--green);margin-top:4px;display:none">✓ <span id="p-barrio-txt"></span></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Título de publicación <span style="font-weight:400;color:var(--gray-400)">(opcional)</span></label>
+      <input class="form-input" id="p-titulo" placeholder="Ej: Depto 2 amb. en suite con balcón" type="text">
+    </div>
+
     <div class="form-group">
       <label class="form-label">Precio</label>
       <div style="display:flex;gap:8px;align-items:center">
-        <select class="form-select" id="p-moneda" style="width:100px;flex-shrink:0">
+        <select class="form-select" id="p-moneda" style="width:90px;flex-shrink:0">
           <option value="USD">USD</option>
           <option value="ARS">$</option>
         </select>
-        <input class="form-input" id="p-precio-num" placeholder="Ej: 120000" type="number" min="0">
-        <span id="p-precio-periodo" style="font-size:13px;color:var(--gray-400);white-space:nowrap"></span>
+        <input class="form-input" id="p-precio-num" placeholder="Ej: 120000" type="number" min="0" oninput="window._formatearPrecio(this)">
+        <span id="p-precio-periodo" style="font-size:13px;color:var(--gray-400);white-space:nowrap;min-width:40px"></span>
+      </div>
+      <div id="p-precio-preview" style="font-size:13px;color:var(--green);font-weight:700;margin-top:4px"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group">
+        <label class="form-label">Sup. total m²</label>
+        <input class="form-input" id="p-sup-total" placeholder="Ej: 65" type="number" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sup. cubierta m²</label>
+        <input class="form-input" id="p-sup-cubierta" placeholder="Ej: 53" type="number" min="0">
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Estado</label>
-      <select class="form-select" id="p-estado">
-        <option value="Disponible">Disponible</option>
-        <option value="Reservada">Reservada</option>
-        <option value="Vendida/Alquilada">Vendida/Alquilada</option>
-      </select>
+
+    <div id="campos-residenciales">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label class="form-label">Ambientes</label>
+          <select class="form-select" id="p-ambientes">
+            <option value="">-</option>
+            <option>1</option><option>2</option><option>3</option>
+            <option>4</option><option>5</option><option>6+</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dormitorios</label>
+          <select class="form-select" id="p-dormitorios">
+            <option value="">-</option>
+            <option>0</option><option>1</option><option>2</option>
+            <option>3</option><option>4</option><option>5+</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Baños</label>
+          <select class="form-select" id="p-banos">
+            <option value="">-</option>
+            <option>1</option><option>2</option><option>3</option><option>4+</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label class="form-label">Toilette</label>
+          <select class="form-select" id="p-toilette">
+            <option value="No">No</option>
+            <option value="Sí">Sí</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cochera</label>
+          <select class="form-select" id="p-cochera">
+            <option value="No">No</option>
+            <option value="1 cubierta">1 cubierta</option>
+            <option value="1 descubierta">1 descubierta</option>
+            <option value="2 cocheras">2 cocheras</option>
+            <option value="Múltiples">Múltiples</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Antigüedad</label>
+          <select class="form-select" id="p-antiguedad">
+            <option value="">-</option>
+            <option>A estrenar</option>
+            <option>0-5 años</option>
+            <option>5-15 años</option>
+            <option>15-30 años</option>
+            <option>+30 años</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div class="form-group"><label class="form-label">Propietario <span style="font-weight:400;color:var(--gray-400)">(opcional)</span></label>
+
+    <div id="campos-depto">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label class="form-label">Piso</label>
+          <input class="form-input" id="p-piso" placeholder="Ej: 3" type="text">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ascensor</label>
+          <select class="form-select" id="p-ascensor">
+            <option value="Sí">Sí</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group">
+        <label class="form-label">Calefacción</label>
+        <select class="form-select" id="p-calefaccion">
+          <option value="">Sin especificar</option>
+          <option>Radiadores</option>
+          <option>Piso radiante</option>
+          <option>Split/Aire</option>
+          <option>Losa radiante</option>
+          <option>Sin calefacción</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Orientación</label>
+        <select class="form-select" id="p-orientacion">
+          <option value="">Sin especificar</option>
+          <option>Norte</option><option>Sur</option>
+          <option>Este</option><option>Oeste</option>
+          <option>Frente</option><option>Contrafrente</option>
+          <option>Lateral</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Amenities</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-pileta" style="width:16px;height:16px"> Pileta</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-gimnasio" style="width:16px;height:16px"> Gimnasio</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-quincho" style="width:16px;height:16px"> Quincho/Parrilla</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-laundry" style="width:16px;height:16px"> Laundry</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-sum" style="width:16px;height:16px"> SUM</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-jardin" style="width:16px;height:16px"> Jardín</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-terraza" style="width:16px;height:16px"> Terraza</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-balcon" style="width:16px;height:16px"> Balcón</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-seguridad" style="width:16px;height:16px"> Seguridad 24hs</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-coworking" style="width:16px;height:16px"> Coworking</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-vista-mar" style="width:16px;height:16px"> Vista al mar</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-amoblado" style="width:16px;height:16px"> Amoblado</label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <textarea class="form-textarea" id="p-desc" placeholder="Completá los campos y generá la descripción automáticamente, o escribila acá." style="min-height:100px"></textarea>
+      <button type="button" onclick="window._generarDescripcion()" style="width:100%;margin-top:8px;padding:11px;background:var(--purple-light);border:1.5px solid var(--purple);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--purple);cursor:pointer">✨ Generar descripción con IA</button>
+      <div id="p-desc-loading" style="display:none;text-align:center;font-size:12px;color:var(--purple);margin-top:6px">Generando descripción...</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Propietario <span style="font-weight:400;color:var(--gray-400)">(opcional)</span></label>
       <select class="form-select" id="p-propietario">
         <option value="">— Sin propietario asignado —</option>
       </select>
     </div>
+
     <div class="form-group">
-      <label class="form-label">Dirección</label>
-      <input class="form-input" id="p-direccion" placeholder="Ej: Cerrito 28, Mar del Plata" type="text" autocomplete="off">
-      <div id="p-barrio-detectado" style="font-size:12px;color:var(--green);margin-top:4px;display:none">✓ Barrio detectado: <span id="p-barrio-txt"></span></div>
-    </div>
-    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="p-desc" placeholder="Características: ambientes, m², barrio, amenities..."></textarea></div>
-    <div class="form-group">
-      <label class="form-label">Fotos <span style="font-weight:400;color:var(--gray-400)">(hasta 20 fotos)</span></label>
+      <label class="form-label">Fotos <span style="font-weight:400;color:var(--gray-400)">(hasta 20)</span></label>
       <input type="file" id="p-fotos-input" accept="image/*" multiple style="display:none" onchange="window._previsualizarFotos(this)">
       <button type="button" onclick="document.getElementById('p-fotos-input').click()" style="width:100%;padding:12px;border:1.5px dashed var(--gray-200);border-radius:var(--radius-sm);background:var(--gray-50);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--gray-600);cursor:pointer">📷 Seleccionar fotos (hasta 20)</button>
       <div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;background:var(--purple-light);border-radius:var(--radius-sm)">
         <label style="position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0">
           <input type="checkbox" id="p-embellecer" checked style="opacity:0;width:0;height:0">
-          <span onclick="document.getElementById('p-embellecer').click();this.style.background=document.getElementById('p-embellecer').checked?'var(--purple)':'var(--gray-200)'" id="toggle-embellecer" style="position:absolute;cursor:pointer;inset:0;background:var(--purple);border-radius:22px;transition:.3s"></span>
-          <span id="toggle-ball" style="position:absolute;content:'';height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;transform:translateX(18px)"></span>
+          <span id="toggle-embellecer" style="position:absolute;cursor:pointer;inset:0;background:var(--purple);border-radius:22px;transition:.3s"></span>
+          <span id="toggle-ball" style="position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;transform:translateX(18px)"></span>
         </label>
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--purple)">✨ Embellecimiento automático</div>
-          <div style="font-size:11px;color:var(--gray-600)">Mejora brillo, contraste y nitidez de las fotos</div>
+          <div style="font-size:11px;color:var(--gray-600)">Mejora brillo, contraste y nitidez</div>
         </div>
       </div>
       <div id="p-fotos-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
+
     <div class="btn-row">
       <button class="btn-secondary" onclick="cerrarModal('modal-nueva-prop')">Cancelar</button>
-      <button class="btn-primary" onclick="window._guardarPropiedad()">Guardar</button>
+      <button class="btn-primary" onclick="window._guardarPropiedad()">Guardar propiedad</button>
     </div>
   </div>
 </div>
@@ -1567,19 +1720,29 @@ document.getElementById('stats-modal').addEventListener('click', function(e) {
 });
 
 // Service Worker
+// AUTO-UPDATE: chequea versión nueva cada vez que se abre la app
+const APP_VERSION = '202605260512';
+
+async function chequearActualizacion() {
+  try {
+    // Buscar la versión del servidor agregando timestamp para evitar cache
+    const res = await fetch(window.location.href + '?v=' + Date.now(), {cache: 'no-store'});
+    const html = await res.text();
+    const match = html.match(/name="app-version" content="(\d+)"/);
+    if (match && match[1] !== APP_VERSION) {
+      // Hay versión nueva — recargar automáticamente
+      window.location.reload(true);
+    }
+  } catch(e) {}
+}
+
+// Chequear al abrir y cada 5 minutos
+chequearActualizacion();
+setInterval(chequearActualizacion, 5 * 60 * 1000);
+
+// Service Worker solo para notificaciones push
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/llave-maestra/sw.js').then(reg => {
-    // Escuchar mensajes del SW para auto-recargar
-    navigator.serviceWorker.addEventListener('message', e => {
-      if (e.data?.type === 'UPDATE_AVAILABLE') {
-        // Mostrar banner de actualización
-        const banner = document.createElement('div');
-        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#1a1a1a;color:white;text-align:center;padding:10px;z-index:9999;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600';
-        banner.innerHTML = '🔄 Nueva versión disponible — <button onclick="window.location.reload()" style="background:white;color:black;border:none;padding:4px 12px;border-radius:20px;cursor:pointer;font-weight:700;margin-left:8px">Actualizar ahora</button>';
-        document.body.prepend(banner);
-      }
-    });
-  }).catch(e => console.log('SW:', e));
+  navigator.serviceWorker.register('/llave-maestra/sw.js').catch(e => {});
 }
 </script>
 </body>
