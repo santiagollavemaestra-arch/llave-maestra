@@ -1796,10 +1796,17 @@ if(propParam) {
   const pub = document.createElement('div');
   pub.id = 'vista-publica';
   pub.style.cssText = 'max-width:680px;margin:0 auto;padding:16px;padding-bottom:40px';
-  pub.innerHTML = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #000"><img src="/llave-maestra/icon-192.png" style="height:40px;width:40px;border-radius:8px"><div><div style="font-family:'DM Serif Display',serif;font-size:18px">Llave Maestra</div><div style="font-size:11px;color:#999;letter-spacing:2px">DESARROLLOS INMOBILIARIOS</div></div></div><div id="pub-content"><div style="text-align:center;padding:40px;color:#999">Cargando propiedad...</div></div>';
+  const pubHeader = document.createElement('div');
+  pubHeader.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #000';
+  pubHeader.innerHTML = '<img src="/llave-maestra/icon-192.png" style="height:40px;width:40px;border-radius:8px"><div><div style="font-size:18px;font-weight:700">Llave Maestra</div><div style="font-size:11px;color:#999;letter-spacing:2px">DESARROLLOS INMOBILIARIOS</div></div>';
+  const pubContent = document.createElement('div');
+  pubContent.id = 'pub-content';
+  pubContent.innerHTML = '<div style="text-align:center;padding:40px;color:#999">Cargando propiedad...</div>';
+  pub.appendChild(pubHeader);
+  pub.appendChild(pubContent);
   document.body.appendChild(pub);
 
-  const checkProp = setInterval(() => {
+    const checkProp = setInterval(() => {
     if(Object.keys(propiedades).length > 0) {
       clearInterval(checkProp);
       const p = propiedades[propParam];
