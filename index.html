@@ -1497,15 +1497,15 @@ window.generarDescripcionIA = async () => {
     });
     const data=await res.json();
     if(data.error){
-      if(data.error.code===429) throw new Error('RATE_LIMIT');
-      throw new Error(data.error.message||'Error API');
+      console.error('Gemini error:', data.error);
+      throw new Error('['+data.error.code+'] '+data.error.message);
     }
     const txt=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
-    if(!txt) throw new Error('Sin respuesta');
+    if(!txt) throw new Error('Sin respuesta de la API');
     document.getElementById('p-desc').value=txt;
   } catch(e){
-    if(e.message==='RATE_LIMIT') document.getElementById('p-desc').value='⏳ Límite de IA alcanzado. Esperá 1 minuto e intentá de nuevo.';
-    else document.getElementById('p-desc').value='Error conectando con IA. Intentá de nuevo.';
+    console.error('generarDescripcionIA:', e);
+    document.getElementById('p-desc').value='Error: '+e.message;
   }
   if(loading) loading.style.display='none';
   if(iaBtn){iaBtn.disabled=false;iaBtn.textContent='✨ Generar descripción con IA';}
@@ -1838,15 +1838,15 @@ window.generarDescripcionEditIA = async () => {
     });
     const data=await res.json();
     if(data.error){
-      if(data.error.code===429) throw new Error('RATE_LIMIT');
-      throw new Error(data.error.message||'Error API');
+      console.error('Gemini error:', data.error);
+      throw new Error('['+data.error.code+'] '+data.error.message);
     }
     const txt=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
-    if(!txt) throw new Error('Sin respuesta');
+    if(!txt) throw new Error('Sin respuesta de la API');
     document.getElementById('edit-desc').value=txt;
   } catch(e){
-    if(e.message==='RATE_LIMIT') document.getElementById('edit-desc').value='⏳ Límite de IA alcanzado. Esperá 1 minuto e intentá de nuevo.';
-    else document.getElementById('edit-desc').value='Error conectando con IA. Intentá de nuevo.';
+    console.error('generarDescripcionEditIA:', e);
+    document.getElementById('edit-desc').value='Error: '+e.message;
   }
   if(loading) loading.style.display='none';
   if(btn){btn.disabled=false;btn.textContent='✨ Generar descripción con IA';}
