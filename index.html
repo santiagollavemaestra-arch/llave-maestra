@@ -578,7 +578,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
 
     <div class="form-group"><label class="form-label">Descripción</label>
       <textarea class="form-textarea" id="p-desc" placeholder="Completá los campos y generá la descripción automáticamente..." style="min-height:100px"></textarea>
-      <button class="ia-btn" onclick="generarDescripcionIA()">✨ Generar descripción con IA</button>
+      <button class="ia-btn" id="p-desc-ia-btn" onclick="generarDescripcionIA()">✨ Generar descripción con IA</button>
       <div class="ia-loading" id="p-ia-loading">Generando...</div>
     </div>
 
@@ -620,7 +620,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
     <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="edit-titulo" type="text"></div>
     <div class="form-group"><label class="form-label">Precio</label><input class="form-input" id="edit-precio" type="text"></div>
     <div class="form-group"><label class="form-label">Barrio</label><input class="form-input" id="edit-barrio" type="text"></div>
-    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="edit-desc" style="min-height:120px"></textarea></div>
+    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="edit-desc" style="min-height:120px"></textarea>
+      <button class="ia-btn" id="edit-desc-ia-btn" onclick="generarDescripcionEditIA()">✨ Generar descripción con IA</button>
+      <div class="ia-loading" id="edit-ia-loading">Generando...</div>
+    </div>
     <div class="form-group"><label class="form-label">Estado</label>
       <select class="form-select" id="edit-estado">
         <option>Disponible</option><option>Reservada</option><option>Vendida/Alquilada</option>
@@ -1455,22 +1458,42 @@ window.generarDescripcionIA = async () => {
   const precio=precioRaw?(mon==='USD'?'USD '+parseInt(precioRaw).toLocaleString('es-AR')+per:'$'+parseInt(precioRaw).toLocaleString('es-AR')+per):'';
 
   const loading=document.getElementById('p-ia-loading');
+  const iaBtn=document.getElementById('p-desc-ia-btn');
   if(loading) loading.style.display='block';
+  if(iaBtn){iaBtn.disabled=true;iaBtn.textContent='⏳ Generando...';}
   document.getElementById('p-desc').value='';
 
-  const prompt='Sos experto en marketing inmobiliario en Mar del Plata, Argentina. Generá una descripción profesional y atractiva para portales (Zonaprop, Argenprop) con estos datos:\n'+
-    'Tipo: '+tipo+'\nOperación: '+op+'\nDirección: '+dir+(barrio?' - Barrio: '+barrio:'')+'\n'+
-    (precio?'Precio: '+precio+'\n':'')+(supT?'Sup. total: '+supT+'m²\n':'')+(supC?'Sup. cubierta: '+supC+'m²\n':'')+
-    (amb?'Ambientes: '+amb+'\n':'')+(dorm?'Dormitorios: '+dorm+'\n':'')+(ban?'Baños: '+ban+'\n':'')+
-    (toilette==='Sí'?'Toilette: Sí\n':'')+(cochera&&cochera!=='No'?'Cochera: '+cochera+'\n':'')+
-    (piso?'Piso: '+piso+' - Ascensor: '+asc+'\n':'')+(calef?'Calefacción: '+calef+'\n':'')+(orient?'Orientación: '+orient+'\n':'')+
-    (antig?'Antigüedad: '+antig+'\n':'')+(ams?'Amenities: '+ams+'\n':'')+
-    '\n3 párrafos: 1) intro destacando lo mejor, 2) ambientes y características, 3) ubicación. Tono profesional pero cálido. Sin inventar datos. Español argentino.';
+  let datos='Tipo: '+tipo+'\nOperación: '+op+'\n';
+  if(dir) datos+='Dirección: '+dir+(barrio?' — Barrio: '+barrio:'')+'\n';
+  else if(barrio) datos+='Barrio: '+barrio+'\n';
+  if(supT) datos+='Superficie total: '+supT+' m²\n';
+  if(supC) datos+='Superficie cubierta: '+supC+' m²\n';
+  if(amb) datos+='Ambientes: '+amb+'\n';
+  if(dorm) datos+='Dormitorios: '+dorm+'\n';
+  if(ban) datos+='Baños: '+ban+'\n';
+  if(toilette==='Sí') datos+='Toilette: Sí\n';
+  if(cochera&&cochera!=='No') datos+='Cochera: '+cochera+'\n';
+  if(piso) datos+='Piso: '+piso+(asc?' — Ascensor: '+asc:'')+'\n';
+  if(calef) datos+='Calefacción: '+calef+'\n';
+  if(orient) datos+='Orientación: '+orient+'\n';
+  if(antig) datos+='Antigüedad: '+antig+'\n';
+  if(ams) datos+='Amenities: '+ams+'\n';
+
+  const prompt='Sos especialista en marketing inmobiliario en Mar del Plata, Argentina. '+
+    'Generá una descripción completa y atractiva para publicar en Zonaprop o Argenprop.\n\n'+
+    'Características de la propiedad:\n'+datos+'\n'+
+    'Instrucciones:\n'+
+    '- Español argentino, tono profesional pero cercano\n'+
+    '- 3 párrafos: 1ro presenta y destaca los puntos fuertes, 2do describe ambientes y características, 3ro habla de la ubicación y ventajas del barrio\n'+
+    '- No incluyas el precio en la descripción\n'+
+    '- No inventes datos que no se te dieron\n'+
+    '- Entre 200 y 280 palabras\n'+
+    '- Devolvé solo el texto, sin títulos ni aclaraciones extra';
 
   try {
     const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_KEY,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1000,temperature:0.7}})
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1200,temperature:0.7}})
     });
     const data=await res.json();
     if(data.error){
@@ -1485,6 +1508,7 @@ window.generarDescripcionIA = async () => {
     else document.getElementById('p-desc').value='Error conectando con IA. Intentá de nuevo.';
   }
   if(loading) loading.style.display='none';
+  if(iaBtn){iaBtn.disabled=false;iaBtn.textContent='✨ Generar descripción con IA';}
 };
 
 // SUBIDA FOTOS
@@ -1768,6 +1792,64 @@ window._guardarEdicionProp = () => {
   });
   cerrarModal('modal-editar-prop');
   setTimeout(() => renderPropiedades(), 500);
+};
+
+window.generarDescripcionEditIA = async () => {
+  const id=document.getElementById('edit-prop-id').value;
+  const p=propiedades[id];
+  if(!p) return;
+  const loading=document.getElementById('edit-ia-loading');
+  const btn=document.getElementById('edit-desc-ia-btn');
+  if(loading) loading.style.display='block';
+  if(btn){btn.disabled=true;btn.textContent='⏳ Generando...';}
+  document.getElementById('edit-desc').value='';
+
+  let datos='Tipo: '+(p.tipo||'')+'\nOperación: '+(p.operacion||'')+'\n';
+  if(p.direccion) datos+='Dirección: '+p.direccion+(p.barrio?' — Barrio: '+p.barrio:'')+'\n';
+  else if(p.barrio) datos+='Barrio: '+p.barrio+'\n';
+  if(p.supTotal) datos+='Superficie total: '+p.supTotal+' m²\n';
+  if(p.supCubierta) datos+='Superficie cubierta: '+p.supCubierta+' m²\n';
+  if(p.ambientes) datos+='Ambientes: '+p.ambientes+'\n';
+  if(p.dormitorios) datos+='Dormitorios: '+p.dormitorios+'\n';
+  if(p.banos) datos+='Baños: '+p.banos+'\n';
+  if(p.toilette==='Sí') datos+='Toilette: Sí\n';
+  if(p.cochera&&p.cochera!=='No') datos+='Cochera: '+p.cochera+'\n';
+  if(p.piso) datos+='Piso: '+p.piso+(p.ascensor?' — Ascensor: '+p.ascensor:'')+'\n';
+  if(p.calefaccion) datos+='Calefacción: '+p.calefaccion+'\n';
+  if(p.orientacion) datos+='Orientación: '+p.orientacion+'\n';
+  if(p.antiguedad) datos+='Antigüedad: '+p.antiguedad+'\n';
+  if(p.amenities?.length) datos+='Amenities: '+p.amenities.join(', ')+'\n';
+
+  const prompt='Sos especialista en marketing inmobiliario en Mar del Plata, Argentina. '+
+    'Generá una descripción completa y atractiva para publicar en Zonaprop o Argenprop.\n\n'+
+    'Características de la propiedad:\n'+datos+'\n'+
+    'Instrucciones:\n'+
+    '- Español argentino, tono profesional pero cercano\n'+
+    '- 3 párrafos: 1ro presenta y destaca los puntos fuertes, 2do describe ambientes y características, 3ro habla de la ubicación y ventajas del barrio\n'+
+    '- No incluyas el precio en la descripción\n'+
+    '- No inventes datos que no se te dieron\n'+
+    '- Entre 200 y 280 palabras\n'+
+    '- Devolvé solo el texto, sin títulos ni aclaraciones extra';
+
+  try {
+    const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_KEY,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1200,temperature:0.7}})
+    });
+    const data=await res.json();
+    if(data.error){
+      if(data.error.code===429) throw new Error('RATE_LIMIT');
+      throw new Error(data.error.message||'Error API');
+    }
+    const txt=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    if(!txt) throw new Error('Sin respuesta');
+    document.getElementById('edit-desc').value=txt;
+  } catch(e){
+    if(e.message==='RATE_LIMIT') document.getElementById('edit-desc').value='⏳ Límite de IA alcanzado. Esperá 1 minuto e intentá de nuevo.';
+    else document.getElementById('edit-desc').value='Error conectando con IA. Intentá de nuevo.';
+  }
+  if(loading) loading.style.display='none';
+  if(btn){btn.disabled=false;btn.textContent='✨ Generar descripción con IA';}
 };
 
 window.compartirPropiedad = (id) => {
