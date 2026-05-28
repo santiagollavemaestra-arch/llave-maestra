@@ -9,6 +9,9 @@ import { renderVisitas } from './visitas.js';
 
 const IS_ADMIN = window.location.pathname === '/admin';
 
+// Failsafe global: la pantalla de carga nunca se queda pegada más de 8s
+setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 8000);
+
 // ── Firebase listeners (arrancan solo después del login) ──
 let listenersStarted = false;
 let primeraVez = true, consAnteriores = {};
