@@ -1,0 +1,1 @@
+# Backups automáticos de Firebase
