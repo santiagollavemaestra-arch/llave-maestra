@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════
    KEYNET CRM — Design System v3
    Luxury Real Estate · Mar del Plata
-   Paleta: Warm Stone + Gold · Tipografía: Playfair + DM Sans
+   Paleta: Warm Stone · Tipografía: DM Sans (único, pesos 400–800)
    ═══════════════════════════════════════════════ */
 
 :root {
@@ -91,10 +91,10 @@ body{
 }
 .loading.hidden{opacity:0;pointer-events:none}
 .loading-logo{
-  font-family:'Playfair Display',serif;
-  font-size:32px;font-weight:700;
+  font-family:'DM Sans',sans-serif;
+  font-size:28px;font-weight:800;
   color:#fff;margin-bottom:4px;
-  letter-spacing:-.02em;
+  letter-spacing:-.03em;
 }
 .loading-sub{
   font-size:11px;color:var(--stone-400);
@@ -127,10 +127,10 @@ body{
 .user-screen.oculto{display:none}
 .oculto{display:none}
 .user-title{
-  font-family:'Playfair Display',serif;
-  font-size:32px;font-weight:700;
+  font-family:'DM Sans',sans-serif;
+  font-size:28px;font-weight:800;
   color:#fff;margin-bottom:4px;text-align:center;
-  letter-spacing:-.02em;
+  letter-spacing:-.03em;
 }
 .user-sub{
   font-size:11px;color:var(--stone-400);
@@ -407,9 +407,9 @@ body{
 
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px}
 .card-nombre{
-  font-family:'Playfair Display',serif;
-  font-size:17px;font-weight:600;
-  line-height:1.2;letter-spacing:-.01em;
+  font-family:'DM Sans',sans-serif;
+  font-size:16px;font-weight:700;
+  line-height:1.2;letter-spacing:-.015em;
 }
 .card-fecha{font-size:11px;color:var(--stone-400);font-weight:500}
 .card-tel{font-size:13px;color:var(--stone-600);margin-bottom:4px}
@@ -490,9 +490,9 @@ body{
   border-radius:var(--radius-full);margin:0 auto 22px;
 }
 .modal-title{
-  font-family:'Playfair Display',serif;
-  font-size:24px;font-weight:600;
-  margin-bottom:22px;letter-spacing:-.02em;
+  font-family:'DM Sans',sans-serif;
+  font-size:22px;font-weight:800;
+  margin-bottom:22px;letter-spacing:-.025em;
   line-height:1.2;
 }
 
@@ -633,8 +633,8 @@ body{
   letter-spacing:.1em;color:var(--stone-400);margin-bottom:4px;
 }
 .prop-titulo{
-  font-family:'Playfair Display',serif;
-  font-size:14px;font-weight:600;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:700;
   margin-bottom:4px;line-height:1.3;
   letter-spacing:-.01em;color:var(--black);
 }
@@ -742,7 +742,7 @@ body{
 /* ── EMPTY STATES ── */
 .empty{text-align:center;padding:52px 20px;color:var(--stone-400)}
 .empty-svg{margin-bottom:16px;opacity:.3}
-.empty-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--stone-600);margin-bottom:6px;letter-spacing:-.01em}
+.empty-title{font-family:'DM Sans',sans-serif;font-size:17px;font-weight:700;color:var(--stone-600);margin-bottom:6px;letter-spacing:-.015em}
 .empty-sub{font-size:13px;color:var(--stone-400);line-height:1.6;max-width:220px;margin:0 auto}
 
 /* ── FICHA DE PROPIEDAD ── */
