@@ -1,6 +1,6 @@
 import './style.css';
 import { st, EQUIPO, COLORES, NOMBRES } from './state.js';
-import { agRef, onValue } from './firebase.js';
+import { db, ref, get, agRef, onValue } from './firebase.js';
 import { initAuth, mostrarPerfil, enviarMail, enviarNotifPush, pedirNotif } from './auth.js';
 import { render, renderLista, actualizarSelPropiedades } from './consultas.js';
 import { renderPropiedades, actualizarSelPropietarios } from './propiedades.js';
@@ -8,6 +8,14 @@ import { renderPropietarios } from './propietarios.js';
 import { renderVisitas } from './visitas.js';
 
 const IS_ADMIN = window.location.pathname === '/admin';
+
+async function aplicarBrand(agenciaId) {
+  try {
+    const snap = await get(ref(db, 'keynet/agencias/' + agenciaId));
+    const color = (snap.val() || {}).colorPrimario || '#0a0a0a';
+    document.documentElement.style.setProperty('--brand', color);
+  } catch(e) {}
+}
 
 // Failsafe global: la pantalla de carga nunca se queda pegada más de 8s
 setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 8000);
@@ -72,7 +80,8 @@ function startCRM(agenciaId, agenciaNombre) {
     banner.style.display = 'flex';
     if(cambiar) cambiar.classList.add('con-admin-banner');
   }
-  mostrarPerfil(); // Mostrar el perfil del usuario
+  aplicarBrand(agenciaId);
+  mostrarPerfil();
   startListeners();
   if(window.switchSeccion) window.switchSeccion('consultas');
   setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 5000);
@@ -107,6 +116,7 @@ initAuth(
       return;
     }
     document.getElementById('cambiar-wrap').classList.add('visible');
+    aplicarBrand(st.agenciaId);
     mostrarPerfil();
     pedirNotif();
     startListeners();
@@ -114,6 +124,7 @@ initAuth(
   },
   () => {
     stopListeners();
+    document.documentElement.style.setProperty('--brand', '#0a0a0a');
     document.getElementById('user-screen').classList.remove('oculto');
     document.getElementById('cambiar-wrap').classList.remove('visible');
     document.getElementById('loading').classList.add('hidden');
