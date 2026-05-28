@@ -1,5 +1,5 @@
 import { st, EQUIPO, NOMBRES, COLORES, CHECKS, DIAS, AMENITY_INFO } from './state.js';
-import { db, cRef, ref, push, update, remove } from './firebase.js';
+import { agRef, push, update, remove } from './firebase.js';
 import { geminiCall } from './gemini.js';
 import { diasDesde, ultimoCheck, countdownInfo, sigRotacion, _amLabel, _propLabel } from './utils.js';
 
@@ -116,7 +116,7 @@ export function renderLista(){
     if(ua!==ub) return ua-ub;
     return (b.fecha||0)-(a.fecha||0);
   });
-  if(!arr.length){lista.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>No hay st.consultas</div></div>';return;}
+  if(!arr.length){lista.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>No hay consultas</div></div>';return;}
   lista.innerHTML=arr.map(c=>{
     const pills=CHECKS.map(ch=>{
       const v=c.checks?.[ch.key];
@@ -290,9 +290,9 @@ window._generarRespuesta = async (id) => {
 window._toggleCheck = (id,key,el) => {
   const val=!(st.consultas[id]?.checks?.[key]);
   const up={};
-  up['consultas/'+id+'/checks/'+key]=val;
-  up['consultas/'+id+'/checkTs/'+key]=val?Date.now():null;
-  update(ref(db),up);
+  up['checks/'+key]=val;
+  up['checkTs/'+key]=val?Date.now():null;
+  update(agRef('consultas',id),up);
   const idx=CHECKS.findIndex(x=>x.key===key);
   el.className='pipeline-step'+(key==='res'&&val?' done-res':val?' done':'');
   const dot=el.querySelector('.pipeline-dot');
@@ -300,76 +300,76 @@ window._toggleCheck = (id,key,el) => {
   const ts=el.querySelector('.pipeline-ts');
   if(ts) ts.textContent=val?'Ahora':'Pendiente';
 };
-window._updField = (id,campo,val) => update(ref(db,'consultas/'+id),{[campo]:val});
+window._updField = (id,campo,val) => update(agRef('consultas',id),{[campo]:val});
 window._resetCountdown = (id) => {
   const now=Date.now();
-  update(ref(db,'consultas/'+id),{lastReset:now});
+  update(agRef('consultas',id),{lastReset:now});
   if(st.consultas[id]) st.consultas[id].lastReset=now;
   window._abrirDetalle(id);
 };
 window._editNombre = (id) => {
   const n=prompt('Nombre:',st.consultas[id]?.nombre||'');
   if(!n?.trim()) return;
-  update(ref(db,'consultas/'+id),{nombre:n.trim()});
+  update(agRef('consultas',id),{nombre:n.trim()});
   const el=document.getElementById('det-nombre');if(el) el.textContent=n.trim();
 };
 window._editTel = (id) => {
   const n=prompt('Teléfono:',st.consultas[id]?.tel||'');
   if(n===null) return;
   if(st.consultas[id]) st.consultas[id].tel=n.trim();
-  update(ref(db,'consultas/'+id),{tel:n.trim()});
+  update(agRef('consultas',id),{tel:n.trim()});
   window._abrirDetalle(id);
 };
 window._editIG = (id) => {
   const n=prompt('Instagram:',st.consultas[id]?.instagram||'');
   if(n===null) return;
-  update(ref(db,'consultas/'+id),{instagram:n.trim()});
+  update(agRef('consultas',id),{instagram:n.trim()});
   const el=document.getElementById('det-ig');if(el) el.textContent=n.trim()||'—';
 };
 window._editObs = (id) => {
   const n=prompt('¿Qué busca?',st.consultas[id]?.obs||'');
   if(n===null) return;
   if(st.consultas[id]) st.consultas[id].obs=n.trim();
-  update(ref(db,'consultas/'+id),{obs:n.trim()});
+  update(agRef('consultas',id),{obs:n.trim()});
   window._abrirDetalle(id);
 };
 window._editPropiedad = (id) => {
   const n=prompt('Propiedad consultada:',st.consultas[id]?.propiedad||'');
   if(n===null) return;
   if(st.consultas[id]) st.consultas[id].propiedad=n.trim();
-  update(ref(db,'consultas/'+id),{propiedad:n.trim()});
+  update(agRef('consultas',id),{propiedad:n.trim()});
   window._abrirDetalle(id);
 };
 window._editCanal = (id) => {
   const n=prompt('Canal:',st.consultas[id]?.canal||'');
   if(n===null) return;
   if(st.consultas[id]) st.consultas[id].canal=n.trim();
-  update(ref(db,'consultas/'+id),{canal:n.trim()});
+  update(agRef('consultas',id),{canal:n.trim()});
   window._abrirDetalle(id);
 };
 window._addNota = (id) => {
   const inp=document.getElementById('nota-inp-'+id);
   const txt=inp?.value?.trim();
   if(!txt||!st.usuarioActivo) return;
-  push(ref(db,'consultas/'+id+'/notas'),{texto:txt,autor:st.usuarioActivo,fecha:Date.now()});
+  push(agRef('consultas',id,'notas'),{texto:txt,autor:st.usuarioActivo,fecha:Date.now()});
   if(inp) inp.value='';
 };
 window._editNota = (cId,nId,btn) => {
   const cur=btn.closest('.nota-item').querySelector('.nota-txt').textContent;
   const n=prompt('Editar nota:',cur);
   if(!n?.trim()) return;
-  update(ref(db,'consultas/'+cId+'/notas/'+nId),{texto:n.trim()});
+  update(agRef('consultas',cId,'notas',nId),{texto:n.trim()});
   setTimeout(()=>window._abrirDetalle(cId),300);
 };
 window._delNota = (cId,nId) => {
   if(!confirm('¿Eliminar nota?')) return;
-  remove(ref(db,'consultas/'+cId+'/notas/'+nId));
+  remove(agRef('consultas',cId,'notas',nId));
   setTimeout(()=>window._abrirDetalle(cId),300);
 };
 window._delConsulta = (id) => {
   if(st.usuarioRol!=='admin'){alert('Solo el administrador puede eliminar.');return;}
   if(!confirm('¿Eliminar esta consulta? Esta acción no se puede deshacer.')) return;
-  remove(ref(db,'consultas/'+id));
+  remove(agRef('consultas',id));
   cerrarModal('modal-detalle');
 };
 
@@ -465,7 +465,7 @@ window.guardarConsulta = () => {
   const propiedad=selVal==='__manual__'?document.getElementById('c-propiedad-manual').value.trim():decodeURIComponent(selVal);
   const asigSel=document.getElementById('c-asignado').value;
   const asignado=asigSel==='auto'?sigRotacion():asigSel;
-  push(cRef,{nombre,asignado,propiedad,
+  push(agRef('consultas'),{nombre,asignado,propiedad,
     tel:telInput,
     instagram:document.getElementById('c-instagram').value.trim(),
     canal:document.getElementById('c-canal').value,

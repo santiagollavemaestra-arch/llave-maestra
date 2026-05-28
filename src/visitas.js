@@ -1,5 +1,5 @@
 import { st, NOMBRES, COLORES } from './state.js';
-import { db, vRef, ref, push, update, remove } from './firebase.js';
+import { agRef, push, update, remove } from './firebase.js';
 
 const cerrarModal = (id) => document.getElementById(id).classList.remove('open');
 
@@ -12,7 +12,7 @@ export function renderVisitas(){
   const prox=arr.filter(v=>v.fecha>=hoy);
   const pas=arr.filter(v=>v.fecha<hoy);
   let html='<button class="btn-nueva" onclick="abrirNuevaVisita()">+ Agendar visita</button>';
-  if(!arr.length){html+='<div class="empty"><div class="empty-icon">📅</div><div>No hay st.visitas</div></div>';lista.innerHTML=html;return;}
+  if(!arr.length){html+='<div class="empty"><div class="empty-icon">📅</div><div>No hay visitas</div></div>';lista.innerHTML=html;return;}
   if(prox.length){html+='<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-bottom:8px">PRÓXIMAS ('+prox.length+')</div>'+prox.map(v=>renderVisitaCard(v,hoy)).join('');}
   if(pas.length){html+='<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin:16px 0 8px">REALIZADAS</div>'+pas.map(v=>renderVisitaCard(v,hoy,true)).join('');}
   lista.innerHTML=html;
@@ -67,8 +67,8 @@ window.guardarVisita = () => {
   const fechaD=new Date(fecha+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   const editId=document.getElementById('v-edit-id').value;
   const datos={propiedadId:propId||null,propiedadTitulo:prop?.titulo||prop?.direccion||'',consultaId:consId||null,clienteNombre:cons?.nombre||'',fecha,hora,agente,obs};
-  if(editId){ update(ref(db,'visitas/'+editId),datos); }
-  else { push(vRef,{...datos,cargadoPor:st.usuarioActivo,timestamp:Date.now()}); }
+  if(editId){ update(agRef('visitas',editId),datos); }
+  else { push(agRef('visitas'),{...datos,cargadoPor:st.usuarioActivo,timestamp:Date.now()}); }
   if(document.getElementById('v-notif-cliente').checked&&cons?.tel){
     const msg=encodeURIComponent('Hola '+(cons.nombre||'')+'! Te confirmamos la visita para el '+fechaD+' a las '+hora+'hs a la propiedad '+(prop?.titulo||prop?.direccion||'')+'. Cualquier consulta estamos a tu disposición. Llave Maestra.');
     window.open('https://wa.me/549'+cons.tel.replace(/\D/g,'')+'?text='+msg,'_blank');
@@ -79,7 +79,7 @@ window.guardarVisita = () => {
   }
   cerrarModal('modal-visita');
 };
-window._delVisita = (id) => {if(!confirm('¿Eliminar?')) return;remove(ref(db,'visitas/'+id));};
+window._delVisita = (id) => {if(!confirm('¿Eliminar?')) return;remove(agRef('visitas',id));};
 
 window._editarVisita = (id) => {
   const v=st.visitas[id];

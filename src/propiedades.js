@@ -1,9 +1,32 @@
 import { st, CLOUD, NOMBRES, AMENITY_INFO, GEMINI_KEY } from './state.js';
-import { db, pRef, prRef, ref, push, update, remove } from './firebase.js';
+import { agRef, push, update, remove } from './firebase.js';
 import { geminiCall } from './gemini.js';
 import { _amLabel, _propLabel } from './utils.js';
 
 const cerrarModal = (id) => document.getElementById(id).classList.remove('open');
+
+function _collectAmenities(gridId,customId){
+  const pre=[...document.querySelectorAll('#'+gridId+' .am-chip.sel')].map(el=>el.dataset.v);
+  const cus=[...document.querySelectorAll('#'+customId+' .am-chip-custom')].map(el=>el.dataset.v);
+  return [...pre,...cus];
+}
+
+function _restoreAmenities(amenities,gridId,customId){
+  document.querySelectorAll('#'+gridId+' .am-chip').forEach(el=>el.classList.remove('sel'));
+  const customContainer=document.getElementById(customId);
+  if(customContainer) customContainer.innerHTML='';
+  (amenities||[]).forEach(a=>{
+    const el=document.querySelector('#'+gridId+' .am-chip[data-v="'+a+'"]');
+    if(el){el.classList.add('sel');}
+    else if(a){
+      const chip=document.createElement('div');
+      chip.className='am-chip-custom';
+      chip.dataset.v=a;
+      chip.innerHTML=a+'<button onclick="this.parentElement.remove()" title="Quitar">✕</button>';
+      if(customContainer) customContainer.appendChild(chip);
+    }
+  });
+}
 
 let fotosSubidas = [], propDirCompleta = '', propCiudad = '';
 let lbFotos = [], lbIdx = 0;
@@ -231,9 +254,9 @@ window.importarDesdePortal = async () => {
             div.className='foto-container';
             div.style.cssText='position:relative;display:inline-block';
             const idx=fotosSubidas.length-1;
-            div.innerHTML='<img src="'+ud.secure_url+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="window.abrirMejoraFoto(this.parentElement)">'+
+            div.innerHTML='<img src="'+ud.secure_url+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;display:block">'+
               '<button onclick="window.quitarFoto('+idx+',this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer">&#x2715;</button>'+
-              '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:-4px;right:-4px;background:var(--purple);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Mejorar con IA">✨</button>';
+              '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 6px 6px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ Editar con IA</button>';
             preview.appendChild(div);
             status.textContent='📷 Importando fotos ('+subidas+'/'+maxFotos+')...';
           }
@@ -358,7 +381,6 @@ window.generarDescripcionIA = async () => {
 window.subirFotos = async (input) => {
   const files=Array.from(input.files).slice(0,20);
   const preview=document.getElementById('p-fotos-preview');
-  const embellecer=document.getElementById('p-embellecer')?.checked;
   for(const file of files){
     const tmpId='tmp-'+Math.random().toString(36).substr(2,6);
     const reader=new FileReader();
@@ -376,16 +398,15 @@ window.subirFotos = async (input) => {
       fd.append('upload_preset',CLOUD.preset);
       const r=await fetch('https://api.cloudinary.com/v1_1/'+CLOUD.name+'/image/upload',{method:'POST',body:fd});
       const d=await r.json();
-      let url=d.secure_url;
-      if(embellecer&&url) url=url.replace('/upload/','/upload/e_improve,e_auto_brightness,e_auto_contrast,e_sharpen:50,q_auto,f_auto/');
+      const url=d.secure_url;
       fotosSubidas.push(url);
       const el=document.getElementById(tmpId);
       if(el){
         const idx=fotosSubidas.length-1;
         el.className='foto-container';
-        el.innerHTML='<img src="'+url+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="window.abrirMejoraFoto(this.parentElement)">'+
-          '<button onclick="quitarFoto('+idx+',this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'+
-          '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:-4px;right:-4px;background:var(--purple);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Mejorar con IA">✨</button>';
+        el.innerHTML='<img src="'+url+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;display:block">'+
+          '<button onclick="window.quitarFoto('+idx+',this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'+
+          '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 6px 6px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ Editar con IA</button>';
       }
     } catch(e){console.log('Error foto:',e);}
   }
@@ -534,7 +555,7 @@ function _doGuardarPropiedad(){
   const per=document.getElementById('p-periodo')?.textContent||'';
   const precioFmt=precioRaw?(mon==='USD'?'USD '+parseInt(precioRaw).toLocaleString('es-AR')+per:'$'+parseInt(precioRaw).toLocaleString('es-AR')+per):'';
   const ams=_collectAmenities('p-am-grid','p-am-custom-tags');
-  push(pRef,{
+  push(agRef('propiedades'),{
     titulo:titulo||propDirCompleta||dir,
     direccion:propDirCompleta||dir,
     barrio:document.getElementById('p-barrio').value.trim(),
@@ -577,8 +598,8 @@ function _doGuardarPropiedad(){
   cerrarModal('modal-propiedad');
 }
 
-window._cambiarEstadoProp = (id,estado) => update(ref(db,'propiedades/'+id),{estado});
-window._delProp = (id) => {if(!confirm('¿Eliminar propiedad?')) return;remove(ref(db,'propiedades/'+id));};
+window._cambiarEstadoProp = (id,estado) => update(agRef('propiedades',id),{estado});
+window._delProp = (id) => {if(!confirm('¿Eliminar propiedad?')) return;remove(agRef('propiedades',id));};
 
 // ============================================================
 // RENDER PROPIEDADES
@@ -599,7 +620,7 @@ export function renderPropiedades(){
   if(q) filtered=filtered.filter(p=>(p.titulo||'').toLowerCase().includes(q)||(p.direccion||'').toLowerCase().includes(q)||(p.barrio||'').toLowerCase().includes(q)||(p.tipo||'').toLowerCase().includes(q));
   if(fOp) filtered=filtered.filter(p=>p.operacion===fOp);
   if(fEst) filtered=filtered.filter(p=>(p.estado||'Disponible')===fEst);
-  if(!arr.length){html+='<div class="empty"><div class="empty-icon">🏠</div><div>No hay st.propiedades</div></div>';lista.innerHTML=html;return;}
+  if(!arr.length){html+='<div class="empty"><div class="empty-icon">🏠</div><div>No hay propiedades</div></div>';lista.innerHTML=html;return;}
   if(!filtered.length){html+='<div class="empty"><div class="empty-icon">🔍</div><div>Sin resultados</div></div>';lista.innerHTML=html;return;}
   html+='<div class="prop-grid">'+filtered.map(p=>{
     const todasFotos=p.fotos?.length?p.fotos:p.foto?[p.foto]:[];
@@ -839,7 +860,7 @@ window._guardarEdicionProp = () => {
   const ePrecioRaw=(document.getElementById('edit-precio').value||'').replace(/\D/g,'');
   const ePrecioFmt=ePrecioRaw?(eMon==='USD'?'USD '+parseInt(ePrecioRaw).toLocaleString('es-AR'):'$'+parseInt(ePrecioRaw).toLocaleString('es-AR')):'';
   const eAms=_collectAmenities('eam-grid','eam-custom-tags');
-  update(ref(db,'propiedades/'+id), {
+  update(agRef('propiedades',id), {
     operacion: document.getElementById('edit-op').value,
     tipo: document.getElementById('edit-tipo').value,
     titulo: document.getElementById('edit-titulo').value.trim(),
@@ -889,7 +910,7 @@ function _renderEditFotos(){
         (desp?'<span class="ai-badge-pill" style="background:#e67e22;color:#fff">🧹</span>':'')+
         '</div>':'')+
       '<button onclick="window._editEliminarFoto('+i+')" style="position:absolute;top:-5px;right:-5px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'+
-      '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;top:-5px;left:-5px;background:var(--purple);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Mejorar con IA">✨</button>'+
+      '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 6px 6px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ Editar con IA</button>'+
       (i>0?'<button onclick="window._editMoverFoto('+i+',-1)" style="position:absolute;bottom:-6px;left:-6px;background:var(--gray-600);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center">◀</button>':'')+
       (i<_editFotos.length-1?'<button onclick="window._editMoverFoto('+i+',1)" style="position:absolute;bottom:-6px;right:-6px;background:var(--gray-600);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center">▶</button>':'')+
       '</div>';

@@ -1,5 +1,5 @@
 import { st, NOMBRES, COLORES, EMAILJS_SVC, EMAILJS_TPL, APP_URL } from './state.js';
-import { db, auth, ref, get, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from './firebase.js';
+import { db, auth, ref, get, update, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from './firebase.js';
 
 export function initAuth(onLogin, onLogout) {
   onAuthStateChanged(auth, async (user) => {
@@ -9,10 +9,15 @@ export function initAuth(onLogin, onLogout) {
         const data = snap.val() || {};
         st.usuarioActivo = data.username || null;
         st.usuarioRol = data.rol || 'agente';
+        st.agenciaId = data.agenciaId || 'llave-maestra';
+        if (!data.agenciaId) {
+          update(ref(db, 'usuarios/' + user.uid), { agenciaId: 'llave-maestra' }).catch(() => {});
+        }
       } catch(e) {
         console.error('Error leyendo perfil:', e.message);
         st.usuarioActivo = null;
         st.usuarioRol = 'agente';
+        st.agenciaId = 'llave-maestra';
       }
       onLogin();
     } else {

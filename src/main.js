@@ -1,6 +1,6 @@
 import './style.css';
 import { st } from './state.js';
-import { db, cRef, pRef, prRef, vRef, eRef, onValue } from './firebase.js';
+import { agRef, onValue } from './firebase.js';
 import { initAuth, mostrarPerfil, enviarMail, enviarNotifPush, pedirNotif } from './auth.js';
 import { render, renderLista, actualizarSelPropiedades } from './consultas.js';
 import { renderPropiedades, actualizarSelPropietarios } from './propiedades.js';
@@ -14,11 +14,11 @@ let primeraVez = true, consAnteriores = {};
 function startListeners() {
   if(listenersStarted) return;
   listenersStarted = true;
-  onValue(eRef, s => { st.emails=s.val()||{}; window._emails=st.emails; });
-  onValue(prRef, s => { st.propietarios=s.val()||{}; actualizarSelPropietarios(); if(st.seccion==='propietarios') renderPropietarios(); });
-  onValue(pRef, s => { st.propiedades=s.val()||{}; st.matchCache={}; actualizarSelPropiedades(); if(st.seccion==='propiedades') renderPropiedades(); });
-  onValue(vRef, s => { st.visitas=s.val()||{}; if(st.seccion==='visitas') renderVisitas(); });
-  onValue(cRef, s => {
+  onValue(agRef('emails'), s => { st.emails=s.val()||{}; window._emails=st.emails; });
+  onValue(agRef('propietarios'), s => { st.propietarios=s.val()||{}; actualizarSelPropietarios(); if(st.seccion==='propietarios') renderPropietarios(); });
+  onValue(agRef('propiedades'), s => { st.propiedades=s.val()||{}; st.matchCache={}; actualizarSelPropiedades(); if(st.seccion==='propiedades') renderPropiedades(); });
+  onValue(agRef('visitas'), s => { st.visitas=s.val()||{}; if(st.seccion==='visitas') renderVisitas(); });
+  onValue(agRef('consultas'), s => {
     const nuevas = s.val()||{};
     if(!primeraVez){
       Object.entries(nuevas).forEach(([id,c])=>{
@@ -137,29 +137,6 @@ window._addAmTag = (prefix) => {
   if(inp) inp.value='';
 };
 
-function _collectAmenities(gridId,customId){
-  const pre=[...document.querySelectorAll('#'+gridId+' .am-chip.sel')].map(el=>el.dataset.v);
-  const cus=[...document.querySelectorAll('#'+customId+' .am-chip-custom')].map(el=>el.dataset.v);
-  return [...pre,...cus];
-}
-
-function _restoreAmenities(amenities,gridId,customId){
-  document.querySelectorAll('#'+gridId+' .am-chip').forEach(el=>el.classList.remove('sel'));
-  const customContainer=document.getElementById(customId);
-  if(customContainer) customContainer.innerHTML='';
-  const known=new Set(Object.keys(AMENITY_INFO));
-  (amenities||[]).forEach(a=>{
-    const el=document.querySelector('#'+gridId+' .am-chip[data-v="'+a+'"]');
-    if(el){el.classList.add('sel');}
-    else if(a){
-      const chip=document.createElement('div');
-      chip.className='am-chip-custom';
-      chip.dataset.v=a;
-      chip.innerHTML=a+'<button onclick="this.parentElement.remove()" title="Quitar">✕</button>';
-      if(customContainer) customContainer.appendChild(chip);
-    }
-  });
-}
 
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o) o.classList.remove('open');});

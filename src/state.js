@@ -34,5 +34,6 @@ export const st = {
   filtroEstado: 'todos',
   usuarioActivo: null,
   usuarioRol: null,
+  agenciaId: null,
   matchCache: {},
 };

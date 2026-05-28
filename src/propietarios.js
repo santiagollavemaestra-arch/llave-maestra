@@ -1,5 +1,5 @@
 import { st, NOMBRES } from './state.js';
-import { db, prRef, ref, push, update, remove } from './firebase.js';
+import { agRef, push, update, remove } from './firebase.js';
 
 const cerrarModal = (id) => document.getElementById(id).classList.remove('open');
 
@@ -9,7 +9,7 @@ export function renderPropietarios(){
   const lista=document.getElementById('lista');
   const arr=Object.entries(st.propietarios).map(([id,p])=>({...p,id})).sort((a,b)=>a.nombre.localeCompare(b.nombre));
   let html='<button class="btn-nueva" onclick="document.getElementById(\'modal-propietario\').classList.add(\'open\')">+ Nuevo propietario</button>';
-  if(!arr.length){html+='<div class="empty"><div class="empty-icon">👤</div><div>No hay st.propietarios</div></div>';lista.innerHTML=html;return;}
+  if(!arr.length){html+='<div class="empty"><div class="empty-icon">👤</div><div>No hay propietarios</div></div>';lista.innerHTML=html;return;}
   html+=arr.map(p=>{
     const susProp=Object.values(st.propiedades).filter(pr=>pr.propietarioId===p.id);
     return '<div class="prop-card">'+
@@ -32,8 +32,8 @@ window.guardarPropietario = () => {
   if(!nombre){alert('Ingresá el nombre');return;}
   const editId=document.getElementById('pr-edit-id').value;
   const datos={nombre,tel:document.getElementById('pr-tel').value.trim(),email:document.getElementById('pr-email').value.trim(),obs:document.getElementById('pr-obs').value.trim()};
-  if(editId){ update(ref(db,'propietarios/'+editId),datos); }
-  else { push(prRef,{...datos,fecha:Date.now()}); }
+  if(editId){ update(agRef('propietarios',editId),datos); }
+  else { push(agRef('propietarios'),{...datos,fecha:Date.now()}); }
   ['pr-nombre','pr-tel','pr-email','pr-obs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('pr-edit-id').value='';
   const t=document.getElementById('pr-modal-title');if(t) t.textContent='Nuevo propietario';
@@ -57,7 +57,7 @@ window._delPropietario = (id) => {
     ? '⚠️ Este propietario tiene '+susProp.length+' propiedad'+(susProp.length>1?'es':'')+' asociada'+(susProp.length>1?'s':'')+': '+susProp.map(p=>p.titulo||p.direccion||'').join(', ')+'\n\n¿Eliminar de todas formas?'
     : '¿Eliminar propietario?';
   if(!confirm(msg)) return;
-  remove(ref(db,'propietarios/'+id));
+  remove(agRef('propietarios',id));
 };
 
 // ============================================================

@@ -75,6 +75,9 @@ Todas las funciones llamadas desde `onclick`/`onchange` en el HTML deben asignar
 ## Servicios externos
 
 - **Firebase Realtime DB** — `llave-maestra-default-rtdb.firebaseio.com`; reglas: `auth != null`
+  - Paths con namespace: `/agencias/{agenciaId}/consultas|propiedades|propietarios|visitas|emails`
+  - Path global (sin namespace): `/usuarios/{uid}`
+  - `agRef(col, ...parts)` en `firebase.js` construye los paths dinámicamente usando `st.agenciaId`
 - **Firebase Auth** — email/password; `/usuarios/{uid}` guarda `{ username, rol, agenciaId }`
 - **Gemini 2.5 Flash** — `geminiCall()` en `gemini.js`
 - **Cloudinary** — cloud `dgaixfvxa`, preset `keynet_props` (unsigned upload)
@@ -94,6 +97,6 @@ GitHub Actions (`.github/workflows/backup.yml`) corre diario a las 6am Argentina
 
 ## Roadmap
 
-1. **Etapa 1 pendiente**: namespace de agencia en Firebase (`/agencias/{id}/...`), security rules por agencia, Firebase Functions como proxy de Gemini
+1. **Etapa 1 pendiente**: ~~namespace de agencia en Firebase~~ ✅ DONE, security rules por agencia, Firebase Functions como proxy de Gemini
 2. **Etapa 2**: panel admin Keynet, onboarding de agencias, Vercel, billing
 3. **Etapa 3**: landing keynet.app, portal público de propiedades

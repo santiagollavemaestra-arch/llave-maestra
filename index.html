@@ -387,17 +387,7 @@ document.addEventListener('touchstart', function(e) {
     <div class="form-group"><label class="form-label">Fotos <span style="font-weight:400;color:var(--gray-400)">(hasta 20)</span></label>
       <input type="file" id="p-fotos-input" accept="image/*" multiple style="display:none" onchange="subirFotos(this)">
       <button type="button" onclick="document.getElementById('p-fotos-input').click()" style="width:100%;padding:12px;border:1.5px dashed var(--gray-200);border-radius:var(--radius-sm);background:var(--gray-50);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--gray-600);cursor:pointer">📷 Seleccionar fotos</button>
-      <div class="toggle-wrap">
-        <label class="toggle">
-          <input type="checkbox" id="p-embellecer" checked>
-          <span class="toggle-slider"></span>
-          <span class="toggle-ball"></span>
-        </label>
-        <div>
-          <div style="font-size:13px;font-weight:700;color:var(--purple)">✨ Embellecimiento automático</div>
-          <div style="font-size:11px;color:var(--gray-600)">Mejora brillo, contraste y nitidez</div>
-        </div>
-      </div>
+      <div style="font-size:11px;color:var(--gray-500);margin-top:6px;padding:6px 8px;background:var(--purple-light);border-radius:6px;border:1px solid rgba(107,33,168,.15)">✨ Tocá cada foto para <b>Editar con IA</b>: embellecer o quitar muebles</div>
       <div id="p-fotos-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
 
@@ -635,12 +625,14 @@ document.addEventListener('touchstart', function(e) {
     </div>
     <div style="display:flex;gap:10px;margin-bottom:16px">
       <button id="mejora-btn-emb" onclick="window.toggleMejoraOpc('embellecer')"
-        style="flex:1;padding:12px 6px;border-radius:10px;border:2px solid var(--gray-200);background:#fff;color:var(--gray-500);font-weight:700;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer">
-        ✨ Embellecer
+        style="flex:1;padding:12px 6px;border-radius:10px;border:2px solid var(--gray-200);background:#fff;color:var(--gray-500);font-weight:700;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;line-height:1.3">
+        <div>✨ Embellecer</div>
+        <div style="font-size:10px;font-weight:400;margin-top:3px;opacity:.8">Brillo, contraste y nitidez</div>
       </button>
       <button id="mejora-btn-desp" onclick="window.toggleMejoraOpc('despejar')"
-        style="flex:1;padding:12px 6px;border-radius:10px;border:2px solid var(--gray-200);background:#fff;color:var(--gray-500);font-weight:700;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer">
-        🧹 Despejar
+        style="flex:1;padding:12px 6px;border-radius:10px;border:2px solid var(--gray-200);background:#fff;color:var(--gray-500);font-weight:700;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;line-height:1.3">
+        <div>🧹 Despejar</div>
+        <div style="font-size:10px;font-weight:400;margin-top:3px;opacity:.8">Elimina muebles y objetos</div>
       </button>
     </div>
     <div class="btn-row">
