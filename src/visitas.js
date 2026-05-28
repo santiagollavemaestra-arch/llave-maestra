@@ -100,34 +100,4 @@ window._editarVisita = (id) => {
 };
 
 // ============================================================
-// ESTADÍSTICAS
-// ============================================================
-window._abrirStats = () => {
-  const hoy=new Date();
-  const mes=hoy.getMonth(),anio=hoy.getFullYear();
-  const nomMes=hoy.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
-  const arr=Object.values(st.consultas);
-  const delMes=arr.filter(c=>{const d=new Date(c.fecha);return d.getMonth()===mes&&d.getFullYear()===anio;});
-  let html='<div style="font-size:12px;color:var(--gray-400);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">'+nomMes+'</div>';
-  EQUIPO.forEach(m=>{
-    const carg=delMes.filter(c=>c.cargadoPor===m).length;
-    const asig=delMes.filter(c=>c.asignado===m).length;
-    const cerr=arr.filter(c=>c.asignado===m&&['Cerrado','Reserva'].includes(c.estado)).length;
-    html+='<div class="stats-row"><div style="font-size:14px;font-weight:600;color:'+COLORES[m]+'">'+NOMBRES[m]+'</div><div style="font-size:12px;color:var(--gray-600);text-align:right">Cargó: <b>'+carg+'</b> · Asignadas: <b>'+asig+'</b> · Cerradas: <b>'+cerr+'</b></div></div>';
-  });
-  const canales={};
-  arr.forEach(c=>{if(c.canal)canales[c.canal]=(canales[c.canal]||0)+1;});
-  const canArr=Object.entries(canales).sort((a,b)=>b[1]-a[1]);
-  html+='<div style="margin-top:16px;padding:12px;background:var(--gray-50);border-radius:var(--radius-sm)">'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
-    '<div style="text-align:center"><div class="stats-num">'+delMes.length+'</div><div style="font-size:11px;color:var(--gray-400)">Este mes</div></div>'+
-    '<div style="text-align:center"><div class="stats-num">'+arr.filter(c=>!['Cerrado','Sin interés'].includes(c.estado)).length+'</div><div style="font-size:11px;color:var(--gray-400)">Activas</div></div>'+
-    '<div style="text-align:center"><div class="stats-num" style="color:var(--green)">'+arr.filter(c=>c.estado==='Cerrado').length+'</div><div style="font-size:11px;color:var(--gray-400)">Cerradas</div></div>'+
-    '<div style="text-align:center"><div class="stats-num">'+arr.filter(c=>c.estado==='Reserva').length+'</div><div style="font-size:11px;color:var(--gray-400)">Reservas</div></div>'+
-    '</div>'+
-    (canArr.length?'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-bottom:6px">Canal más efectivo</div>'+canArr.map(([c,n])=>'<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span>'+c+'</span><b>'+n+'</b></div>').join(''):'')+'</div>';
-  document.getElementById('stats-detalle').innerHTML=html;
-  document.getElementById('stats-modal').classList.add('open');
-};
-
 // ============================================================

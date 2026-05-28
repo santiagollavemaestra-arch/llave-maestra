@@ -1,5 +1,5 @@
 import './style.css';
-import { st } from './state.js';
+import { st, EQUIPO, COLORES, NOMBRES } from './state.js';
 import { agRef, onValue } from './firebase.js';
 import { initAuth, mostrarPerfil, enviarMail, enviarNotifPush, pedirNotif } from './auth.js';
 import { render, renderLista, actualizarSelPropiedades } from './consultas.js';
