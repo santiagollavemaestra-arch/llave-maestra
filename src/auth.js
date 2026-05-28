@@ -105,7 +105,7 @@ export function pedirNotif() {
 
 export function enviarNotifPush(t, b) {
   if(!('Notification' in window) || Notification.permission !== 'granted') return;
-  new Notification(t, { body: b, icon: '/llave-maestra/icon-192.png', tag: 'keynet', renotify: true });
+  new Notification(t, { body: b, icon: '/icon-192.png', tag: 'keynet', renotify: true });
 }
 
 export function enviarMail(asig, nombre, prop) {

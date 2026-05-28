@@ -156,7 +156,7 @@ if(typeof ResizeObserver!=='undefined'){
 }
 
 // SW
-if('serviceWorker'in navigator) navigator.serviceWorker.register('/llave-maestra/sw.js').catch(()=>{});
+if('serviceWorker'in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
 // Google Maps
 const _gmk=['AIzaSyCJA9M','qz_27Z4pRWiX','yuV9K1tgJsb27YKA'].join('');

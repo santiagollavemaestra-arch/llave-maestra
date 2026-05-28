@@ -661,7 +661,7 @@ window.abrirFichaProp = (id) => {
   if(!p) return;
   const todasFotos = p.fotos?.length ? p.fotos : p.foto ? [p.foto] : [];
   const ams = (p.amenities||[]).map(a => '<span class="ficha-amenity">'+_amLabel(a)+'</span>').join('');
-  const shareUrl = 'https://santiagollavemaestra-arch.github.io/llave-maestra/?prop='+id;
+  const shareUrl = window.location.origin + '/?prop='+id;
   
   let galeriaHtml = '';
   if(todasFotos.length) {
@@ -997,7 +997,7 @@ window.generarDescripcionEditIA = async () => {
 };
 
 window.compartirPropiedad = (id) => {
-  const url = 'https://santiagollavemaestra-arch.github.io/llave-maestra/?prop='+id;
+  const url = window.location.origin + '/?prop='+id;
   if(navigator.clipboard) {
     navigator.clipboard.writeText(url).then(()=>alert('✅ Link copiado: '+url));
   } else {
@@ -1024,7 +1024,7 @@ if(propParam) {
   pub.style.cssText = 'max-width:680px;margin:0 auto;padding:16px;padding-bottom:40px';
   const pubHeader = document.createElement('div');
   pubHeader.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #000';
-  pubHeader.innerHTML = '<img src="/llave-maestra/icon-192.png" style="height:40px;width:40px;border-radius:8px"><div><div style="font-size:18px;font-weight:700">Llave Maestra</div><div style="font-size:11px;color:#999;letter-spacing:2px">DESARROLLOS INMOBILIARIOS</div></div>';
+  pubHeader.innerHTML = '<img src="/icon-192.png" style="height:40px;width:40px;border-radius:8px"><div><div style="font-size:18px;font-weight:700">Llave Maestra</div><div style="font-size:11px;color:#999;letter-spacing:2px">DESARROLLOS INMOBILIARIOS</div></div>';
   const pubContent = document.createElement('div');
   pubContent.id = 'pub-content';
   pubContent.innerHTML = '<div style="text-align:center;padding:40px;color:#999">Cargando propiedad...</div>';
