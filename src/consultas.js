@@ -156,7 +156,7 @@ export function renderLista(){
 // DETALLE CONSULTA
 // ============================================================
 window._abrirDetalle = (id) => {
-  const c={...consultas[id],id};
+  const c={...st.consultas[id],id};
   const fecha=new Date(c.fecha).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   const waLink=c.tel?'https://wa.me/549'+c.tel.replace(/\D/g,''):null;
   const info=countdownInfo(c);

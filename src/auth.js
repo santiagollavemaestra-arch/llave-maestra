@@ -1,5 +1,5 @@
 import { st, NOMBRES, COLORES, EMAILJS_SVC, EMAILJS_TPL, APP_URL } from './state.js';
-import { db, auth, ref, get, signInWithEmailAndPassword, signOut, onAuthStateChanged } from './firebase.js';
+import { db, auth, ref, get, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from './firebase.js';
 
 export function initAuth(onLogin, onLogout) {
   onAuthStateChanged(auth, async (user) => {
@@ -45,6 +45,43 @@ window.loginSubmit = async () => {
 window._cerrarSesion = async () => {
   if(!confirm('¿Cerrar sesión?')) return;
   await signOut(auth);
+};
+
+window._abrirCambiarPass = () => {
+  document.getElementById('modal-cambiar-pass').classList.add('open');
+  document.getElementById('cp-actual').value = '';
+  document.getElementById('cp-nueva').value = '';
+  document.getElementById('cp-confirmar').value = '';
+  document.getElementById('cp-error').textContent = '';
+};
+
+window._cambiarPassword = async () => {
+  const actual = document.getElementById('cp-actual').value;
+  const nueva = document.getElementById('cp-nueva').value;
+  const confirmar = document.getElementById('cp-confirmar').value;
+  const err = document.getElementById('cp-error');
+  const btn = document.getElementById('cp-btn');
+  err.textContent = '';
+  if(!actual || !nueva || !confirmar) { err.textContent = 'Completá todos los campos'; return; }
+  if(nueva.length < 6) { err.textContent = 'La contraseña nueva debe tener al menos 6 caracteres'; return; }
+  if(nueva !== confirmar) { err.textContent = 'Las contraseñas nuevas no coinciden'; return; }
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const user = auth.currentUser;
+    const cred = EmailAuthProvider.credential(user.email, actual);
+    await reauthenticateWithCredential(user, cred);
+    await updatePassword(user, nueva);
+    document.getElementById('modal-cambiar-pass').classList.remove('open');
+    alert('✅ Contraseña actualizada correctamente');
+  } catch(e) {
+    if(e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password') {
+      err.textContent = 'La contraseña actual es incorrecta';
+    } else {
+      err.textContent = 'Error al cambiar contraseña. Intentá de nuevo.';
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = 'Cambiar contraseña';
+  }
 };
 
 export function mostrarPerfil() {
