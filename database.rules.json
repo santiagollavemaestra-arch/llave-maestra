@@ -2,13 +2,17 @@
   "rules": {
     "agencias": {
       "$agenciaId": {
-        ".read":  "auth != null && root.child('usuarios').child(auth.uid).child('agenciaId').val() === $agenciaId",
-        ".write": "auth != null && root.child('usuarios').child(auth.uid).child('agenciaId').val() === $agenciaId"
+        ".read":  "auth != null && (root.child('usuarios').child(auth.uid).child('agenciaId').val() === $agenciaId || root.child('usuarios').child(auth.uid).child('rol').val() === 'keynet-admin')",
+        ".write": "auth != null && (root.child('usuarios').child(auth.uid).child('agenciaId').val() === $agenciaId || root.child('usuarios').child(auth.uid).child('rol').val() === 'keynet-admin')"
       }
+    },
+    "keynet": {
+      ".read":  "auth != null && root.child('usuarios').child(auth.uid).child('rol').val() === 'keynet-admin'",
+      ".write": false
     },
     "usuarios": {
       "$uid": {
-        ".read":  "auth != null && auth.uid === $uid",
+        ".read":  "auth != null && (auth.uid === $uid || root.child('usuarios').child(auth.uid).child('rol').val() === 'keynet-admin')",
         ".write": "auth != null && auth.uid === $uid"
       }
     }

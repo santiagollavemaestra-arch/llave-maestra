@@ -7,6 +7,8 @@ import { renderPropiedades, actualizarSelPropietarios } from './propiedades.js';
 import { renderPropietarios } from './propietarios.js';
 import { renderVisitas } from './visitas.js';
 
+const IS_ADMIN = window.location.pathname === '/admin';
+
 // ── Firebase listeners (arrancan solo después del login) ──
 let listenersStarted = false;
 let primeraVez = true, consAnteriores = {};
@@ -38,8 +40,14 @@ function startListeners() {
 
 // ── Auth ──
 initAuth(
-  () => {
+  async () => {
     document.getElementById('user-screen').classList.add('oculto');
+    if (st.usuarioRol === 'keynet-admin') {
+      if (!IS_ADMIN) { window.location.href = '/admin'; return; }
+      const { initAdmin } = await import('./admin.js');
+      initAdmin();
+      return;
+    }
     document.getElementById('cambiar-wrap').classList.add('visible');
     mostrarPerfil();
     pedirNotif();

@@ -643,6 +643,53 @@ document.addEventListener('touchstart', function(e) {
 </div>
 
 
+<!-- ══ PANEL ADMIN KEYNET ══════════════════════════════════════ -->
+<div id="admin-panel" class="oculto">
+  <div style="max-width:680px;margin:0 auto;padding:16px 16px 60px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--black)">
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:24px;line-height:1">Keynet</div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--gray-400);text-transform:uppercase">Admin</div>
+      </div>
+      <button onclick="window._cerrarSesion()" style="background:var(--gray-100);border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--gray-600)">Salir</button>
+    </div>
+    <div id="admin-body"></div>
+  </div>
+
+  <!-- Modal crear agencia -->
+  <div class="modal-overlay" id="modal-crear-agencia">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Nueva agencia</div>
+      <div class="form-group">
+        <label class="form-label">Nombre de la agencia</label>
+        <input class="form-input" id="ag-nombre" placeholder="Ej: Inmobiliaria García" oninput="window._autoSlug()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ID único <span style="font-size:11px;font-weight:400;color:var(--gray-400)">— solo minúsculas, números y guiones</span></label>
+        <input class="form-input" id="ag-id" placeholder="ej: inmobiliaria-garcia" oninput="this.dataset.manual='1'">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre del administrador</label>
+        <input class="form-input" id="ag-admin-nombre" placeholder="Ej: Carlos García">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email del administrador</label>
+        <input class="form-input" id="ag-admin-email" type="email" placeholder="admin@agencia.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña inicial</label>
+        <input class="form-input" id="ag-admin-pass" type="password" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div id="ag-error" style="color:var(--red);font-size:13px;margin-bottom:8px;min-height:18px"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="cerrarModal('modal-crear-agencia')">Cancelar</button>
+        <button class="btn-primary" id="ag-crear-btn" onclick="window._confirmarCrearAgencia()">Crear agencia</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>
