@@ -66,6 +66,8 @@ function startCRM(agenciaId, agenciaNombre) {
     banner.style.display = 'flex';
   }
   startListeners();
+  // Mostrar sección consultas y renderizar estado vacío mientras carga
+  if(window.switchSeccion) window.switchSeccion('consultas');
   setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 5000);
 }
 
