@@ -44,16 +44,21 @@ initAuth(
     document.getElementById('user-screen').classList.add('oculto');
     if (st.usuarioRol === 'keynet-admin') {
       if (!IS_ADMIN) { window.location.href = '/admin'; return; }
-      const { initAdmin } = await import('./admin.js');
-      initAdmin();
+      try {
+        const { initAdmin } = await import('./admin.js');
+        initAdmin();
+      } catch(e) {
+        console.error('Admin init error:', e);
+        document.getElementById('loading')?.classList.add('hidden');
+      }
       return;
     }
     document.getElementById('cambiar-wrap').classList.add('visible');
     mostrarPerfil();
     pedirNotif();
     startListeners();
-    // Failsafe: si el loading no se ocultó en 8s (listeners bloqueados), ocultarlo igual
-    setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 8000);
+    // Failsafe: si los listeners no ocultan el loading en 5s, ocultarlo igual
+    setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 5000);
   },
   () => {
     listenersStarted = false;
