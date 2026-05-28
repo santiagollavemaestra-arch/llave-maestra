@@ -32,6 +32,7 @@ export const st = {
   seccion: 'consultas',
   subTab: 'todas',
   filtroEstado: 'todos',
-  usuarioActivo: localStorage.getItem('lm_u') || null,
+  usuarioActivo: null,
+  usuarioRol: null,
   matchCache: {},
 };

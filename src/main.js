@@ -1,43 +1,61 @@
 import './style.css';
 import { st } from './state.js';
 import { db, cRef, pRef, prRef, vRef, eRef, onValue } from './firebase.js';
-import { mostrarPerfil, entrarComoUsuario, enviarMail, enviarNotifPush, pedirNotif } from './auth.js';
+import { initAuth, mostrarPerfil, enviarMail, enviarNotifPush, pedirNotif } from './auth.js';
 import { render, renderLista, actualizarSelPropiedades } from './consultas.js';
 import { renderPropiedades, actualizarSelPropietarios } from './propiedades.js';
 import { renderPropietarios } from './propietarios.js';
 import { renderVisitas } from './visitas.js';
 
-// ── Firebase listeners ──
-onValue(eRef, s => { st.emails=s.val()||{}; window._emails=st.emails; });
-onValue(prRef, s => { st.propietarios=s.val()||{}; actualizarSelPropietarios(); if(st.seccion==='propietarios') renderPropietarios(); });
-onValue(pRef, s => { st.propiedades=s.val()||{}; st.matchCache={}; actualizarSelPropiedades(); if(st.seccion==='propiedades') renderPropiedades(); });
-onValue(vRef, s => { st.visitas=s.val()||{}; if(st.seccion==='visitas') renderVisitas(); });
+// ── Firebase listeners (arrancan solo después del login) ──
+let listenersStarted = false;
+let primeraVez = true, consAnteriores = {};
 
-let primeraVez=true, consAnteriores={};
-onValue(cRef, s => {
-  const nuevas = s.val()||{};
-  if(!primeraVez){
-    Object.entries(nuevas).forEach(([id,c])=>{
-      if(!consAnteriores[id]){
-        enviarMail(c.asignado, c.nombre, c.propiedad);
-        enviarNotifPush('\uD83D\uDCCB Nueva consulta', (c.nombre||'Sin nombre')+' \u2014 '+(c.propiedad||''));
-      }
-    });
-  }
-  consAnteriores={...nuevas};
-  st.consultas=nuevas;
-  primeraVez=false;
-  render();
-  document.getElementById('loading').classList.add('hidden');
-});
-
-// ── Init ──
-if(st.usuarioActivo){
-  document.getElementById('user-screen').classList.add('oculto');
-  document.getElementById('cambiar-wrap').classList.add('visible');
-  setTimeout(mostrarPerfil,100);
-  pedirNotif();
+function startListeners() {
+  if(listenersStarted) return;
+  listenersStarted = true;
+  onValue(eRef, s => { st.emails=s.val()||{}; window._emails=st.emails; });
+  onValue(prRef, s => { st.propietarios=s.val()||{}; actualizarSelPropietarios(); if(st.seccion==='propietarios') renderPropietarios(); });
+  onValue(pRef, s => { st.propiedades=s.val()||{}; st.matchCache={}; actualizarSelPropiedades(); if(st.seccion==='propiedades') renderPropiedades(); });
+  onValue(vRef, s => { st.visitas=s.val()||{}; if(st.seccion==='visitas') renderVisitas(); });
+  onValue(cRef, s => {
+    const nuevas = s.val()||{};
+    if(!primeraVez){
+      Object.entries(nuevas).forEach(([id,c])=>{
+        if(!consAnteriores[id]){
+          enviarMail(c.asignado, c.nombre, c.propiedad);
+          enviarNotifPush('\uD83D\uDCCB Nueva consulta', (c.nombre||'Sin nombre')+' \u2014 '+(c.propiedad||''));
+        }
+      });
+    }
+    consAnteriores={...nuevas};
+    st.consultas=nuevas;
+    primeraVez=false;
+    render();
+    document.getElementById('loading').classList.add('hidden');
+  });
 }
+
+// ── Auth ──
+initAuth(
+  () => {
+    document.getElementById('user-screen').classList.add('oculto');
+    document.getElementById('cambiar-wrap').classList.add('visible');
+    mostrarPerfil();
+    pedirNotif();
+    startListeners();
+  },
+  () => {
+    listenersStarted = false;
+    primeraVez = true;
+    consAnteriores = {};
+    document.getElementById('user-screen').classList.remove('oculto');
+    document.getElementById('cambiar-wrap').classList.remove('visible');
+    document.getElementById('loading').classList.add('hidden');
+    const ph = document.getElementById('perfil-header');
+    if(ph) ph.style.display = 'none';
+  }
+);
 
 // ── Stats ──
 // ESTADÍSTICAS

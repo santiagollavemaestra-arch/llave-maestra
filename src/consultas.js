@@ -209,7 +209,7 @@ window._abrirDetalle = (id) => {
     '<div class="nota-input-row"><input class="nota-input" id="nota-inp-'+id+'" placeholder="Escribí una nota..." type="text" onkeypress="if(event.key===\'Enter\')window._addNota(\''+id+'\')"><button class="nota-send" onclick="window._addNota(\''+id+'\')">Enviar</button></div></div>'+
     '<div class="detail-section"><div class="detail-section-title">Estado</div><select class="form-select" onchange="window._updField(\''+id+'\',\'estado\',this.value)">'+estados+'</select></div>'+
     '<div class="detail-section"><div class="detail-section-title">Reasignar</div><select class="form-select" onchange="window._updField(\''+id+'\',\'asignado\',this.value)">'+asigs+'</select></div>'+
-    (st.usuarioActivo==='santiago'?'<button class="btn-danger" onclick="window._delConsulta(\''+id+'\')">🗑 Eliminar consulta</button>':'<div style="font-size:12px;color:var(--gray-400);text-align:center;margin-top:10px">Solo Santiago puede eliminar</div>')+
+    (st.usuarioRol==='admin'?'<button class="btn-danger" onclick="window._delConsulta(\''+id+'\')">🗑 Eliminar consulta</button>':'<div style="font-size:12px;color:var(--gray-400);text-align:center;margin-top:10px">Solo el administrador puede eliminar</div>')+
     '<div class="btn-row"><button class="btn-primary" onclick="cerrarModal(\'modal-detalle\')">Cerrar</button></div>';
 
   document.getElementById('modal-detalle').classList.add('open');
@@ -367,10 +367,8 @@ window._delNota = (cId,nId) => {
   setTimeout(()=>window._abrirDetalle(cId),300);
 };
 window._delConsulta = (id) => {
-  if(st.usuarioActivo!=='santiago'){alert('Solo Santiago puede eliminar.');return;}
-  const p=prompt('Contraseña:');
-  if(p!=='2858'){alert('Incorrecta.');return;}
-  if(!confirm('¿Eliminar?')) return;
+  if(st.usuarioRol!=='admin'){alert('Solo el administrador puede eliminar.');return;}
+  if(!confirm('¿Eliminar esta consulta? Esta acción no se puede deshacer.')) return;
   remove(ref(db,'consultas/'+id));
   cerrarModal('modal-detalle');
 };
