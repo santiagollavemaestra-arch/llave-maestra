@@ -667,30 +667,57 @@ document.addEventListener('touchstart', function(e) {
     <div class="modal">
       <div class="modal-handle"></div>
       <div class="modal-title">Nueva agencia</div>
-      <div class="form-group">
-        <label class="form-label">Nombre de la agencia</label>
-        <input class="form-input" id="ag-nombre" placeholder="Ej: Inmobiliaria García" oninput="window._autoSlug()">
+      <div style="font-size:12px;color:var(--gray-400);margin-bottom:16px;text-align:center">
+        Paso <span id="ag-paso-num">1</span> de 3
       </div>
-      <div class="form-group">
-        <label class="form-label">ID único <span style="font-size:11px;font-weight:400;color:var(--gray-400)">— solo minúsculas, números y guiones</span></label>
-        <input class="form-input" id="ag-id" placeholder="ej: inmobiliaria-garcia" oninput="this.dataset.manual='1'">
+
+      <!-- Paso 1: Nombre e ID -->
+      <div id="ag-step-1" class="ag-wizard-step">
+        <div class="form-group">
+          <label class="form-label">Nombre de la agencia</label>
+          <input class="form-input" id="ag-nombre" placeholder="Ej: Inmobiliaria García" oninput="window._autoSlug()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ID único <span style="font-size:11px;font-weight:400;color:var(--gray-400)">— solo minúsculas, números y guiones</span></label>
+          <input class="form-input" id="ag-id" placeholder="ej: inmobiliaria-garcia" oninput="this.dataset.manual='1'">
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Nombre del administrador</label>
-        <input class="form-input" id="ag-admin-nombre" placeholder="Ej: Carlos García">
+
+      <!-- Paso 2: Datos del admin -->
+      <div id="ag-step-2" class="ag-wizard-step" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Nombre del administrador</label>
+          <input class="form-input" id="ag-admin-nombre" placeholder="Ej: Carlos García">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email del administrador</label>
+          <input class="form-input" id="ag-admin-email" type="email" placeholder="admin@agencia.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña inicial</label>
+          <input class="form-input" id="ag-admin-pass" type="password" placeholder="Mínimo 6 caracteres">
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Email del administrador</label>
-        <input class="form-input" id="ag-admin-email" type="email" placeholder="admin@agencia.com">
+
+      <!-- Paso 3: Color primario -->
+      <div id="ag-step-3" class="ag-wizard-step" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Color primario de la agencia</label>
+          <div style="display:flex;gap:12px;align-items:center;margin-top:8px">
+            <input class="form-input" id="ag-color" type="color" value="#0a0a0a" style="width:80px;height:50px;padding:4px;cursor:pointer">
+            <div style="font-size:12px;color:var(--gray-600)">Se usará en botones, headers y elementos principales</div>
+          </div>
+        </div>
+        <div style="background:var(--gray-50);padding:12px;border-radius:8px;margin-top:16px;font-size:12px;color:var(--gray-600)">
+          💡 Podés cambiar esto después desde editar agencia
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Contraseña inicial</label>
-        <input class="form-input" id="ag-admin-pass" type="password" placeholder="Mínimo 6 caracteres">
-      </div>
+
       <div id="ag-error" style="color:var(--red);font-size:13px;margin-bottom:8px;min-height:18px"></div>
       <div class="btn-row">
+        <button class="btn-secondary" id="ag-back-btn" onclick="window._agenteWizardPrev()" style="display:none">← Atrás</button>
         <button class="btn-secondary" onclick="cerrarModal('modal-crear-agencia')">Cancelar</button>
-        <button class="btn-primary" id="ag-crear-btn" onclick="window._confirmarCrearAgencia()">Crear agencia</button>
+        <button class="btn-primary" id="ag-next-btn" onclick="window._agenteWizardNext()">Siguiente →</button>
       </div>
     </div>
   </div>

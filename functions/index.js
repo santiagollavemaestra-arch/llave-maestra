@@ -35,7 +35,7 @@ exports.crearAgencia = onCall(
       throw new HttpsError('permission-denied', 'Solo keynet-admin puede crear agencias');
     }
 
-    const { nombre, agenciaId, adminNombre, adminEmail, adminPassword } = request.data;
+    const { nombre, agenciaId, adminNombre, adminEmail, adminPassword, colorPrimario } = request.data;
     if (!nombre || !agenciaId || !adminNombre || !adminEmail || !adminPassword) {
       throw new HttpsError('invalid-argument', 'Faltan campos requeridos');
     }
@@ -57,7 +57,7 @@ exports.crearAgencia = onCall(
     // Escribir registros en la DB
     await admin.database().ref().update({
       ['usuarios/' + userRecord.uid]: { username, nombre: adminNombre, rol: 'admin', agenciaId },
-      ['keynet/agencias/' + agenciaId]: { nombre, adminEmail, adminUid: userRecord.uid, plan: 'trial', activa: true, creada: Date.now() },
+      ['keynet/agencias/' + agenciaId]: { nombre, adminEmail, adminUid: userRecord.uid, plan: 'trial', activa: true, creada: Date.now(), colorPrimario: colorPrimario || '#0a0a0a' },
       ['agencias/' + agenciaId + '/emails/' + username]: adminEmail
     });
 

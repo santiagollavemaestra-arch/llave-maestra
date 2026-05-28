@@ -6,6 +6,7 @@ const _borrarAgenciaFn = httpsCallable(functions, 'borrarAgencia');
 let _startCRM = null;
 let _agenciaActualEdit = null;
 let _agenciasData = {};
+let _wizardPaso = 1;
 
 export function initAdmin(startCRMCallback) {
   _startCRM = startCRMCallback;
@@ -21,6 +22,18 @@ export function initAdmin(startCRMCallback) {
     _agenciasData = snap.val() || {};
     _renderAgencias(_agenciasData);
   });
+
+  // Cuando se abre el modal de crear agencia, resetear wizard a paso 1
+  const modalCrear = document.getElementById('modal-crear-agencia');
+  if (modalCrear) {
+    const originalClick = modalCrear.onclick;
+    document.addEventListener('click', e => {
+      if (e.target?.className.includes('btn-primary') && e.target.textContent.includes('Nueva agencia')) {
+        _wizardPaso = 1;
+        _updateWizardUI();
+      }
+    });
+  }
 
   document.querySelectorAll('.modal-overlay').forEach(o => {
     o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
@@ -79,38 +92,74 @@ function _renderAgencias(data) {
   el.innerHTML = html;
 }
 
+window._agenteWizardNext = () => {
+  const err = document.getElementById('ag-error');
+  err.textContent = '';
+
+  if (_wizardPaso === 1) {
+    const nombre = document.getElementById('ag-nombre')?.value.trim();
+    const agenciaId = document.getElementById('ag-id')?.value.trim().toLowerCase();
+    if (!nombre || !agenciaId) { err.textContent = 'Completá nombre e ID'; return; }
+    if (!/^[a-z0-9-]+$/.test(agenciaId)) { err.textContent = 'El ID solo puede tener minúsculas, números y guiones'; return; }
+    _wizardPaso = 2;
+  } else if (_wizardPaso === 2) {
+    const adminNombre = document.getElementById('ag-admin-nombre')?.value.trim();
+    const adminEmail = document.getElementById('ag-admin-email')?.value.trim();
+    const adminPassword = document.getElementById('ag-admin-pass')?.value;
+    if (!adminNombre || !adminEmail || !adminPassword) { err.textContent = 'Completá todos los campos'; return; }
+    if (adminPassword.length < 6) { err.textContent = 'La contraseña debe tener al menos 6 caracteres'; return; }
+    _wizardPaso = 3;
+  } else if (_wizardPaso === 3) {
+    window._confirmarCrearAgencia();
+    return;
+  }
+  _updateWizardUI();
+};
+
+window._agenteWizardPrev = () => {
+  if (_wizardPaso > 1) {
+    _wizardPaso--;
+    _updateWizardUI();
+  }
+};
+
+function _updateWizardUI() {
+  document.getElementById('ag-paso-num').textContent = _wizardPaso;
+  document.getElementById('ag-error').textContent = '';
+  for (let i = 1; i <= 3; i++) {
+    const step = document.getElementById(`ag-step-${i}`);
+    if (step) step.style.display = i === _wizardPaso ? 'block' : 'none';
+  }
+  const backBtn = document.getElementById('ag-back-btn');
+  const nextBtn = document.getElementById('ag-next-btn');
+  if (backBtn) backBtn.style.display = _wizardPaso > 1 ? 'block' : 'none';
+  if (nextBtn) nextBtn.textContent = _wizardPaso === 3 ? 'Crear agencia ✓' : 'Siguiente →';
+}
+
 window._confirmarCrearAgencia = async () => {
   const nombre = document.getElementById('ag-nombre')?.value.trim();
   const agenciaId = document.getElementById('ag-id')?.value.trim().toLowerCase();
   const adminNombre = document.getElementById('ag-admin-nombre')?.value.trim();
   const adminEmail = document.getElementById('ag-admin-email')?.value.trim();
   const adminPassword = document.getElementById('ag-admin-pass')?.value;
-  const btn = document.getElementById('ag-crear-btn');
+  const colorPrimario = document.getElementById('ag-color')?.value || '#0a0a0a';
   const err = document.getElementById('ag-error');
+  const nextBtn = document.getElementById('ag-next-btn');
 
-  err.textContent = '';
-  if (!nombre || !agenciaId || !adminNombre || !adminEmail || !adminPassword) {
-    err.textContent = 'Completá todos los campos'; return;
-  }
-  if (!/^[a-z0-9-]+$/.test(agenciaId)) {
-    err.textContent = 'El ID solo puede tener minúsculas, números y guiones'; return;
-  }
-  if (adminPassword.length < 6) {
-    err.textContent = 'La contraseña debe tener al menos 6 caracteres'; return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Creando...';
+  nextBtn.disabled = true; nextBtn.textContent = 'Creando...';
 
   try {
-    await _crearAgenciaFn({ nombre, agenciaId, adminNombre, adminEmail, adminPassword });
+    await _crearAgenciaFn({ nombre, agenciaId, adminNombre, adminEmail, adminPassword, colorPrimario });
     document.getElementById('modal-crear-agencia').classList.remove('open');
-    ['ag-nombre','ag-id','ag-admin-nombre','ag-admin-email','ag-admin-pass'].forEach(id => {
-      const el = document.getElementById(id); if (el) { el.value = ''; delete el.dataset.manual; }
+    _wizardPaso = 1;
+    ['ag-nombre','ag-id','ag-admin-nombre','ag-admin-email','ag-admin-pass','ag-color'].forEach(id => {
+      const el = document.getElementById(id); if (el) { el.value = id === 'ag-color' ? '#0a0a0a' : ''; delete el.dataset.manual; }
     });
+    _updateWizardUI();
   } catch (e) {
     err.textContent = e.message || 'Error al crear la agencia';
   } finally {
-    btn.disabled = false; btn.textContent = 'Crear agencia';
+    nextBtn.disabled = false; nextBtn.textContent = 'Crear agencia ✓';
   }
 };
 
