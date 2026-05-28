@@ -81,6 +81,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
 .subtab-cnt{display:inline-block;background:var(--gray-100);color:var(--gray-600);font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:3px}
 .subtab.active .subtab-cnt{background:var(--black);color:#fff}
 
+/* AMENITY CHIPS */
+.am-chips-grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+.am-chip{padding:6px 13px;border-radius:20px;border:1.5px solid var(--gray-200);background:#fff;font-size:12px;font-weight:600;cursor:pointer;user-select:none;color:var(--gray-600);transition:all .15s}
+.am-chip.sel{background:var(--black);color:#fff;border-color:var(--black)}
+.am-chip-custom{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:var(--purple-light);border:1.5px solid var(--purple);font-size:12px;font-weight:600;color:var(--purple)}
+.am-chip-custom button{background:none;border:none;color:var(--purple);cursor:pointer;font-size:13px;padding:0;line-height:1}
 /* CONTENT */
 .content{padding:14px;max-width:680px;margin:0 auto;padding-bottom:30px}
 
@@ -640,21 +646,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
       </div>
     </div>
 
-    <div class="form-group"><label class="form-label">Amenities</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-pileta" style="width:16px;height:16px"> Pileta</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-gimnasio" style="width:16px;height:16px"> Gimnasio</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-quincho" style="width:16px;height:16px"> Quincho/Parrilla</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-laundry" style="width:16px;height:16px"> Laundry</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-sum" style="width:16px;height:16px"> SUM</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-jardin" style="width:16px;height:16px"> Jardín</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-terraza" style="width:16px;height:16px"> Terraza</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-balcon" style="width:16px;height:16px"> Balcón</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-seguridad" style="width:16px;height:16px"> Seguridad 24hs</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-vista-mar" style="width:16px;height:16px"> Vista al mar</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-amoblado" style="width:16px;height:16px"> Amoblado</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="am-coworking" style="width:16px;height:16px"> Coworking</label>
+    <div class="form-group"><label class="form-label">Características</label>
+      <div class="am-chips-grid" id="p-am-grid">
+        <span class="am-chip" data-v="pileta" onclick="this.classList.toggle('sel')">🏊 Pileta</span>
+        <span class="am-chip" data-v="gimnasio" onclick="this.classList.toggle('sel')">💪 Gimnasio</span>
+        <span class="am-chip" data-v="quincho" onclick="this.classList.toggle('sel')">🍖 Quincho</span>
+        <span class="am-chip" data-v="laundry" onclick="this.classList.toggle('sel')">👕 Laundry</span>
+        <span class="am-chip" data-v="sum" onclick="this.classList.toggle('sel')">🎉 SUM</span>
+        <span class="am-chip" data-v="jardin" onclick="this.classList.toggle('sel')">🌿 Jardín</span>
+        <span class="am-chip" data-v="terraza" onclick="this.classList.toggle('sel')">🌅 Terraza</span>
+        <span class="am-chip" data-v="balcon" onclick="this.classList.toggle('sel')">🏙️ Balcón</span>
+        <span class="am-chip" data-v="seguridad" onclick="this.classList.toggle('sel')">🔒 Seguridad 24hs</span>
+        <span class="am-chip" data-v="vista-mar" onclick="this.classList.toggle('sel')">🌊 Vista al mar</span>
+        <span class="am-chip" data-v="amoblado" onclick="this.classList.toggle('sel')">🛋️ Amoblado</span>
+        <span class="am-chip" data-v="coworking" onclick="this.classList.toggle('sel')">💼 Coworking</span>
+        <span class="am-chip" data-v="apto-credito" onclick="this.classList.toggle('sel')">💳 Apto crédito</span>
+        <span class="am-chip" data-v="apto-mascotas" onclick="this.classList.toggle('sel')">🐾 Apto mascotas</span>
+        <span class="am-chip" data-v="apto-profesional" onclick="this.classList.toggle('sel')">👔 Apto profesional</span>
+        <span class="am-chip" data-v="jacuzzi" onclick="this.classList.toggle('sel')">🛁 Jacuzzi</span>
+        <span class="am-chip" data-v="baulera" onclick="this.classList.toggle('sel')">📦 Baulera</span>
+        <span class="am-chip" data-v="playroom" onclick="this.classList.toggle('sel')">🎮 Playroom</span>
+        <span class="am-chip" data-v="parrilla-propia" onclick="this.classList.toggle('sel')">🔥 Parrilla propia</span>
+        <span class="am-chip" data-v="jardin-privado" onclick="this.classList.toggle('sel')">🌳 Jardín privado</span>
       </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input class="form-input" id="p-am-custom-inp" placeholder="Agregar característica..." type="text" style="flex:1" onkeypress="if(event.key==='Enter'){event.preventDefault();window._addAmTag('p')}">
+        <button onclick="window._addAmTag('p')" style="padding:8px 16px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-sm);font-size:18px;font-weight:700;cursor:pointer">+</button>
+      </div>
+      <div id="p-am-custom-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
     </div>
 
     <div class="form-group"><label class="form-label">Descripción</label>
@@ -764,21 +783,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
         <select class="form-select" id="edit-orient"><option value="">Sin especificar</option><option>Norte</option><option>Sur</option><option>Este</option><option>Oeste</option><option>Frente</option><option>Contrafrente</option></select>
       </div>
     </div>
-    <div class="form-group"><label class="form-label">Amenities</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-pileta" style="width:16px;height:16px"> Pileta</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-gimnasio" style="width:16px;height:16px"> Gimnasio</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-quincho" style="width:16px;height:16px"> Quincho/Parrilla</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-laundry" style="width:16px;height:16px"> Laundry</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-sum" style="width:16px;height:16px"> SUM</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-jardin" style="width:16px;height:16px"> Jardín</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-terraza" style="width:16px;height:16px"> Terraza</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-balcon" style="width:16px;height:16px"> Balcón</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-seguridad" style="width:16px;height:16px"> Seguridad 24hs</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-vista-mar" style="width:16px;height:16px"> Vista al mar</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-amoblado" style="width:16px;height:16px"> Amoblado</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eam-coworking" style="width:16px;height:16px"> Coworking</label>
+    <div class="form-group"><label class="form-label">Características</label>
+      <div class="am-chips-grid" id="eam-grid">
+        <span class="am-chip" data-v="pileta" onclick="this.classList.toggle('sel')">🏊 Pileta</span>
+        <span class="am-chip" data-v="gimnasio" onclick="this.classList.toggle('sel')">💪 Gimnasio</span>
+        <span class="am-chip" data-v="quincho" onclick="this.classList.toggle('sel')">🍖 Quincho</span>
+        <span class="am-chip" data-v="laundry" onclick="this.classList.toggle('sel')">👕 Laundry</span>
+        <span class="am-chip" data-v="sum" onclick="this.classList.toggle('sel')">🎉 SUM</span>
+        <span class="am-chip" data-v="jardin" onclick="this.classList.toggle('sel')">🌿 Jardín</span>
+        <span class="am-chip" data-v="terraza" onclick="this.classList.toggle('sel')">🌅 Terraza</span>
+        <span class="am-chip" data-v="balcon" onclick="this.classList.toggle('sel')">🏙️ Balcón</span>
+        <span class="am-chip" data-v="seguridad" onclick="this.classList.toggle('sel')">🔒 Seguridad 24hs</span>
+        <span class="am-chip" data-v="vista-mar" onclick="this.classList.toggle('sel')">🌊 Vista al mar</span>
+        <span class="am-chip" data-v="amoblado" onclick="this.classList.toggle('sel')">🛋️ Amoblado</span>
+        <span class="am-chip" data-v="coworking" onclick="this.classList.toggle('sel')">💼 Coworking</span>
+        <span class="am-chip" data-v="apto-credito" onclick="this.classList.toggle('sel')">💳 Apto crédito</span>
+        <span class="am-chip" data-v="apto-mascotas" onclick="this.classList.toggle('sel')">🐾 Apto mascotas</span>
+        <span class="am-chip" data-v="apto-profesional" onclick="this.classList.toggle('sel')">👔 Apto profesional</span>
+        <span class="am-chip" data-v="jacuzzi" onclick="this.classList.toggle('sel')">🛁 Jacuzzi</span>
+        <span class="am-chip" data-v="baulera" onclick="this.classList.toggle('sel')">📦 Baulera</span>
+        <span class="am-chip" data-v="playroom" onclick="this.classList.toggle('sel')">🎮 Playroom</span>
+        <span class="am-chip" data-v="parrilla-propia" onclick="this.classList.toggle('sel')">🔥 Parrilla propia</span>
+        <span class="am-chip" data-v="jardin-privado" onclick="this.classList.toggle('sel')">🌳 Jardín privado</span>
       </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input class="form-input" id="eam-custom-inp" placeholder="Agregar característica..." type="text" style="flex:1" onkeypress="if(event.key==='Enter'){event.preventDefault();window._addAmTag('eam')}">
+        <button onclick="window._addAmTag('eam')" style="padding:8px 16px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-sm);font-size:18px;font-weight:700;cursor:pointer">+</button>
+      </div>
+      <div id="eam-custom-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
     </div>
     <div class="form-group"><label class="form-label">Descripción</label>
       <textarea class="form-textarea" id="edit-desc" style="min-height:120px"></textarea>
@@ -979,6 +1011,8 @@ const CHECKS = [
 ];
 const DIAS = 3;
 
+const AMENITY_INFO={'pileta':'🏊 Pileta','gimnasio':'💪 Gimnasio','quincho':'🍖 Quincho','laundry':'👕 Laundry','sum':'🎉 SUM','jardin':'🌿 Jardín','terraza':'🌅 Terraza','balcon':'🏙️ Balcón','seguridad':'🔒 Seguridad 24hs','vista-mar':'🌊 Vista al mar','amoblado':'🛋️ Amoblado','coworking':'💼 Coworking','apto-credito':'💳 Apto crédito','apto-mascotas':'🐾 Apto mascotas','apto-profesional':'👔 Apto profesional','jacuzzi':'🛁 Jacuzzi','baulera':'📦 Baulera','playroom':'🎮 Playroom','parrilla-propia':'🔥 Parrilla propia','jardin-privado':'🌳 Jardín privado'};
+function _amLabel(a){return AMENITY_INFO[a]||('✓ '+a);}
 let consultas={}, propiedades={}, propietarios={}, visitas={}, emails={};
 let seccion='consultas', subTab='todas', filtroEstado='todos';
 let usuarioActivo=localStorage.getItem('lm_u')||null, usuarioTemp=null;
@@ -1732,6 +1766,15 @@ window.importarDesdePortal = async () => {
     setv('p-piso',prop.piso); setv('p-calef',prop.calefaccion); setv('p-orient',prop.orientacion);
     setv('p-toilette',prop.toilette); setv('p-cochera',prop.cochera); setv('p-antig',prop.antiguedad);
     setv('p-asc',prop.ascensor); setv('p-op',prop.operacion);
+    // Normalizar tipo
+    const tipoMap={'departamento':'Departamento','depto':'Departamento','casa':'Casa','ph':'PH','local':'Local comercial','local comercial':'Local comercial','oficina':'Oficina','terreno':'Terreno'};
+    if(prop.tipo){const tn=tipoMap[prop.tipo.toLowerCase()]||prop.tipo;const te=document.getElementById('p-tipo');if(te)te.value=tn;actualizarCamposTipo();}
+    // Normalizar cochera
+    if(prop.cochera&&prop.cochera!=='No'){
+      const cv=prop.cochera.toLowerCase();
+      const cocheraVal=cv.includes('2')||cv.includes('dos')?'2 cocheras':cv.includes('desc')||cv.includes('abierta')?'1 descubierta':'1 cubierta';
+      const ce=document.getElementById('p-cochera');if(ce)ce.value=cocheraVal;
+    }
     // Selects con opciones fijas
     [['p-amb',prop.ambientes],['p-dorm',prop.dormitorios],['p-ban',prop.banos]].forEach(([id,v])=>{
       if(!v) return;
@@ -1746,10 +1789,14 @@ window.importarDesdePortal = async () => {
         window.formatearPrecio(); }
     }
     if(prop.amenities?.length){
-      const mapAm={pileta:'pileta',piscina:'pileta',pool:'pileta',gimnasio:'gimnasio',parrilla:'quincho',quincho:'quincho',laundry:'laundry',sum:'sum',jardin:'jardin','jardín':'jardin',terraza:'terraza',balcon:'balcon','balcón':'balcon',seguridad:'seguridad','vista al mar':'vista-mar',amoblado:'amoblado',coworking:'coworking'};
+      const mapAm={pileta:'pileta',piscina:'pileta',pool:'pileta',gimnasio:'gimnasio',parrilla:'quincho',quincho:'quincho',laundry:'laundry',sum:'sum',jardin:'jardin','jardín':'jardin',terraza:'terraza',balcon:'balcon','balcón':'balcon',seguridad:'seguridad','vista al mar':'vista-mar',amoblado:'amoblado',coworking:'coworking','apto crédito':'apto-credito','apto credito':'apto-credito','apto mascotas':'apto-mascotas','apto profesional':'apto-profesional',jacuzzi:'jacuzzi',baulera:'baulera',playroom:'playroom','parrilla propia':'parrilla-propia','jardín privado':'jardin-privado','jardin privado':'jardin-privado'};
       prop.amenities.forEach(a=>{
         const k=Object.keys(mapAm).find(key=>a.toLowerCase().includes(key));
-        if(k){const el=document.getElementById('am-'+mapAm[k]);if(el)el.checked=true;}
+        const val=k?mapAm[k]:null;
+        if(val){
+          const el=document.querySelector('#p-am-grid .am-chip[data-v="'+val+'"]');
+          if(el)el.classList.add('sel');
+        }
       });
     }
     actualizarCamposTipo(); actualizarMoneda();
@@ -2104,7 +2151,7 @@ function _doGuardarPropiedad(){
   const precioRaw=(document.getElementById('p-precio')?.value||'').replace(/\D/g,'');
   const per=document.getElementById('p-periodo')?.textContent||'';
   const precioFmt=precioRaw?(mon==='USD'?'USD '+parseInt(precioRaw).toLocaleString('es-AR')+per:'$'+parseInt(precioRaw).toLocaleString('es-AR')+per):'';
-  const ams=['pileta','gimnasio','quincho','laundry','sum','jardin','terraza','balcon','seguridad','vista-mar','amoblado','coworking'].filter(a=>document.getElementById('am-'+a)?.checked);
+  const ams=_collectAmenities('p-am-grid','p-am-custom-tags');
   push(pRef,{
     titulo:titulo||propDirCompleta||dir,
     direccion:propDirCompleta||dir,
@@ -2140,7 +2187,9 @@ function _doGuardarPropiedad(){
   document.getElementById('p-precio-preview').textContent='';
   document.getElementById('p-fotos-preview').innerHTML='';
   document.getElementById('p-ciudad-badge').style.display='none';
-  ['pileta','gimnasio','quincho','laundry','sum','jardin','terraza','balcon','seguridad','vista-mar','amoblado','coworking'].forEach(a=>{const e=document.getElementById('am-'+a);if(e)e.checked=false;});
+  document.querySelectorAll('#p-am-grid .am-chip').forEach(el=>el.classList.remove('sel'));
+  const pCustomTags=document.getElementById('p-am-custom-tags');if(pCustomTags)pCustomTags.innerHTML='';
+  const pCustomInp=document.getElementById('p-am-custom-inp');if(pCustomInp)pCustomInp.value='';
   fotosSubidas=[];propDirCompleta='';propCiudad='';
   autocomplete=null;
   cerrarModal('modal-propiedad');
@@ -2156,8 +2205,21 @@ function renderPropiedades(){
   const lista=document.getElementById('lista');
   const arr=Object.entries(propiedades).map(([id,p])=>({...p,id}));
   let html='<button class="btn-nueva" onclick="document.getElementById(\'modal-propiedad\').classList.add(\'open\')">+ Nueva propiedad</button>';
+  html+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
+  html+='<input id="prop-search" class="search-input" placeholder="🔍 Buscar propiedad..." oninput="renderPropiedades()" style="flex:1;min-width:200px">';
+  html+='<select id="prop-filter-op" class="form-select" onchange="renderPropiedades()" style="width:130px;flex-shrink:0"><option value="">Operación</option><option>Venta</option><option>Alquiler</option><option>Alquiler temporal</option></select>';
+  html+='<select id="prop-filter-estado" class="form-select" onchange="renderPropiedades()" style="width:130px;flex-shrink:0"><option value="">Estado</option><option>Disponible</option><option>Reservada</option><option>Vendida/Alquilada</option></select>';
+  html+='</div>';
+  const q=(document.getElementById('prop-search')?.value||'').toLowerCase();
+  const fOp=document.getElementById('prop-filter-op')?.value||'';
+  const fEst=document.getElementById('prop-filter-estado')?.value||'';
+  let filtered=arr;
+  if(q) filtered=filtered.filter(p=>(p.titulo||'').toLowerCase().includes(q)||(p.direccion||'').toLowerCase().includes(q)||(p.barrio||'').toLowerCase().includes(q)||(p.tipo||'').toLowerCase().includes(q));
+  if(fOp) filtered=filtered.filter(p=>p.operacion===fOp);
+  if(fEst) filtered=filtered.filter(p=>(p.estado||'Disponible')===fEst);
   if(!arr.length){html+='<div class="empty"><div class="empty-icon">🏠</div><div>No hay propiedades</div></div>';lista.innerHTML=html;return;}
-  html+='<div class="prop-grid">'+arr.map(p=>{
+  if(!filtered.length){html+='<div class="empty"><div class="empty-icon">🔍</div><div>Sin resultados</div></div>';lista.innerHTML=html;return;}
+  html+='<div class="prop-grid">'+filtered.map(p=>{
     const todasFotos=p.fotos?.length?p.fotos:p.foto?[p.foto]:[];
     const estadoCls=p.estado==='Disponible'?'prop-disponible':p.estado==='Reservada'?'prop-reservada':'prop-vendida';
     const pr=propietarios[p.propietarioId];
@@ -2171,6 +2233,7 @@ function renderPropiedades(){
       '<div class="prop-titulo">'+(p.titulo||p.direccion||'')+'</div>'+
       '<div class="prop-precio">'+(p.precio||'')+'</div>'+
       (p.ambientes?'<div class="prop-info">'+(p.ambientes+' amb')+(p.dormitorios?' · '+p.dormitorios+' dorm.':'')+(p.supCubierta?' · '+p.supCubierta+'m²':p.supTotal?' · '+p.supTotal+'m²':'')+'</div>':'')+
+      (p.amenities?.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">'+p.amenities.slice(0,4).map(a=>'<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--gray-100);color:var(--gray-600);font-weight:600">'+_amLabel(a)+'</span>').join('')+(p.amenities.length>4?'<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--gray-100);color:var(--gray-400);font-weight:600">+'+( p.amenities.length-4)+' más</span>':'')+'</div>':'')+
       (pr?'<div class="prop-propietario">👤 '+pr.nombre+'</div>':'')+
       '<div style="display:flex;gap:6px;align-items:center;margin-top:6px" onclick="event.stopPropagation()">'+
       '<select onchange="window._cambiarEstadoProp(\''+p.id+'\',this.value)" style="flex:1;padding:5px;border:1.5px solid var(--gray-200);border-radius:6px;font-size:11px;font-family:\'DM Sans\',sans-serif">'+
@@ -2194,7 +2257,7 @@ window.abrirFichaProp = (id) => {
   const p = propiedades[id];
   if(!p) return;
   const todasFotos = p.fotos?.length ? p.fotos : p.foto ? [p.foto] : [];
-  const ams = (p.amenities||[]).map(a => '<span class="ficha-amenity">'+a+'</span>').join('');
+  const ams = (p.amenities||[]).map(a => '<span class="ficha-amenity">'+_amLabel(a)+'</span>').join('');
   const shareUrl = 'https://santiagollavemaestra-arch.github.io/llave-maestra/?prop='+id;
   
   let galeriaHtml = '';
@@ -2377,9 +2440,7 @@ window._abrirEditarProp = (id) => {
   document.getElementById('edit-asc').value = p.ascensor||'Sí';
   document.getElementById('edit-calef').value = p.calefaccion||'';
   document.getElementById('edit-orient').value = p.orientacion||'';
-  ['pileta','gimnasio','quincho','laundry','sum','jardin','terraza','balcon','seguridad','vista-mar','amoblado','coworking'].forEach(a=>{
-    const el=document.getElementById('eam-'+a); if(el) el.checked=(p.amenities||[]).includes(a);
-  });
+  _restoreAmenities(p.amenities,'eam-grid','eam-custom-tags');
   document.getElementById('edit-desc').value = p.desc||'';
   document.getElementById('edit-estado').value = p.estado||'Disponible';
   document.getElementById('edit-propietario').value = p.propietarioId||'';
@@ -2395,7 +2456,7 @@ window._guardarEdicionProp = () => {
   const eMon=document.getElementById('edit-moneda').value||'USD';
   const ePrecioRaw=(document.getElementById('edit-precio').value||'').replace(/\D/g,'');
   const ePrecioFmt=ePrecioRaw?(eMon==='USD'?'USD '+parseInt(ePrecioRaw).toLocaleString('es-AR'):'$'+parseInt(ePrecioRaw).toLocaleString('es-AR')):'';
-  const eAms=['pileta','gimnasio','quincho','laundry','sum','jardin','terraza','balcon','seguridad','vista-mar','amoblado','coworking'].filter(a=>document.getElementById('eam-'+a)?.checked);
+  const eAms=_collectAmenities('eam-grid','eam-custom-tags');
   update(ref(db,'propiedades/'+id), {
     operacion: document.getElementById('edit-op').value,
     tipo: document.getElementById('edit-tipo').value,
@@ -2575,7 +2636,7 @@ if(propParam) {
       const p = propiedades[propParam];
       if(!p) { document.getElementById('pub-content').innerHTML='<div style="text-align:center;padding:40px;color:#999">Propiedad no encontrada.</div>'; return; }
       const todasFotos = p.fotos?.length ? p.fotos : p.foto ? [p.foto] : [];
-      const ams = (p.amenities||[]).map(a=>'<span class="ficha-amenity">'+a+'</span>').join('');
+      const ams = (p.amenities||[]).map(a=>'<span class="ficha-amenity">'+_amLabel(a)+'</span>').join('');
       const pc = document.getElementById('pub-content');
       const op = (p.tipo||'')+' en '+(p.operacion||'')+(p.barrio?' · '+p.barrio:'');
       let html2 = '';
@@ -2840,6 +2901,45 @@ window.setFiltro = (estado,btn) => {
 };
 
 window.cerrarModal = (id) => document.getElementById(id).classList.remove('open');
+
+window._addAmTag = (prefix) => {
+  const inp=document.getElementById(prefix+'-am-custom-inp');
+  const v=(inp?.value||'').trim();
+  if(!v) return;
+  const container=document.getElementById(prefix+'-am-custom-tags');
+  if(!container) return;
+  if([...container.children].some(el=>el.dataset.v===v)) return;
+  const chip=document.createElement('div');
+  chip.className='am-chip-custom';
+  chip.dataset.v=v;
+  chip.innerHTML=v+'<button onclick="this.parentElement.remove()" title="Quitar">✕</button>';
+  container.appendChild(chip);
+  if(inp) inp.value='';
+};
+
+function _collectAmenities(gridId,customId){
+  const pre=[...document.querySelectorAll('#'+gridId+' .am-chip.sel')].map(el=>el.dataset.v);
+  const cus=[...document.querySelectorAll('#'+customId+' .am-chip-custom')].map(el=>el.dataset.v);
+  return [...pre,...cus];
+}
+
+function _restoreAmenities(amenities,gridId,customId){
+  document.querySelectorAll('#'+gridId+' .am-chip').forEach(el=>el.classList.remove('sel'));
+  const customContainer=document.getElementById(customId);
+  if(customContainer) customContainer.innerHTML='';
+  const known=new Set(Object.keys(AMENITY_INFO));
+  (amenities||[]).forEach(a=>{
+    const el=document.querySelector('#'+gridId+' .am-chip[data-v="'+a+'"]');
+    if(el){el.classList.add('sel');}
+    else if(a){
+      const chip=document.createElement('div');
+      chip.className='am-chip-custom';
+      chip.dataset.v=a;
+      chip.innerHTML=a+'<button onclick="this.parentElement.remove()" title="Quitar">✕</button>';
+      if(customContainer) customContainer.appendChild(chip);
+    }
+  });
+}
 
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o) o.classList.remove('open');});
