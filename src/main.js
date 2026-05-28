@@ -29,12 +29,14 @@ function stopListeners() {
 function startListeners() {
   if(listenersStarted) return;
   listenersStarted = true;
+  console.log('[startListeners] agenciaId:', st.agenciaId, 'path:', 'agencias/' + st.agenciaId);
   _unsubs.push(
-    onValue(agRef('emails'), s => { st.emails=s.val()||{}; window._emails=st.emails; }),
+    onValue(agRef('emails'), s => { console.log('[listeners] emails loaded'); st.emails=s.val()||{}; window._emails=st.emails; }),
     onValue(agRef('propietarios'), s => { st.propietarios=s.val()||{}; actualizarSelPropietarios(); if(st.seccion==='propietarios') renderPropietarios(); }),
     onValue(agRef('propiedades'), s => { st.propiedades=s.val()||{}; st.matchCache={}; actualizarSelPropiedades(); if(st.seccion==='propiedades') renderPropiedades(); }),
     onValue(agRef('visitas'), s => { st.visitas=s.val()||{}; if(st.seccion==='visitas') renderVisitas(); }),
     onValue(agRef('consultas'), s => {
+      console.log('[listeners] consultas loaded:', Object.keys(s.val()||{}));
       const nuevas = s.val()||{};
       if(!primeraVez){
         Object.entries(nuevas).forEach(([id,c])=>{
@@ -55,9 +57,11 @@ function startListeners() {
 
 // Llamado desde el panel admin para ver el CRM de una agencia sin cerrar sesión
 function startCRM(agenciaId, agenciaNombre) {
+  console.log('[startCRM] Init with agenciaId:', agenciaId);
   sessionStorage.setItem('keynetViewAs', JSON.stringify({agenciaId, agenciaNombre}));
   stopListeners();
   st.agenciaId = agenciaId;
+  console.log('[startCRM] st.agenciaId set to:', st.agenciaId);
   document.getElementById('admin-panel')?.classList.add('oculto');
   document.querySelector('.header')?.style.removeProperty('display');
   document.querySelector('.tabs-main')?.style.removeProperty('display');
@@ -69,8 +73,8 @@ function startCRM(agenciaId, agenciaNombre) {
     if(nb) nb.textContent = agenciaNombre;
     banner.style.display = 'flex';
   }
+  console.log('[startCRM] About to call startListeners');
   startListeners();
-  // Mostrar sección consultas y renderizar estado vacío mientras carga
   if(window.switchSeccion) window.switchSeccion('consultas');
   setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 5000);
 }
