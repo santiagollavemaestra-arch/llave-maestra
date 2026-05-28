@@ -120,7 +120,7 @@ initAuth(
     try {
       const agSnap = await get(ref(db, 'keynet/agencias/' + st.agenciaId));
       if ((agSnap.val() || {}).activa === false) {
-        document.getElementById('plan-inactivo').classList.remove('oculto');
+        document.getElementById('plan-inactivo').style.display = 'flex';
         document.getElementById('loading').classList.add('hidden');
         return;
       }
