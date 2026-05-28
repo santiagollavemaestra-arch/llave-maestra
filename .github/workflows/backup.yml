@@ -1,0 +1,35 @@
+name: Backup Firebase Database
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # 9am UTC = 6am Argentina, todos los días
+  workflow_dispatch:      # También se puede correr manualmente
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout rama backups
+        uses: actions/checkout@v4
+        with:
+          ref: backups
+
+      - name: Exportar base de datos
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          curl -sf "https://llave-maestra-default-rtdb.firebaseio.com/.json?auth=${{ secrets.FIREBASE_DB_SECRET }}" \
+            -o "backup-$DATE.json"
+          echo "✅ Backup guardado: backup-$DATE.json ($(wc -c < backup-$DATE.json) bytes)"
+
+      - name: Eliminar backups viejos (conservar últimos 30)
+        run: ls -t backup-*.json 2>/dev/null | tail -n +31 | xargs -r rm -f
+
+      - name: Commit y push
+        run: |
+          git config user.name "Keynet Backup"
+          git config user.email "backup@keynet.app"
+          git add .
+          git diff --staged --quiet || git commit -m "Backup $(date +%Y-%m-%d)"
+          git push
