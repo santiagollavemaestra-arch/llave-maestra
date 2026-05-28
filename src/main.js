@@ -65,10 +65,12 @@ function startCRM(agenciaId, agenciaNombre) {
   document.querySelector('.content')?.style.removeProperty('display');
   document.getElementById('cambiar-wrap')?.classList.add('visible');
   const banner = document.getElementById('admin-banner');
+  const header = document.querySelector('.header');
   if(banner) {
     const nb = document.getElementById('admin-banner-nombre');
     if(nb) nb.textContent = agenciaNombre;
     banner.style.display = 'flex';
+    if(header) header.classList.add('con-admin-banner');
   }
   mostrarPerfil(); // Mostrar el perfil del usuario
   startListeners();
@@ -119,6 +121,8 @@ initAuth(
     if(ph) ph.style.display = 'none';
     const banner = document.getElementById('admin-banner');
     if(banner) banner.style.display = 'none';
+    const header = document.querySelector('.header');
+    if(header) header.classList.remove('con-admin-banner');
   }
 );
 
