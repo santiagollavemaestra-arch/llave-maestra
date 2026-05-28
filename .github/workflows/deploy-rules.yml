@@ -1,0 +1,28 @@
+name: Deploy Firebase Security Rules
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'database.rules.json'
+  workflow_dispatch:
+
+jobs:
+  deploy-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy security rules
+        run: |
+          HTTP_STATUS=$(curl -s -o /tmp/rules_response.json -w "%{http_code}" \
+            -X PUT \
+            -H "Content-Type: application/json" \
+            -d @database.rules.json \
+            "https://llave-maestra-default-rtdb.firebaseio.com/.settings/rules.json?auth=${{ secrets.FIREBASE_DB_SECRET }}")
+          cat /tmp/rules_response.json
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "Error desplegando reglas (HTTP $HTTP_STATUS)"
+            exit 1
+          fi
+          echo "✅ Reglas de seguridad desplegadas correctamente"

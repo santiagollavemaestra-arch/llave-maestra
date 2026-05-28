@@ -11,7 +11,7 @@ export function initAuth(onLogin, onLogout) {
         st.usuarioRol = data.rol || 'agente';
         st.agenciaId = data.agenciaId || 'llave-maestra';
         if (!data.agenciaId) {
-          update(ref(db, 'usuarios/' + user.uid), { agenciaId: 'llave-maestra' }).catch(() => {});
+          try { await update(ref(db, 'usuarios/' + user.uid), { agenciaId: 'llave-maestra' }); } catch(e) {}
         }
       } catch(e) {
         console.error('Error leyendo perfil:', e.message);

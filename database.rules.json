@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "agencias": {
+      "$agenciaId": {
+        ".read":  "auth != null && root.child('usuarios').child(auth.uid).child('agenciaId').val() === $agenciaId",
+        ".write": "auth != null && root.child('usuarios').child(auth.uid).child('agenciaId').val() === $agenciaId"
+      }
+    },
+    "usuarios": {
+      "$uid": {
+        ".read":  "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}
