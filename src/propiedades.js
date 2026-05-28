@@ -30,6 +30,7 @@ function _restoreAmenities(amenities,gridId,customId){
 
 let fotosSubidas = [], propDirCompleta = '', propCiudad = '';
 let lbFotos = [], lbIdx = 0;
+let _editFotos = [];
 let autocomplete = null;
 let _mejoraContainer = null, _mejoraOrigUrl = '', _mejState = {embellecer:false, despejar:false};
 

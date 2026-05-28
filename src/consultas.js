@@ -227,9 +227,9 @@ window._matchingConsulta = (id) => {
 };
 
 async function generarMatchingIA(id,c){
-  if(matchCache[id]){
+  if(st.matchCache[id]){
     const el=document.getElementById('matching-'+id);
-    if(el) el.outerHTML=matchCache[id];
+    if(el) el.outerHTML=st.matchCache[id];
     return;
   }
   const disp=Object.entries(st.propiedades).filter(([,p])=>p.estado!=='Vendida/Alquilada')
@@ -252,7 +252,7 @@ async function generarMatchingIA(id,c){
           '<span class="matching-score">'+m.score+'% compatible</span></div>'+
           '<div style="font-size:11px;color:var(--purple);font-style:italic">'+m.razon+'</div></div>';
       }).join('')+'</div>';
-    matchCache[id]=html;
+    st.matchCache[id]=html;
     const el=document.getElementById('matching-'+id);
     if(el) el.outerHTML=html;
   } catch(e){
