@@ -183,6 +183,7 @@ window._abrirEditarAgencia = (agenciaId) => {
   document.getElementById('ag-edit-nombre').value = agencia.nombre || '';
   document.getElementById('ag-edit-plan').value = agencia.plan || 'trial';
   document.getElementById('ag-edit-activa').checked = agencia.activa !== false;
+  document.getElementById('ag-edit-color').value = agencia.colorPrimario || '#0a0a0a';
   document.getElementById('ag-edit-error').textContent = '';
   document.getElementById('modal-editar-agencia').classList.add('open');
 };
@@ -192,6 +193,7 @@ window._confirmarEditarAgencia = async () => {
   const nombre = document.getElementById('ag-edit-nombre')?.value.trim();
   const plan = document.getElementById('ag-edit-plan')?.value;
   const activa = document.getElementById('ag-edit-activa')?.checked;
+  const colorPrimario = document.getElementById('ag-edit-color')?.value || '#0a0a0a';
   const btn = document.getElementById('ag-edit-btn');
   const err = document.getElementById('ag-edit-error');
 
@@ -200,7 +202,7 @@ window._confirmarEditarAgencia = async () => {
 
   btn.disabled = true; btn.textContent = 'Guardando...';
   try {
-    await _editarAgenciaFn({ agenciaId: _agenciaActualEdit, nombre, plan, activa });
+    await _editarAgenciaFn({ agenciaId: _agenciaActualEdit, nombre, plan, activa, colorPrimario });
     document.getElementById('modal-editar-agencia').classList.remove('open');
   } catch (e) {
     err.textContent = e.message || 'Error al editar la agencia';
