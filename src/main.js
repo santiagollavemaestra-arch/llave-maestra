@@ -55,6 +55,7 @@ function startListeners() {
 
 // Llamado desde el panel admin para ver el CRM de una agencia sin cerrar sesión
 function startCRM(agenciaId, agenciaNombre) {
+  sessionStorage.setItem('keynetViewAs', JSON.stringify({agenciaId, agenciaNombre}));
   stopListeners();
   st.agenciaId = agenciaId;
   document.getElementById('admin-panel')?.classList.add('oculto');
@@ -80,6 +81,19 @@ initAuth(
     document.getElementById('user-screen').classList.add('oculto');
     if (st.usuarioRol === 'keynet-admin') {
       if (!IS_ADMIN) { window.location.href = '/admin'; return; }
+      // Restaurar CRM si el usuario refrescó estando en vista de agencia
+      const viewAs = sessionStorage.getItem('keynetViewAs');
+      if (viewAs) {
+        try {
+          const { agenciaId, agenciaNombre } = JSON.parse(viewAs);
+          startCRM(agenciaId, agenciaNombre);
+        } catch(e) {
+          sessionStorage.removeItem('keynetViewAs');
+          const { initAdmin } = await import('./admin.js');
+          initAdmin(startCRM);
+        }
+        return;
+      }
       try {
         const { initAdmin } = await import('./admin.js');
         initAdmin(startCRM);

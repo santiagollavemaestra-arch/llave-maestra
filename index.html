@@ -646,7 +646,7 @@ document.addEventListener('touchstart', function(e) {
 <!-- Banner admin: visible cuando keynet-admin está viendo un CRM de agencia -->
 <div id="admin-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--black);color:#fff;z-index:997;padding:10px 16px;align-items:center;justify-content:space-between;font-size:13px">
   <span>👁 Admin · <b id="admin-banner-nombre"></b></span>
-  <button onclick="window.location.href='/admin'" style="background:#fff;color:var(--black);border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">← Volver al admin</button>
+  <button onclick="sessionStorage.removeItem('keynetViewAs');window.location.href='/admin'" style="background:#fff;color:var(--black);border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">← Volver al admin</button>
 </div>
 
 <!-- ══ PANEL ADMIN KEYNET ══════════════════════════════════════ -->
