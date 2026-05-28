@@ -329,31 +329,21 @@ body{
 
 /* ── ROTACION ── */
 .rotacion{
-  background:linear-gradient(135deg,#100C08 0%,#1C1410 100%);
-  border-radius:var(--radius);
+  background:#fff;border-radius:var(--radius);
   padding:var(--space-4);margin-bottom:var(--space-4);
-  box-shadow:var(--shadow-lg);
-  border:1px solid rgba(196,122,46,.1);
+  box-shadow:var(--shadow);border:1px solid var(--stone-100);
 }
 .rotacion-title{
   font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.15em;color:rgba(255,255,255,.35);margin-bottom:12px;
-}
-.rot-name{font-size:11px;color:rgba(255,255,255,.5);font-weight:500}
-.rot-cnt{font-size:13px;font-weight:800;color:#fff}
-.rot-sig{
-  font-size:10px;background:rgba(196,122,46,.25);color:rgba(212,148,62,1);
-  padding:2px 7px;border-radius:var(--radius-xs);
-  font-weight:700;letter-spacing:.03em;
-  border:1px solid rgba(196,122,46,.3);
+  letter-spacing:.15em;color:var(--stone-400);margin-bottom:12px;
 }
 .rot-list{display:flex;gap:8px}
 .rot-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
 .rot-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff}
 .rot-name{font-size:11px;color:var(--stone-500);font-weight:500}
-.rot-cnt{font-size:13px;font-weight:800;color:var(--black)}
+.rot-cnt{font-size:14px;font-weight:800;color:var(--stone-900)}
 .rot-sig{
-  font-size:10px;background:var(--brand);color:#fff;
+  font-size:10px;background:var(--stone-900);color:#fff;
   padding:2px 7px;border-radius:var(--radius-xs);
   font-weight:700;letter-spacing:.03em;
 }
@@ -834,3 +824,15 @@ body{
   transition:background .15s;
 }
 .share-btn:hover{background:#dbeafe}
+
+/* ── ADMIN PANEL overrides ── */
+/* Las stat-card/.stat-num globales son para el CRM (fondo oscuro).
+   En el admin panel el fondo es blanco, hay que revertir. */
+#admin-panel .stat-card{
+  background:#fff;
+  border-radius:var(--radius-md);
+  border:1px solid var(--stone-100);
+  box-shadow:var(--shadow);
+}
+#admin-panel .stat-num{color:var(--stone-900)}
+#admin-panel .stat-name{color:var(--stone-400)}
