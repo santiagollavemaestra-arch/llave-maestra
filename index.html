@@ -694,6 +694,54 @@ document.addEventListener('touchstart', function(e) {
       </div>
     </div>
   </div>
+
+  <!-- Modal editar agencia -->
+  <div class="modal-overlay" id="modal-editar-agencia">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Editar agencia</div>
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input class="form-input" id="ag-edit-nombre" placeholder="Nombre de la agencia">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Plan</label>
+        <select class="form-input" id="ag-edit-plan">
+          <option value="trial">Trial</option>
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="ag-edit-activa" style="width:16px;height:16px;cursor:pointer">
+          Agencia activa
+        </label>
+      </div>
+      <div id="ag-edit-error" style="color:var(--red);font-size:13px;margin-bottom:8px;min-height:18px"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="cerrarModal('modal-editar-agencia')">Cancelar</button>
+        <button class="btn-primary" id="ag-edit-btn" onclick="window._confirmarEditarAgencia()">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal borrar agencia -->
+  <div class="modal-overlay" id="modal-borrar-agencia">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-handle"></div>
+      <div class="modal-title" style="color:var(--red)">⚠️ Borrar agencia</div>
+      <div style="font-size:13px;color:var(--gray-600);margin-bottom:16px">
+        ¿Estás seguro de que querés borrar <b id="ag-borrar-nombre"></b>?
+        <br><br>
+        Esto eliminará el registro de la agencia. Los datos del CRM quedarán guardados pero no serán accesibles.
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="cerrarModal('modal-borrar-agencia')">Cancelar</button>
+        <button class="btn-primary" id="ag-borrar-btn" onclick="window._confirmarBorrarAgencia()" style="background:var(--red)">Borrar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="/src/main.js"></script>

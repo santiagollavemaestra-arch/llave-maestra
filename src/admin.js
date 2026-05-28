@@ -1,7 +1,11 @@
 import { db, ref, onValue, functions, httpsCallable } from './firebase.js';
 
 const _crearAgenciaFn = httpsCallable(functions, 'crearAgencia');
+const _editarAgenciaFn = httpsCallable(functions, 'editarAgencia');
+const _borrarAgenciaFn = httpsCallable(functions, 'borrarAgencia');
 let _startCRM = null;
+let _agenciaActualEdit = null;
+let _agenciasData = {};
 
 export function initAdmin(startCRMCallback) {
   _startCRM = startCRMCallback;
@@ -13,7 +17,10 @@ export function initAdmin(startCRMCallback) {
   document.getElementById('cambiar-wrap')?.classList.remove('visible');
   document.getElementById('admin-panel')?.classList.remove('oculto');
 
-  onValue(ref(db, 'keynet/agencias'), snap => _renderAgencias(snap.val() || {}));
+  onValue(ref(db, 'keynet/agencias'), snap => {
+    _agenciasData = snap.val() || {};
+    _renderAgencias(_agenciasData);
+  });
 
   document.querySelectorAll('.modal-overlay').forEach(o => {
     o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
@@ -59,7 +66,11 @@ function _renderAgencias(data) {
         '<div style="margin-top:8px;font-size:12px;color:var(--gray-600)">Admin: ' + (a.adminEmail || '—') + '</div>' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">' +
         '<div style="font-size:11px;color:var(--gray-400)">Creada: ' + fecha + ' · ' + (a.activa ? '🟢 Activa' : '🔴 Inactiva') + '</div>' +
+        '<div style="display:flex;gap:8px">' +
         '<button onclick="window._verAgencia(\'' + a.id + '\',\'' + a.nombre.replace(/'/g,"\\'") + '\')" style="background:var(--black);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">Ver CRM →</button>' +
+        '<button onclick="window._abrirEditarAgencia(\'' + a.id + '\')" style="background:var(--gray-100);color:var(--black);border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">✏️ Editar</button>' +
+        '<button onclick="window._abrirBorrarAgencia(\'' + a.id + '\',\'' + a.nombre.replace(/'/g,"\\'") + '\')" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">🗑 Borrar</button>' +
+        '</div>' +
         '</div>' +
         '</div>';
     }).join('');
@@ -114,4 +125,57 @@ window._autoSlug = () => {
   idEl.value = nombre.toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+};
+
+window._abrirEditarAgencia = (agenciaId) => {
+  _agenciaActualEdit = agenciaId;
+  const agencia = _agenciasData[agenciaId];
+  if (!agencia) return;
+  document.getElementById('ag-edit-nombre').value = agencia.nombre || '';
+  document.getElementById('ag-edit-plan').value = agencia.plan || 'trial';
+  document.getElementById('ag-edit-activa').checked = agencia.activa !== false;
+  document.getElementById('ag-edit-error').textContent = '';
+  document.getElementById('modal-editar-agencia').classList.add('open');
+};
+
+window._confirmarEditarAgencia = async () => {
+  if (!_agenciaActualEdit) return;
+  const nombre = document.getElementById('ag-edit-nombre')?.value.trim();
+  const plan = document.getElementById('ag-edit-plan')?.value;
+  const activa = document.getElementById('ag-edit-activa')?.checked;
+  const btn = document.getElementById('ag-edit-btn');
+  const err = document.getElementById('ag-edit-error');
+
+  err.textContent = '';
+  if (!nombre) { err.textContent = 'El nombre es requerido'; return; }
+
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    await _editarAgenciaFn({ agenciaId: _agenciaActualEdit, nombre, plan, activa });
+    document.getElementById('modal-editar-agencia').classList.remove('open');
+  } catch (e) {
+    err.textContent = e.message || 'Error al editar la agencia';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar cambios';
+  }
+};
+
+window._abrirBorrarAgencia = (agenciaId, agenciaNombre) => {
+  _agenciaActualEdit = agenciaId;
+  document.getElementById('ag-borrar-nombre').textContent = agenciaNombre;
+  document.getElementById('modal-borrar-agencia').classList.add('open');
+};
+
+window._confirmarBorrarAgencia = async () => {
+  if (!_agenciaActualEdit) return;
+  const btn = document.getElementById('ag-borrar-btn');
+  btn.disabled = true; btn.textContent = 'Borrando...';
+  try {
+    await _borrarAgenciaFn({ agenciaId: _agenciaActualEdit });
+    document.getElementById('modal-borrar-agencia').classList.remove('open');
+  } catch (e) {
+    alert('Error al borrar: ' + (e.message || 'Intenta de nuevo'));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Borrar';
+  }
 };

@@ -64,3 +64,53 @@ exports.crearAgencia = onCall(
     return { success: true, uid: userRecord.uid };
   }
 );
+
+// ── Editar agencia ────────────────────────────────────────────
+exports.editarAgencia = onCall(
+  { region: 'us-central1' },
+  async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Se requiere autenticación');
+
+    // Solo keynet-admin puede editar agencias
+    const callerSnap = await admin.database().ref('usuarios/' + request.auth.uid).get();
+    if ((callerSnap.val() || {}).rol !== 'keynet-admin') {
+      throw new HttpsError('permission-denied', 'Solo keynet-admin puede editar agencias');
+    }
+
+    const { agenciaId, nombre, plan, activa } = request.data;
+    if (!agenciaId || !nombre) {
+      throw new HttpsError('invalid-argument', 'Faltan campos requeridos');
+    }
+
+    // Actualizar el registro
+    await admin.database().ref('keynet/agencias/' + agenciaId).update({
+      nombre, plan, activa, actualizada: Date.now()
+    });
+
+    return { success: true };
+  }
+);
+
+// ── Borrar agencia ────────────────────────────────────────────
+exports.borrarAgencia = onCall(
+  { region: 'us-central1' },
+  async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Se requiere autenticación');
+
+    // Solo keynet-admin puede borrar agencias
+    const callerSnap = await admin.database().ref('usuarios/' + request.auth.uid).get();
+    if ((callerSnap.val() || {}).rol !== 'keynet-admin') {
+      throw new HttpsError('permission-denied', 'Solo keynet-admin puede borrar agencias');
+    }
+
+    const { agenciaId } = request.data;
+    if (!agenciaId) {
+      throw new HttpsError('invalid-argument', 'Falta agenciaId');
+    }
+
+    // Borrar el registro (los datos en /agencias/{agenciaId} quedan intactos)
+    await admin.database().ref('keynet/agencias/' + agenciaId).remove();
+
+    return { success: true };
+  }
+);
