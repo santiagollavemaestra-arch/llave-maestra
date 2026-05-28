@@ -9,8 +9,9 @@ export function initAuth(onLogin, onLogout) {
         const data = snap.val() || {};
         st.usuarioActivo = data.username || null;
         st.usuarioRol = data.rol || 'agente';
-        st.agenciaId = data.agenciaId || 'llave-maestra';
-        if (!data.agenciaId) {
+        const esKeynetAdmin = data.rol === 'keynet-admin';
+        st.agenciaId = esKeynetAdmin ? null : (data.agenciaId || 'llave-maestra');
+        if (!esKeynetAdmin && !data.agenciaId) {
           try { await update(ref(db, 'usuarios/' + user.uid), { agenciaId: 'llave-maestra' }); } catch(e) {}
         }
       } catch(e) {

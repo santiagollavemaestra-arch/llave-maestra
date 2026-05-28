@@ -25,6 +25,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
 /* USER SCREEN */
 .user-screen{position:fixed;inset:0;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:998;padding:30px}
 .user-screen.oculto{display:none}
+.oculto{display:none}
 .user-title{font-family:'DM Serif Display',serif;font-size:28px;color:#fff;margin-bottom:6px;text-align:center}
 .user-sub{font-size:11px;color:var(--gray-400);margin-bottom:40px;text-align:center;letter-spacing:1px}
 .user-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:320px}

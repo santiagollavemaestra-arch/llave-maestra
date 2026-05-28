@@ -52,6 +52,8 @@ initAuth(
     mostrarPerfil();
     pedirNotif();
     startListeners();
+    // Failsafe: si el loading no se ocultó en 8s (listeners bloqueados), ocultarlo igual
+    setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 8000);
   },
   () => {
     listenersStarted = false;
