@@ -58,6 +58,7 @@ function startCRM(agenciaId, agenciaNombre) {
   sessionStorage.setItem('keynetViewAs', JSON.stringify({agenciaId, agenciaNombre}));
   stopListeners();
   st.agenciaId = agenciaId;
+  st.usuarioRol = 'admin'; // Cambiar a admin para tener permisos en esta agencia
   document.getElementById('admin-panel')?.classList.add('oculto');
   document.querySelector('.header')?.style.removeProperty('display');
   document.querySelector('.tabs-main')?.style.removeProperty('display');
@@ -69,6 +70,7 @@ function startCRM(agenciaId, agenciaNombre) {
     if(nb) nb.textContent = agenciaNombre;
     banner.style.display = 'flex';
   }
+  mostrarPerfil(); // Mostrar el perfil del usuario
   startListeners();
   if(window.switchSeccion) window.switchSeccion('consultas');
   setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 5000);
