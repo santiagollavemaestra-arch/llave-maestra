@@ -12,30 +12,61 @@ const IS_ADMIN = window.location.pathname === '/admin';
 // ── Firebase listeners (arrancan solo después del login) ──
 let listenersStarted = false;
 let primeraVez = true, consAnteriores = {};
+let _unsubs = [];
+
+function stopListeners() {
+  _unsubs.forEach(fn => fn());
+  _unsubs = [];
+  listenersStarted = false;
+  primeraVez = true;
+  consAnteriores = {};
+  st.consultas={}; st.propiedades={}; st.propietarios={}; st.visitas={}; st.emails={};
+}
 
 function startListeners() {
   if(listenersStarted) return;
   listenersStarted = true;
-  onValue(agRef('emails'), s => { st.emails=s.val()||{}; window._emails=st.emails; });
-  onValue(agRef('propietarios'), s => { st.propietarios=s.val()||{}; actualizarSelPropietarios(); if(st.seccion==='propietarios') renderPropietarios(); });
-  onValue(agRef('propiedades'), s => { st.propiedades=s.val()||{}; st.matchCache={}; actualizarSelPropiedades(); if(st.seccion==='propiedades') renderPropiedades(); });
-  onValue(agRef('visitas'), s => { st.visitas=s.val()||{}; if(st.seccion==='visitas') renderVisitas(); });
-  onValue(agRef('consultas'), s => {
-    const nuevas = s.val()||{};
-    if(!primeraVez){
-      Object.entries(nuevas).forEach(([id,c])=>{
-        if(!consAnteriores[id]){
-          enviarMail(c.asignado, c.nombre, c.propiedad);
-          enviarNotifPush('\uD83D\uDCCB Nueva consulta', (c.nombre||'Sin nombre')+' \u2014 '+(c.propiedad||''));
-        }
-      });
-    }
-    consAnteriores={...nuevas};
-    st.consultas=nuevas;
-    primeraVez=false;
-    render();
-    document.getElementById('loading').classList.add('hidden');
-  });
+  _unsubs.push(
+    onValue(agRef('emails'), s => { st.emails=s.val()||{}; window._emails=st.emails; }),
+    onValue(agRef('propietarios'), s => { st.propietarios=s.val()||{}; actualizarSelPropietarios(); if(st.seccion==='propietarios') renderPropietarios(); }),
+    onValue(agRef('propiedades'), s => { st.propiedades=s.val()||{}; st.matchCache={}; actualizarSelPropiedades(); if(st.seccion==='propiedades') renderPropiedades(); }),
+    onValue(agRef('visitas'), s => { st.visitas=s.val()||{}; if(st.seccion==='visitas') renderVisitas(); }),
+    onValue(agRef('consultas'), s => {
+      const nuevas = s.val()||{};
+      if(!primeraVez){
+        Object.entries(nuevas).forEach(([id,c])=>{
+          if(!consAnteriores[id]){
+            enviarMail(c.asignado, c.nombre, c.propiedad);
+            enviarNotifPush('📋 Nueva consulta', (c.nombre||'Sin nombre')+' — '+(c.propiedad||''));
+          }
+        });
+      }
+      consAnteriores={...nuevas};
+      st.consultas=nuevas;
+      primeraVez=false;
+      render();
+      document.getElementById('loading').classList.add('hidden');
+    })
+  );
+}
+
+// Llamado desde el panel admin para ver el CRM de una agencia sin cerrar sesión
+function startCRM(agenciaId, agenciaNombre) {
+  stopListeners();
+  st.agenciaId = agenciaId;
+  document.getElementById('admin-panel')?.classList.add('oculto');
+  document.querySelector('.header')?.style.removeProperty('display');
+  document.querySelector('.tabs-main')?.style.removeProperty('display');
+  document.querySelector('.content')?.style.removeProperty('display');
+  document.getElementById('cambiar-wrap')?.classList.add('visible');
+  const banner = document.getElementById('admin-banner');
+  if(banner) {
+    const nb = document.getElementById('admin-banner-nombre');
+    if(nb) nb.textContent = agenciaNombre;
+    banner.style.display = 'flex';
+  }
+  startListeners();
+  setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 5000);
 }
 
 // ── Auth ──
@@ -46,7 +77,7 @@ initAuth(
       if (!IS_ADMIN) { window.location.href = '/admin'; return; }
       try {
         const { initAdmin } = await import('./admin.js');
-        initAdmin();
+        initAdmin(startCRM);
       } catch(e) {
         console.error('Admin init error:', e);
         document.getElementById('loading')?.classList.add('hidden');
@@ -57,23 +88,21 @@ initAuth(
     mostrarPerfil();
     pedirNotif();
     startListeners();
-    // Failsafe: si los listeners no ocultan el loading en 5s, ocultarlo igual
     setTimeout(() => document.getElementById('loading')?.classList.add('hidden'), 5000);
   },
   () => {
-    listenersStarted = false;
-    primeraVez = true;
-    consAnteriores = {};
+    stopListeners();
     document.getElementById('user-screen').classList.remove('oculto');
     document.getElementById('cambiar-wrap').classList.remove('visible');
     document.getElementById('loading').classList.add('hidden');
     const ph = document.getElementById('perfil-header');
     if(ph) ph.style.display = 'none';
+    const banner = document.getElementById('admin-banner');
+    if(banner) banner.style.display = 'none';
   }
 );
 
 // ── Stats ──
-// ESTADÍSTICAS
 // ============================================================
 window._abrirStats = () => {
   const hoy=new Date();
@@ -106,7 +135,6 @@ window._abrirStats = () => {
 // ============================================================
 
 // ── Navegación ──
-// NAVEGACIÓN
 // ============================================================
 window.switchSeccion = (s) => {
   st.seccion=s;
@@ -152,7 +180,6 @@ window._addAmTag = (prefix) => {
   if(inp) inp.value='';
 };
 
-
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o) o.classList.remove('open');});
   o.addEventListener('touchmove',e=>e.stopPropagation(),{passive:true});
@@ -178,4 +205,3 @@ const _gmk=['AIzaSyCJA9M','qz_27Z4pRWiX','yuV9K1tgJsb27YKA'].join('');
 const _gms=document.createElement('script');
 _gms.src='https://maps.googleapis.com/maps/api/js?key='+_gmk+'&libraries=places&language=es&region=AR&loading=async';
 document.head.appendChild(_gms);
-

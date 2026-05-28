@@ -1,8 +1,10 @@
 import { db, ref, onValue, functions, httpsCallable } from './firebase.js';
 
 const _crearAgenciaFn = httpsCallable(functions, 'crearAgencia');
+let _startCRM = null;
 
-export function initAdmin() {
+export function initAdmin(startCRMCallback) {
+  _startCRM = startCRMCallback;
   document.querySelector('.header')?.style.setProperty('display', 'none');
   document.querySelector('.tabs-main')?.style.setProperty('display', 'none');
   document.querySelector('.content')?.style.setProperty('display', 'none');
@@ -55,7 +57,10 @@ function _renderAgencias(data) {
         '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;background:var(--gray-100);color:' + planColor + '">' + (a.plan || 'trial').toUpperCase() + '</span>' +
         '</div>' +
         '<div style="margin-top:8px;font-size:12px;color:var(--gray-600)">Admin: ' + (a.adminEmail || '—') + '</div>' +
-        '<div style="font-size:11px;color:var(--gray-400);margin-top:4px">Creada: ' + fecha + ' · ' + (a.activa ? '🟢 Activa' : '🔴 Inactiva') + '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">' +
+        '<div style="font-size:11px;color:var(--gray-400)">Creada: ' + fecha + ' · ' + (a.activa ? '🟢 Activa' : '🔴 Inactiva') + '</div>' +
+        '<button onclick="window._verAgencia(\'' + a.id + '\',\'' + a.nombre.replace(/'/g,"\\'") + '\')" style="background:var(--black);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">Ver CRM →</button>' +
+        '</div>' +
         '</div>';
     }).join('');
   }
@@ -96,6 +101,10 @@ window._confirmarCrearAgencia = async () => {
   } finally {
     btn.disabled = false; btn.textContent = 'Crear agencia';
   }
+};
+
+window._verAgencia = (agenciaId, agenciaNombre) => {
+  if(_startCRM) _startCRM(agenciaId, agenciaNombre);
 };
 
 window._autoSlug = () => {
