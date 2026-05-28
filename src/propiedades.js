@@ -87,7 +87,7 @@ window.importarDesdePortal = async () => {
   const okStyle  = 'display:block;background:var(--green-light);border:1.5px solid var(--green);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;font-size:13px;color:var(--green);font-weight:600';
   const showErr  = (msg) => { status.style.display='none'; resultado.style.cssText=errStyle; resultado.textContent=msg; };
   status.style.display='block';
-  status.textContent='⏳ Conectando con el portal...';
+  status.textContent='Conectando con el portal...';
   resultado.style.display='none';
 
   try {
@@ -215,7 +215,7 @@ window.importarDesdePortal = async () => {
     let subidas=0;
     if(imgUrls.length>0){
       const maxFotos=Math.min(imgUrls.length,25);
-      status.textContent='📷 Importando fotos (0/'+maxFotos+')...';
+      status.textContent='Importando fotos (0/'+maxFotos+')...';
       const imgProxies=(u)=>[
         'https://images.weserv.nl/?url='+encodeURIComponent(u)+'&output=jpg&q=95&maxage=1d',
         'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
@@ -259,7 +259,7 @@ window.importarDesdePortal = async () => {
               '<button onclick="window.quitarFoto('+idx+',this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer">&#x2715;</button>'+
               '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 6px 6px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ Editar con IA</button>';
             preview.appendChild(div);
-            status.textContent='📷 Importando fotos ('+subidas+'/'+maxFotos+')...';
+            status.textContent='Importando fotos ('+subidas+'/'+maxFotos+')...';
           }
         } catch(e){ console.log('Cloudinary error:',imgUrl,e.message); }
       }
@@ -336,7 +336,7 @@ window.generarDescripcionIA = async () => {
   const loading=document.getElementById('p-ia-loading');
   const iaBtn=document.getElementById('p-desc-ia-btn');
   if(loading) loading.style.display='block';
-  if(iaBtn){iaBtn.disabled=true;iaBtn.textContent='⏳ Generando...';}
+  if(iaBtn){iaBtn.disabled=true;iaBtn.textContent='Generando...';}
   document.getElementById('p-desc').value='';
 
   let datos='Tipo: '+tipo+'\nOperación: '+op+'\n';
@@ -389,7 +389,7 @@ window.subirFotos = async (input) => {
       const div=document.createElement('div');
       div.style.cssText='position:relative;display:inline-block';
       div.id=tmpId;
-      div.innerHTML='<img src="'+e.target.result+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;opacity:0.5"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:rgba(0,0,0,.4);border-radius:6px">⏳</div>';
+      div.innerHTML='<img src="'+e.target.result+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;opacity:0.5"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:rgba(0,0,0,.4);border-radius:6px">···</div>';
       preview.appendChild(div);
     };
     reader.readAsDataURL(file);
@@ -631,21 +631,21 @@ export function renderPropiedades(){
       '<span class="prop-estado-badge '+estadoCls+'">'+(p.estado||'Disponible')+'</span>'+
       (todasFotos.length?
         '<div class="prop-cover"><img src="'+todasFotos[0]+'" loading="lazy"></div>':
-        '<div class="prop-foto-placeholder">📷 Sin fotos</div>')+
+        '<div class="prop-foto-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>Sin fotos</div>')+
       '<div class="prop-body">'+
       '<div class="prop-operacion">'+(p.tipo||'')+' · '+(p.operacion||'')+(p.barrio?' · '+p.barrio:'')+'</div>'+
       '<div class="prop-titulo">'+(p.titulo||p.direccion||'')+'</div>'+
       '<div class="prop-precio">'+(p.precio||'')+'</div>'+
       (p.ambientes?'<div class="prop-info">'+(p.ambientes+' amb')+(p.dormitorios?' · '+p.dormitorios+' dorm.':'')+(p.supCubierta?' · '+p.supCubierta+'m²':p.supTotal?' · '+p.supTotal+'m²':'')+'</div>':'')+
-      (p.amenities?.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">'+p.amenities.slice(0,4).map(a=>'<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--gray-100);color:var(--gray-600);font-weight:600">'+_amLabel(a)+'</span>').join('')+(p.amenities.length>4?'<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--gray-100);color:var(--gray-400);font-weight:600">+'+( p.amenities.length-4)+' más</span>':'')+'</div>':'')+
-      (pr?'<div class="prop-propietario">👤 '+pr.nombre+'</div>':'')+
-      '<div style="display:flex;gap:6px;align-items:center;margin-top:6px" onclick="event.stopPropagation()">'+
-      '<select onchange="window._cambiarEstadoProp(\''+p.id+'\',this.value)" style="flex:1;padding:5px;border:1.5px solid var(--gray-200);border-radius:6px;font-size:11px;font-family:\'DM Sans\',sans-serif">'+
+      (p.amenities?.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">'+p.amenities.slice(0,3).map(a=>'<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--gray-100);color:#475569;font-weight:600">'+_amLabel(a)+'</span>').join('')+(p.amenities.length>3?'<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--gray-100);color:var(--gray-400);font-weight:600">+'+( p.amenities.length-3)+'</span>':'')+'</div>':'')+
+      (pr?'<div class="prop-propietario">'+pr.nombre+'</div>':'')+
+      '<div class="prop-action-row" onclick="event.stopPropagation()">'+
+      '<select onchange="window._cambiarEstadoProp(\''+p.id+'\',this.value)" style="flex:1;padding:6px 8px;border:1.5px solid var(--gray-200);border-radius:6px;font-size:12px;font-family:\'DM Sans\',sans-serif;color:var(--black);background:#fff">'+
       '<option '+(p.estado==='Disponible'?'selected':'')+'>Disponible</option>'+
       '<option '+(p.estado==='Reservada'?'selected':'')+'>Reservada</option>'+
       '<option '+(p.estado==='Vendida/Alquilada'?'selected':'')+'>Vendida/Alquilada</option>'+
       '</select>'+
-      '<button onclick="window._delProp(\''+p.id+'\')" style="padding:5px 8px;background:var(--red-light);color:var(--red);border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🗑</button>'+
+      '<button onclick="window._delProp(\''+p.id+'\')" style="padding:6px 10px;background:var(--red-light);color:var(--red);border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center"><svg xmlns=\'http://www.w3.org/2000/svg\' width=\'13\' height=\'13\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M3 6h18\'/><path d=\'M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\'/><path d=\'M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\'/></svg></button>'+
       '</div></div></div>';
   }).join('')+'</div>';
   lista.innerHTML=html;
@@ -715,11 +715,11 @@ window.abrirFichaProp = (id) => {
     })()+
     (ams ? '<div style="margin-bottom:12px">'+ams+'</div>' : '')+
     (p.desc ? '<div style="font-size:14px;color:var(--gray-600);line-height:1.7;margin-bottom:16px;white-space:pre-wrap">'+p.desc+'</div>' : '')+
-    '<button id="btn-match-inv-'+id+'" onclick="window.matchingInverso(\''+id+'\')" style="width:100%;margin-bottom:10px;padding:11px;background:var(--purple-light);border:1.5px solid var(--purple);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--purple);cursor:pointer">👥 ¿A quién le recomiendo esta propiedad?</button>'+
+    '<button id="btn-match-inv-'+id+'" onclick="window.matchingInverso(\''+id+'\')" style="width:100%;margin-bottom:10px;padding:11px;background:var(--purple-light);border:1.5px solid var(--purple);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--purple);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><svg xmlns=\'http://www.w3.org/2000/svg\' width=\'14\' height=\'14\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\'/><circle cx=\'9\' cy=\'7\' r=\'4\'/><path d=\'M23 21v-2a4 4 0 0 0-3-3.87\'/><path d=\'M16 3.13a4 4 0 0 1 0 7.75\'/></svg>¿A quién le recomiendo esta propiedad?</button>'+
     '<div id="matching-inv-'+id+'" style="margin-bottom:10px"></div>'+
     '<div style="display:flex;gap:8px;margin-bottom:10px">'+
-    '<button onclick="window._abrirEditarProp(\''+id+'\');event.stopPropagation()" style="flex:1;padding:11px;background:var(--gray-100);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--gray-600);cursor:pointer">✏️ Editar</button>'+
-    '<button onclick="compartirPropiedad(\''+id+'\');event.stopPropagation()" style="flex:1;padding:11px;background:var(--blue-light);border:1.5px solid var(--blue);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--blue);cursor:pointer">🔗 Compartir</button>'+
+    '<button onclick="window._abrirEditarProp(\''+id+'\');event.stopPropagation()" style="flex:1;padding:11px;background:var(--gray-100);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--gray-600);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><svg xmlns=\'http://www.w3.org/2000/svg\' width=\'14\' height=\'14\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\'/><path d=\'M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z\'/></svg>Editar</button>'+
+    '<button onclick="compartirPropiedad(\''+id+'\');event.stopPropagation()" style="flex:1;padding:11px;background:var(--blue-light);border:1.5px solid var(--blue);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><svg xmlns=\'http://www.w3.org/2000/svg\' width=\'14\' height=\'14\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8\'/><polyline points=\'16 6 12 2 8 6\'/><line x1=\'12\' y1=\'2\' x2=\'12\' y2=\'15\'/></svg>Compartir</button>'+
     '</div>'+
     '<div class="btn-row"><button class="btn-primary" onclick="cerrarModal(\'modal-ficha-prop\')">Cerrar</button></div>';
 
@@ -730,12 +730,12 @@ window.abrirFichaProp = (id) => {
 window.matchingInverso = async (propId) => {
   const btn = document.getElementById('btn-match-inv-'+propId);
   const divRes = document.getElementById('matching-inv-'+propId);
-  if(btn) { btn.textContent = '⏳ Analizando clientes...'; btn.disabled = true; }
+  if(btn) { btn.textContent = 'Analizando clientes...'; btn.disabled = true; }
   if(divRes) divRes.innerHTML = '';
 
   const p = st.propiedades[propId];
   if(!p) {
-    if(btn) { btn.textContent = '👥 ¿A quién le recomiendo esta propiedad?'; btn.disabled = false; }
+    if(btn) { btn.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'14\' height=\'14\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\'/><circle cx=\'9\' cy=\'7\' r=\'4\'/><path d=\'M23 21v-2a4 4 0 0 0-3-3.87\'/><path d=\'M16 3.13a4 4 0 0 1 0 7.75\'/></svg> ¿A quién le recomiendo esta propiedad?'; btn.disabled = false; }
     return;
   }
 
@@ -746,7 +746,7 @@ window.matchingInverso = async (propId) => {
 
   if(!consActivas.length) {
     if(divRes) divRes.innerHTML = '<div style="font-size:13px;color:var(--gray-400);padding:8px 0;text-align:center">No hay clientes activos con información de búsqueda.</div>';
-    if(btn) { btn.textContent = '👥 ¿A quién le recomiendo esta propiedad?'; btn.disabled = false; }
+    if(btn) { btn.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'14\' height=\'14\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\'/><circle cx=\'9\' cy=\'7\' r=\'4\'/><path d=\'M23 21v-2a4 4 0 0 0-3-3.87\'/><path d=\'M16 3.13a4 4 0 0 1 0 7.75\'/></svg> ¿A quién le recomiendo esta propiedad?'; btn.disabled = false; }
     return;
   }
 
@@ -800,7 +800,7 @@ window.matchingInverso = async (propId) => {
     } else {
       if(divRes) divRes.innerHTML =
         '<div style="background:var(--purple-light);border:1.5px solid var(--purple);border-radius:var(--radius-sm);padding:12px">'+
-        '<div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:10px">👥 Clientes que podrían estar interesados:</div>'+
+        '<div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:10px">Clientes que podrían estar interesados:</div>'+
         result.matches.map(match => {
           const c = st.consultas[match.id];
           if(!c) return '';
@@ -955,7 +955,7 @@ window.generarDescripcionEditIA = async () => {
   const loading=document.getElementById('edit-ia-loading');
   const btn=document.getElementById('edit-desc-ia-btn');
   if(loading) loading.style.display='block';
-  if(btn){btn.disabled=true;btn.textContent='⏳ Generando...';}
+  if(btn){btn.disabled=true;btn.textContent='Generando...';}
   document.getElementById('edit-desc').value='';
 
   let datos='Tipo: '+(p.tipo||'')+'\nOperación: '+(p.operacion||'')+'\n';

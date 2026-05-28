@@ -242,8 +242,8 @@ document.addEventListener('touchstart', function(e) {
 
     <!-- TOGGLE MANUAL / IMPORTAR -->
     <div style="display:flex;gap:8px;margin-bottom:20px;background:var(--gray-100);border-radius:var(--radius-sm);padding:4px">
-      <button id="modo-manual-btn" onclick="setModoPropiedad('manual')" style="flex:1;padding:10px;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:var(--black);color:#fff">✏️ Cargar manual</button>
-      <button id="modo-importar-btn" onclick="setModoPropiedad('importar')" style="flex:1;padding:10px;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:var(--gray-600)">🔗 Importar desde portal</button>
+      <button id="modo-manual-btn" onclick="setModoPropiedad('manual')" style="flex:1;padding:10px;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:var(--black);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Cargar manual</button>
+      <button id="modo-importar-btn" onclick="setModoPropiedad('importar')" style="flex:1;padding:10px;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:var(--gray-600);display:inline-flex;align-items:center;justify-content:center;gap:6px"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Importar desde portal</button>
     </div>
 
     <!-- MODO IMPORTAR -->
@@ -253,7 +253,7 @@ document.addEventListener('touchstart', function(e) {
         <input class="form-input" id="import-url" placeholder="https://www.zonaprop.com.ar/propiedades/..." type="url">
       </div>
       <button onclick="importarDesdePortal()" style="width:100%;padding:13px;background:var(--purple-light);border:1.5px solid var(--purple);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:var(--purple);cursor:pointer;margin-bottom:8px">✨ Importar con IA</button>
-      <div id="import-status" style="display:none;text-align:center;font-size:13px;color:var(--purple);padding:8px">⏳ Analizando la propiedad...</div>
+      <div id="import-status" style="display:none;text-align:center;font-size:13px;color:var(--purple);padding:8px">Analizando la propiedad...</div>
       <div id="import-resultado" style="display:none;background:var(--green-light);border:1.5px solid var(--green);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;font-size:13px;color:var(--green);font-weight:600"></div>
     </div>
 
@@ -390,7 +390,7 @@ document.addEventListener('touchstart', function(e) {
 
     <div class="form-group"><label class="form-label">Fotos <span style="font-weight:400;color:var(--gray-400)">(hasta 20)</span></label>
       <input type="file" id="p-fotos-input" accept="image/*" multiple style="display:none" onchange="subirFotos(this)">
-      <button type="button" onclick="document.getElementById('p-fotos-input').click()" style="width:100%;padding:12px;border:1.5px dashed var(--gray-200);border-radius:var(--radius-sm);background:var(--gray-50);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--gray-600);cursor:pointer">📷 Seleccionar fotos</button>
+      <button type="button" onclick="document.getElementById('p-fotos-input').click()" style="width:100%;padding:12px;border:1.5px dashed var(--gray-200);border-radius:var(--radius-sm);background:var(--gray-50);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--gray-600);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>Seleccionar fotos</button>
       <div style="font-size:11px;color:var(--gray-500);margin-top:6px;padding:6px 8px;background:var(--purple-light);border-radius:6px;border:1px solid rgba(107,33,168,.15)">✨ Tocá cada foto para <b>Editar con IA</b>: embellecer o quitar muebles</div>
       <div id="p-fotos-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
@@ -524,7 +524,7 @@ document.addEventListener('touchstart', function(e) {
         + Agregar fotos
         <input type="file" accept="image/*" multiple style="display:none" onchange="window._editSubirFotos(this)">
       </label>
-      <div id="edit-fotos-status" style="display:none;font-size:12px;color:var(--gray-500);margin-top:6px">⏳ Subiendo...</div>
+      <div id="edit-fotos-status" style="display:none;font-size:12px;color:var(--gray-500);margin-top:6px">Subiendo...</div>
     </div>
     <div class="btn-row">
       <button class="btn-secondary" onclick="cerrarModal('modal-editar-prop')">Cancelar</button>

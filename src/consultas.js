@@ -139,7 +139,7 @@ export function renderLista(){
         :('<span style="font-size:12px;color:var(--gray-600)">'+c.instagram+'</span>'))+
       '</div>':'')+
       ((c.propiedad||c.canal)?'<div style="font-size:11px;color:var(--gray-400);margin-bottom:4px">'+
-        (c.propiedad?'🏠 '+c.propiedad:'')+
+        (c.propiedad?c.propiedad:'')+
         (c.propiedad&&c.canal?' · ':'')+
         (c.canal?'Vía '+c.canal:'')+
       '</div>':'')+
