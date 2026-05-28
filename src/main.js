@@ -123,6 +123,13 @@ initAuth(
     if(banner) banner.style.display = 'none';
     const cambiar = document.getElementById('cambiar-wrap');
     if(cambiar) cambiar.classList.remove('con-admin-banner');
+    // Limpiar campos de login
+    const loginEmail = document.getElementById('login-email');
+    const loginPass = document.getElementById('login-pass');
+    const loginBtn = document.getElementById('login-btn');
+    if(loginEmail) loginEmail.value = '';
+    if(loginPass) loginPass.value = '';
+    if(loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
   }
 );
 

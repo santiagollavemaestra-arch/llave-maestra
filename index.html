@@ -33,8 +33,8 @@ document.addEventListener('touchstart', function(e) {
   <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:320px">
     <div class="user-title">Llave Maestra</div>
     <div class="user-sub">CRM INMOBILIARIO</div>
-    <input class="email-input" id="login-email" type="email" placeholder="tu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
-    <input class="email-input" id="login-pass" type="password" placeholder="Contraseña" autocomplete="current-password" style="margin-top:10px" onkeydown="if(event.key==='Enter')window.loginSubmit()">
+    <input class="email-input" id="login-email" type="email" placeholder="tu@email.com" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+    <input class="email-input" id="login-pass" type="password" placeholder="Contraseña" autocomplete="off" style="margin-top:10px" onkeydown="if(event.key==='Enter')window.loginSubmit()">
     <button class="email-btn" id="login-btn" onclick="window.loginSubmit()" style="margin-top:14px">Entrar</button>
     <div id="login-error" style="color:#e74c3c;font-size:13px;margin-top:10px;text-align:center;min-height:18px"></div>
   </div>
