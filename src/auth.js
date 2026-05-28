@@ -4,10 +4,16 @@ import { db, auth, ref, get, signInWithEmailAndPassword, signOut, onAuthStateCha
 export function initAuth(onLogin, onLogout) {
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      const snap = await get(ref(db, 'usuarios/' + user.uid));
-      const data = snap.val() || {};
-      st.usuarioActivo = data.username || null;
-      st.usuarioRol = data.rol || 'agente';
+      try {
+        const snap = await get(ref(db, 'usuarios/' + user.uid));
+        const data = snap.val() || {};
+        st.usuarioActivo = data.username || null;
+        st.usuarioRol = data.rol || 'agente';
+      } catch(e) {
+        console.error('Error leyendo perfil:', e.message);
+        st.usuarioActivo = null;
+        st.usuarioRol = 'agente';
+      }
       onLogin();
     } else {
       st.usuarioActivo = null;
