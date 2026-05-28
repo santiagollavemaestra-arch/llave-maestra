@@ -117,6 +117,14 @@ initAuth(
       }
       return;
     }
+    try {
+      const agSnap = await get(ref(db, 'keynet/agencias/' + st.agenciaId));
+      if ((agSnap.val() || {}).activa === false) {
+        document.getElementById('plan-inactivo').classList.remove('oculto');
+        document.getElementById('loading').classList.add('hidden');
+        return;
+      }
+    } catch(e) {}
     document.getElementById('cambiar-wrap').classList.add('visible');
     aplicarBrand(st.agenciaId);
     mostrarPerfil();

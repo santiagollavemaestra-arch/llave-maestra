@@ -7,8 +7,13 @@
       }
     },
     "keynet": {
-      ".read": "auth != null && root.child('usuarios').child(auth.uid).child('rol').val() === 'keynet-admin'",
-      ".write": false
+      ".write": false,
+      "agencias": {
+        ".read": "auth != null && root.child('usuarios').child(auth.uid).child('rol').val() === 'keynet-admin'",
+        "$agenciaId": {
+          ".read": "auth != null && (root.child('usuarios').child(auth.uid).child('rol').val() === 'keynet-admin' || root.child('usuarios').child(auth.uid).child('agenciaId').val() === $agenciaId)"
+        }
+      }
     },
     "usuarios": {
       "$uid": {

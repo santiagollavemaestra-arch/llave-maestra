@@ -3,8 +3,10 @@ import { db, ref, onValue, functions, httpsCallable } from './firebase.js';
 const _crearAgenciaFn = httpsCallable(functions, 'crearAgencia');
 const _editarAgenciaFn = httpsCallable(functions, 'editarAgencia');
 const _borrarAgenciaFn = httpsCallable(functions, 'borrarAgencia');
+const _generarLinkPagoFn = httpsCallable(functions, 'generarLinkPago');
 let _startCRM = null;
 let _agenciaActualEdit = null;
+let _agenciaLinkPago = null;
 let _agenciasData = {};
 let _wizardPaso = 1;
 
@@ -79,8 +81,9 @@ function _renderAgencias(data) {
         '<div style="margin-top:8px;font-size:12px;color:var(--gray-600)">Admin: ' + (a.adminEmail || '—') + '</div>' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">' +
         '<div style="font-size:11px;color:var(--gray-400)">Creada: ' + fecha + ' · <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:' + (a.activa ? '#2d6a4f' : '#c0392b') + ';display:inline-block"></span>' + (a.activa ? 'Activa' : 'Inactiva') + '</span></div>' +
-        '<div style="display:flex;gap:8px">' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
         '<button onclick="window._verAgencia(\'' + a.id + '\',\'' + a.nombre.replace(/'/g,"\\'") + '\')" style="background:var(--black);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">Ver CRM →</button>' +
+        '<button onclick="window._abrirLinkPago(\'' + a.id + '\',\'' + a.nombre.replace(/'/g,"\\'") + '\')" style="background:#1a6934;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Link pago</button>' +
         '<button onclick="window._abrirEditarAgencia(\'' + a.id + '\')" style="background:var(--gray-100);color:var(--black);border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar</button>' +
         '<button onclick="window._abrirBorrarAgencia(\'' + a.id + '\',\'' + a.nombre.replace(/'/g,"\\'") + '\')" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>Borrar</button>' +
         '</div>' +
@@ -229,4 +232,45 @@ window._confirmarBorrarAgencia = async () => {
   } finally {
     btn.disabled = false; btn.textContent = 'Borrar';
   }
+};
+
+window._abrirLinkPago = (agenciaId, agenciaNombre) => {
+  _agenciaLinkPago = agenciaId;
+  document.getElementById('ag-link-nombre').textContent = agenciaNombre;
+  document.getElementById('ag-link-monto').value = '';
+  document.getElementById('ag-link-error').textContent = '';
+  document.getElementById('ag-link-step-form').style.display = 'block';
+  document.getElementById('ag-link-step-result').style.display = 'none';
+  document.getElementById('ag-link-btn').disabled = false;
+  document.getElementById('ag-link-btn').textContent = 'Generar →';
+  document.getElementById('modal-link-pago').classList.add('open');
+};
+
+window._confirmarLinkPago = async () => {
+  const monto = Number(document.getElementById('ag-link-monto')?.value);
+  const err = document.getElementById('ag-link-error');
+  const btn = document.getElementById('ag-link-btn');
+  err.textContent = '';
+  if (!monto || monto < 1) { err.textContent = 'Ingresá un monto válido'; return; }
+  btn.disabled = true; btn.textContent = 'Generando...';
+  try {
+    const res = await _generarLinkPagoFn({ agenciaId: _agenciaLinkPago, monto });
+    document.getElementById('ag-link-url').textContent = res.data.url;
+    document.getElementById('ag-link-step-form').style.display = 'none';
+    document.getElementById('ag-link-step-result').style.display = 'block';
+  } catch (e) {
+    err.textContent = e.message || 'Error al generar el link';
+    btn.disabled = false; btn.textContent = 'Generar →';
+  }
+};
+
+window._copiarLinkPago = () => {
+  const url = document.getElementById('ag-link-url')?.textContent;
+  if (!url) return;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('ag-link-copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = '¡Copiado!';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  });
 };

@@ -44,6 +44,15 @@ document.addEventListener('touchstart', function(e) {
   </div>
 </div>
 
+<div id="plan-inactivo" class="oculto" style="position:fixed;inset:0;background:var(--stone-900);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;z-index:998">
+  <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;margin-bottom:20px">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+  </div>
+  <div style="font-family:'DM Sans',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.03em">Plan inactivo</div>
+  <div style="font-size:14px;color:var(--stone-400);text-align:center;max-width:280px;margin-bottom:28px;line-height:1.5">Tu suscripción está vencida o desactivada. Contactá a Keynet para renovarla.</div>
+  <button onclick="window._cerrarSesion()" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Cerrar sesión</button>
+</div>
+
 <div class="cambiar-wrap" id="cambiar-wrap">
   <button class="cambiar-btn" onclick="window._abrirCambiarPass()"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Cambiar contraseña</button>
   <button class="cambiar-btn" onclick="window._cerrarSesion()"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión</button>
@@ -777,6 +786,38 @@ document.addEventListener('touchstart', function(e) {
       <div class="btn-row">
         <button class="btn-secondary" onclick="cerrarModal('modal-borrar-agencia')">Cancelar</button>
         <button class="btn-primary" id="ag-borrar-btn" onclick="window._confirmarBorrarAgencia()" style="background:var(--red)">Borrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal generar link de pago -->
+  <div class="modal-overlay" id="modal-link-pago">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Generar link de pago</div>
+      <div id="ag-link-nombre" style="font-size:13px;color:var(--gray-600);margin-bottom:16px;text-align:center"></div>
+
+      <div id="ag-link-step-form">
+        <div class="form-group">
+          <label class="form-label">Monto a cobrar (ARS)</label>
+          <input class="form-input" id="ag-link-monto" type="number" min="1" placeholder="Ej: 50000">
+        </div>
+        <div id="ag-link-error" style="color:var(--red);font-size:13px;margin-bottom:8px;min-height:18px"></div>
+        <div class="btn-row">
+          <button class="btn-secondary" onclick="cerrarModal('modal-link-pago')">Cancelar</button>
+          <button class="btn-primary" id="ag-link-btn" onclick="window._confirmarLinkPago()">Generar →</button>
+        </div>
+      </div>
+
+      <div id="ag-link-step-result" style="display:none">
+        <div style="background:var(--gray-50);border-radius:8px;padding:14px;margin-bottom:16px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-bottom:8px">Link generado</div>
+          <div id="ag-link-url" style="font-size:12px;color:var(--gray-700);word-break:break-all;font-family:monospace;line-height:1.5"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-secondary" onclick="cerrarModal('modal-link-pago')">Cerrar</button>
+          <button class="btn-primary" id="ag-link-copy-btn" onclick="window._copiarLinkPago()">Copiar link</button>
+        </div>
       </div>
     </div>
   </div>

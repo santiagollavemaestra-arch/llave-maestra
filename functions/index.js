@@ -1,10 +1,11 @@
-const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 
 if (!admin.apps.length) admin.initializeApp();
 
 const GEMINI_KEY = defineSecret('GEMINI_KEY');
+const MP_ACCESS_TOKEN = defineSecret('MP_ACCESS_TOKEN');
 
 // ── Proxy Gemini ──────────────────────────────────────────────
 exports.geminiProxy = onCall(
@@ -112,5 +113,75 @@ exports.borrarAgencia = onCall(
     await admin.database().ref('keynet/agencias/' + agenciaId).remove();
 
     return { success: true };
+  }
+);
+
+// ── Generar link de pago Mercado Pago ─────────────────────────
+exports.generarLinkPago = onCall(
+  { secrets: [MP_ACCESS_TOKEN], region: 'us-central1' },
+  async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Se requiere autenticación');
+    const callerSnap = await admin.database().ref('usuarios/' + request.auth.uid).get();
+    if ((callerSnap.val() || {}).rol !== 'keynet-admin') {
+      throw new HttpsError('permission-denied', 'Solo keynet-admin puede generar links de pago');
+    }
+    const { agenciaId, monto } = request.data;
+    if (!agenciaId || !monto) throw new HttpsError('invalid-argument', 'Faltan campos requeridos');
+
+    const agSnap = await admin.database().ref('keynet/agencias/' + agenciaId).get();
+    if (!agSnap.exists()) throw new HttpsError('not-found', 'Agencia no encontrada');
+    const agencia = agSnap.val();
+
+    const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + MP_ACCESS_TOKEN.value() },
+      body: JSON.stringify({
+        items: [{ title: 'Keynet CRM — ' + agencia.nombre, quantity: 1, currency_id: 'ARS', unit_price: Number(monto) }],
+        external_reference: agenciaId,
+        back_urls: {
+          success: 'https://llave-maestra.vercel.app',
+          failure: 'https://llave-maestra.vercel.app',
+          pending: 'https://llave-maestra.vercel.app'
+        },
+        auto_return: 'approved'
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new HttpsError('internal', 'Error MP: ' + (data.message || JSON.stringify(data)));
+    return { url: data.init_point };
+  }
+);
+
+// ── Webhook Mercado Pago ─────────────────────────────────────
+// URL de este endpoint: se obtiene al deployar con `firebase deploy --only functions:mpWebhook`
+// Configurar en MP Dashboard → Notificaciones IPN con esa URL
+exports.mpWebhook = onRequest(
+  { secrets: [MP_ACCESS_TOKEN], region: 'us-central1' },
+  async (req, res) => {
+    if (req.method !== 'POST') { res.status(200).send('ok'); return; }
+    const { type, data } = req.body || {};
+    // MP también notifica via query param para algunos eventos
+    const paymentId = data?.id || req.query['data.id'];
+    if (type !== 'payment' || !paymentId) { res.status(200).send('ok'); return; }
+    try {
+      const mpRes = await fetch('https://api.mercadopago.com/v1/payments/' + paymentId, {
+        headers: { 'Authorization': 'Bearer ' + MP_ACCESS_TOKEN.value() }
+      });
+      const payment = await mpRes.json();
+      const agenciaId = payment.external_reference;
+      if (!agenciaId) { res.status(200).send('ok'); return; }
+      if (payment.status === 'approved') {
+        await admin.database().ref('keynet/agencias/' + agenciaId).update({
+          activa: true,
+          plan: 'activo',
+          ultimoPago: Date.now(),
+          ultimoPaymentId: String(paymentId)
+        });
+      }
+      res.status(200).send('ok');
+    } catch (e) {
+      console.error('mpWebhook error:', e);
+      res.status(200).send('ok'); // MP requiere 200 para no reintentar
+    }
   }
 );
