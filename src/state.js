@@ -7,7 +7,6 @@ export const FB = {
   messagingSenderId: "519107930560",
   appId: "1:519107930560:web:f332a5d10114f69f34c025"
 };
-export const GEMINI_KEY = ['AIzaSyC6PEMnA-5d','szajmDjKw42AnXNQ','RVwsASY'].join('');
 export const CLOUD = {name:'dgaixfvxa', preset:'keynet_props'};
 export const EMAILJS_SVC = 'service_iorm3vh';
 export const EMAILJS_TPL = 'template_lqgp3ki';
