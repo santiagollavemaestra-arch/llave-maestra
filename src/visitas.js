@@ -12,7 +12,7 @@ export function renderVisitas(){
   const prox=arr.filter(v=>v.fecha>=hoy);
   const pas=arr.filter(v=>v.fecha<hoy);
   let html='<button class="btn-nueva" onclick="abrirNuevaVisita()">+ Agendar visita</button>';
-  if(!arr.length){html+='<div class="empty"><div class="empty-icon">📅</div><div>No hay visitas</div></div>';lista.innerHTML=html;return;}
+  if(!arr.length){html+='<div class="empty"><div class="empty-svg"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="empty-title">Sin visitas</div><div class="empty-sub">Agendá la primera visita con el botón de arriba</div></div>';lista.innerHTML=html;return;}
   if(prox.length){html+='<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-bottom:8px">PRÓXIMAS ('+prox.length+')</div>'+prox.map(v=>renderVisitaCard(v,hoy)).join('');}
   if(pas.length){html+='<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin:16px 0 8px">REALIZADAS</div>'+pas.map(v=>renderVisitaCard(v,hoy,true)).join('');}
   lista.innerHTML=html;

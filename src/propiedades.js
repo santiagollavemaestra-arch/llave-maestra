@@ -621,8 +621,8 @@ export function renderPropiedades(){
   if(q) filtered=filtered.filter(p=>(p.titulo||'').toLowerCase().includes(q)||(p.direccion||'').toLowerCase().includes(q)||(p.barrio||'').toLowerCase().includes(q)||(p.tipo||'').toLowerCase().includes(q));
   if(fOp) filtered=filtered.filter(p=>p.operacion===fOp);
   if(fEst) filtered=filtered.filter(p=>(p.estado||'Disponible')===fEst);
-  if(!arr.length){html+='<div class="empty"><div class="empty-icon">🏠</div><div>No hay propiedades</div></div>';lista.innerHTML=html;return;}
-  if(!filtered.length){html+='<div class="empty"><div class="empty-icon">🔍</div><div>Sin resultados</div></div>';lista.innerHTML=html;return;}
+  if(!arr.length){html+='<div class="empty"><div class="empty-svg"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="empty-title">Sin propiedades</div><div class="empty-sub">Cargá la primera propiedad con el botón de arriba</div></div>';lista.innerHTML=html;return;}
+  if(!filtered.length){html+='<div class="empty"><div class="empty-svg"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div><div class="empty-title">Sin resultados</div><div class="empty-sub">Probá con otros filtros o términos de búsqueda</div></div>';lista.innerHTML=html;return;}
   html+='<div class="prop-grid">'+filtered.map(p=>{
     const todasFotos=p.fotos?.length?p.fotos:p.foto?[p.foto]:[];
     const estadoCls=p.estado==='Disponible'?'prop-disponible':p.estado==='Reservada'?'prop-reservada':'prop-vendida';

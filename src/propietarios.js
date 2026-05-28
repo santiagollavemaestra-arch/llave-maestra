@@ -9,14 +9,14 @@ export function renderPropietarios(){
   const lista=document.getElementById('lista');
   const arr=Object.entries(st.propietarios).map(([id,p])=>({...p,id})).sort((a,b)=>a.nombre.localeCompare(b.nombre));
   let html='<button class="btn-nueva" onclick="document.getElementById(\'modal-propietario\').classList.add(\'open\')">+ Nuevo propietario</button>';
-  if(!arr.length){html+='<div class="empty"><div class="empty-icon">👤</div><div>No hay propietarios</div></div>';lista.innerHTML=html;return;}
+  if(!arr.length){html+='<div class="empty"><div class="empty-svg"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="empty-title">Sin propietarios</div><div class="empty-sub">Agregá el primer propietario con el botón de arriba</div></div>';lista.innerHTML=html;return;}
   html+=arr.map(p=>{
     const susProp=Object.values(st.propiedades).filter(pr=>pr.propietarioId===p.id);
     return '<div class="prop-card">'+
       '<div class="prop-card-nombre">'+p.nombre+'</div>'+
-      (p.tel?'<div class="prop-card-tel">📱 '+p.tel+'</div>':'')+
-      (p.email?'<div class="prop-card-tel">✉️ '+p.email+'</div>':'')+
-      '<div class="prop-card-props">🏠 '+(susProp.length?susProp.length+' propiedad'+(susProp.length>1?'es':'')+': '+susProp.map(pr=>pr.titulo||pr.direccion||'').join(', '):'Sin propiedades')+'</div>'+
+      (p.tel?'<div class="prop-card-tel">'+p.tel+'</div>':'')+
+      (p.email?'<div class="prop-card-tel" style="color:var(--gray-400)">'+p.email+'</div>':'')+
+      '<div class="prop-card-props">'+(susProp.length?susProp.length+' propiedad'+(susProp.length>1?'es':'')+': '+susProp.map(pr=>pr.titulo||pr.direccion||'').join(', '):'Sin propiedades')+'</div>'+
       (p.obs?'<div style="font-size:12px;color:var(--gray-600);margin-top:6px">'+p.obs+'</div>':'')+
       '<div style="display:flex;gap:8px;margin-top:10px">'+
       (p.tel?'<a href="https://wa.me/549'+p.tel.replace(/\D/g,'')+'" target="_blank" class="wa-btn" style="margin:0;padding:8px 14px;font-size:12px;flex:1">📱 WhatsApp</a>':'')+

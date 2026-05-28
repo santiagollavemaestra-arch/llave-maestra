@@ -18,12 +18,16 @@ html{overscroll-behavior-x:none}
 body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--black);font-size:15px;overscroll-behavior-x:none}
 
 /* LOADING */
-.loading{position:fixed;inset:0;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
+.loading{position:fixed;inset:0;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s;padding:24px}
 .loading.hidden{opacity:0;pointer-events:none}
 .loading-logo{font-family:'DM Serif Display',serif;font-size:28px;color:#fff;margin-bottom:6px}
 .loading-sub{font-size:11px;color:var(--gray-400);letter-spacing:3px;margin-bottom:28px}
-.dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
-@keyframes pulse{0%,100%{opacity:.2}50%{opacity:1}}
+.skeleton-wrap{width:100%;max-width:400px;display:flex;flex-direction:column;gap:10px}
+.skeleton-card{height:88px;border-radius:12px;background:rgba(255,255,255,.07);overflow:hidden;position:relative}
+.skeleton-card::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);animation:shimmer 1.6s infinite}
+.skeleton-card:nth-child(2){opacity:.7}
+.skeleton-card:nth-child(3){opacity:.45}
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
 
 /* USER SCREEN */
 .user-screen{position:fixed;inset:0;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:998;padding:30px}
@@ -295,7 +299,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
 
 /* EMPTY */
 .empty{text-align:center;padding:48px 20px;color:var(--gray-400)}
-.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-svg{margin-bottom:14px;opacity:.35}
+.empty-title{font-size:15px;font-weight:700;color:var(--gray-600);margin-bottom:5px}
+.empty-sub{font-size:13px;color:var(--gray-400);line-height:1.5;max-width:220px;margin:0 auto}
 
 /* GALERÍA DE PROPIEDAD */
 .ficha-tag{display:inline-block;background:var(--gray-100);color:var(--gray-600);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin:2px}

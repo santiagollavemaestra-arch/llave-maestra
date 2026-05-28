@@ -63,7 +63,7 @@ function _renderAgencias(data) {
     '</div>';
 
   if (!arr.length) {
-    html += '<div class="empty"><div class="empty-icon">🏢</div><div>No hay agencias todavía</div></div>';
+    html += '<div class="empty"><div class="empty-svg"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></svg></div><div class="empty-title">Sin agencias</div><div class="empty-sub">Creá la primera agencia con el botón de arriba</div></div>';
   } else {
     html += arr.map(a => {
       const fecha = a.creada ? new Date(a.creada).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
@@ -78,11 +78,11 @@ function _renderAgencias(data) {
         '</div>' +
         '<div style="margin-top:8px;font-size:12px;color:var(--gray-600)">Admin: ' + (a.adminEmail || '—') + '</div>' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">' +
-        '<div style="font-size:11px;color:var(--gray-400)">Creada: ' + fecha + ' · ' + (a.activa ? '🟢 Activa' : '🔴 Inactiva') + '</div>' +
+        '<div style="font-size:11px;color:var(--gray-400)">Creada: ' + fecha + ' · <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:' + (a.activa ? '#2d6a4f' : '#c0392b') + ';display:inline-block"></span>' + (a.activa ? 'Activa' : 'Inactiva') + '</span></div>' +
         '<div style="display:flex;gap:8px">' +
         '<button onclick="window._verAgencia(\'' + a.id + '\',\'' + a.nombre.replace(/'/g,"\\'") + '\')" style="background:var(--black);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">Ver CRM →</button>' +
-        '<button onclick="window._abrirEditarAgencia(\'' + a.id + '\')" style="background:var(--gray-100);color:var(--black);border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">✏️ Editar</button>' +
-        '<button onclick="window._abrirBorrarAgencia(\'' + a.id + '\',\'' + a.nombre.replace(/'/g,"\\'") + '\')" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">🗑 Borrar</button>' +
+        '<button onclick="window._abrirEditarAgencia(\'' + a.id + '\')" style="background:var(--gray-100);color:var(--black);border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar</button>' +
+        '<button onclick="window._abrirBorrarAgencia(\'' + a.id + '\',\'' + a.nombre.replace(/'/g,"\\'") + '\')" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>Borrar</button>' +
         '</div>' +
         '</div>' +
         '</div>';
