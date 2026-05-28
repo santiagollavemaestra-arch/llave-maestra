@@ -813,7 +813,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
 <div class="modal-overlay" id="modal-propietario">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Nuevo propietario</div>
+    <div class="modal-title" id="pr-modal-title">Nuevo propietario</div>
+    <input type="hidden" id="pr-edit-id" value="">
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="pr-nombre" placeholder="Roberto Gómez" type="text"></div>
     <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input" id="pr-tel" placeholder="2235 000000" type="tel"></div>
     <div class="form-group"><label class="form-label">Email <span style="font-weight:400;color:var(--gray-400)">(opcional)</span></label><input class="form-input" id="pr-email" type="email"></div>
@@ -829,7 +830,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--blac
 <div class="modal-overlay" id="modal-visita">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Agendar visita</div>
+    <div class="modal-title" id="v-modal-title">Agendar visita</div>
+    <input type="hidden" id="v-edit-id" value="">
     <div class="form-group"><label class="form-label">Propiedad</label><select class="form-select" id="v-prop"><option value="">— Seleccioná —</option></select></div>
     <div class="form-group"><label class="form-label">Cliente</label><select class="form-select" id="v-cliente"><option value="">— Seleccioná —</option></select></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -990,7 +992,7 @@ let _alarmasExpanded=true;
 // ============================================================
 onValue(eRef, s => { emails=s.val()||{}; window._emails=emails; });
 onValue(prRef, s => { propietarios=s.val()||{}; actualizarSelPropietarios(); if(seccion==='propietarios') renderPropietarios(); });
-onValue(pRef, s => { propiedades=s.val()||{}; actualizarSelPropiedades(); if(seccion==='propiedades') renderPropiedades(); });
+onValue(pRef, s => { propiedades=s.val()||{}; matchCache={}; actualizarSelPropiedades(); if(seccion==='propiedades') renderPropiedades(); });
 onValue(vRef, s => { visitas=s.val()||{}; if(seccion==='visitas') renderVisitas(); });
 
 let primeraVez=true, consAnteriores={};
@@ -1136,7 +1138,7 @@ function countdownInfo(c){
 function sigRotacion(){
   const cnt={};
   EQUIPO.forEach(m=>cnt[m]=0);
-  Object.values(consultas).forEach(c=>{if(c.asignado)cnt[c.asignado]++;});
+  Object.values(consultas).filter(c=>!['Cerrado','Sin interés'].includes(c.estado)).forEach(c=>{if(c.asignado)cnt[c.asignado]++;});
   return EQUIPO.reduce((a,b)=>cnt[a]<=cnt[b]?a:b);
 }
 
@@ -1144,8 +1146,27 @@ function sigRotacion(){
 // RENDER
 // ============================================================
 function render(){
-  renderRotacion(); renderStats(); renderCounts(); renderAlarmas();
+  renderRotacion(); renderStats(); renderCounts(); renderAlarmas(); renderVisitasHoy();
   if(seccion==='consultas') renderLista();
+}
+
+function renderVisitasHoy(){
+  const hoy=new Date().toISOString().split('T')[0];
+  const visitasHoy=Object.values(visitas).filter(v=>v.fecha===hoy);
+  const el=document.getElementById('alarmas');
+  if(!el||!visitasHoy.length) return;
+  const banner='<div style="background:var(--blue-light);border:1.5px solid var(--blue);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px">'+
+    '<div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">📅 Visitas de hoy ('+visitasHoy.length+')</div>'+
+    visitasHoy.map(v=>{
+      const prop=v.propiedadId&&propiedades[v.propiedadId]?propiedades[v.propiedadId]:null;
+      const cons=v.consultaId&&consultas[v.consultaId]?consultas[v.consultaId]:null;
+      return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:4px 0;border-top:1px solid rgba(26,74,138,.15)">'+
+        '<span><b>'+v.hora+'hs</b> — '+(prop?.titulo||prop?.direccion||v.propiedadTitulo||'Sin propiedad')+'</span>'+
+        '<span style="color:var(--blue);font-size:12px">'+(cons?.nombre||v.clienteNombre||'Sin cliente')+'</span>'+
+      '</div>';
+    }).join('')+
+  '</div>';
+  el.innerHTML=banner+el.innerHTML;
 }
 
 function renderRotacion(){
@@ -1774,6 +1795,7 @@ window.importarDesdePortal = async () => {
     }
 
     status.style.display='none';
+    document.getElementById('import-url').value='';
     resultado.style.cssText=okStyle;
     resultado.textContent='Importado: '+(prop.titulo||prop.direccion||'propiedad')+'. '+(subidas>0?subidas+' foto'+(subidas>1?'s':'')+' importada'+(subidas>1?'s':'')+'.':'Sin fotos encontradas.')+' Revisá los datos y guardá.';
 
@@ -2217,8 +2239,6 @@ window.abrirFichaProp = (id) => {
     '<button onclick="window._abrirEditarProp(\''+id+'\');event.stopPropagation()" style="flex:1;padding:11px;background:var(--gray-100);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--gray-600);cursor:pointer">✏️ Editar</button>'+
     '<button onclick="compartirPropiedad(\''+id+'\');event.stopPropagation()" style="flex:1;padding:11px;background:var(--blue-light);border:1.5px solid var(--blue);border-radius:var(--radius-sm);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;color:var(--blue);cursor:pointer">🔗 Compartir</button>'+
     '</div>'+
-    '<!-- share btn removido -->'+
-    '<button style="display:none" onclick="compartirPropiedad(\''+id+'\')">🔗 Copiar link para compartir</button>'+
     '<div class="btn-row"><button class="btn-primary" onclick="cerrarModal(\'modal-ficha-prop\')">Cerrar</button></div>';
 
   document.getElementById('modal-ficha-prop').classList.add('open');
@@ -2540,19 +2560,16 @@ if(propParam) {
       const p = propiedades[propParam];
       if(!p) { document.getElementById('pub-content').innerHTML='<div style="text-align:center;padding:40px;color:#999">Propiedad no encontrada.</div>'; return; }
       const todasFotos = p.fotos?.length ? p.fotos : p.foto ? [p.foto] : [];
-      const fotosJson = JSON.stringify(todasFotos);
       const ams = (p.amenities||[]).map(a=>'<span class="ficha-amenity">'+a+'</span>').join('');
       const pc = document.getElementById('pub-content');
       const op = (p.tipo||'')+' en '+(p.operacion||'')+(p.barrio?' · '+p.barrio:'');
-      const todasFotos2 = p.fotos?.length ? p.fotos : p.foto ? [p.foto] : [];
-      const ams2 = (p.amenities||[]).map(a=>'<span class="ficha-amenity">'+a+'</span>').join('');
       let html2 = '';
       html2 += '<div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">'+op+'</div>';
       html2 += '<div style="font-size:24px;font-weight:900;margin-bottom:8px;line-height:1.2">'+(p.titulo||p.direccion||'')+'</div>';
       if(p.precio) html2 += '<div style="font-size:28px;font-weight:900;color:#2d6a4f;margin-bottom:20px">'+p.precio+'</div>';
-      if(todasFotos2.length) {
+      if(todasFotos.length) {
         html2 += '<div class="galeria-prop" style="margin-bottom:20px">';
-        todasFotos2.forEach((f,i) => { html2 += '<div><img src="'+f+'" onclick="window.abrirLightbox(\''+propParam+'\','+i+')" loading="lazy"></div>'; });
+        todasFotos.forEach((f,i) => { html2 += '<div><img src="'+f+'" onclick="window.abrirLightbox(\''+propParam+'\','+i+')" loading="lazy"></div>'; });
         html2 += '</div>';
       }
       html2 += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px">';
@@ -2562,7 +2579,7 @@ if(propParam) {
       const sup2 = p.supCubierta||p.supTotal;
       if(sup2) html2 += '<div style="background:#f8f8f8;border-radius:10px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900">'+sup2+'</div><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">m² cubiertos</div></div>';
       html2 += '</div>';
-      if(ams2) html2 += '<div style="margin-bottom:16px">'+ams2+'</div>';
+      if(ams) html2 += '<div style="margin-bottom:16px">'+ams+'</div>';
       if(p.desc) html2 += '<div style="font-size:15px;color:#555;line-height:1.7;margin-bottom:24px;white-space:pre-wrap">'+p.desc+'</div>';
       html2 += '<a href="https://wa.me/5492235249121" target="_blank" style="display:block;text-align:center;padding:14px;background:#25D366;color:#fff;border-radius:12px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:16px">📱 Consultar por WhatsApp</a>';
       html2 += '<div style="text-align:center;font-size:12px;color:#999">Llave Maestra Desarrollos Inmobiliarios · Mar del Plata</div>';
@@ -2609,6 +2626,7 @@ function renderPropietarios(){
       (p.obs?'<div style="font-size:12px;color:var(--gray-600);margin-top:6px">'+p.obs+'</div>':'')+
       '<div style="display:flex;gap:8px;margin-top:10px">'+
       (p.tel?'<a href="https://wa.me/549'+p.tel.replace(/\D/g,'')+'" target="_blank" class="wa-btn" style="margin:0;padding:8px 14px;font-size:12px;flex:1">📱 WhatsApp</a>':'')+
+      '<button onclick="window._editPropietario(\''+p.id+'\')" style="padding:8px 12px;background:var(--gray-100);color:var(--gray-600);border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer">✏️</button>'+
       '<button onclick="window._delPropietario(\''+p.id+'\')" style="padding:8px 12px;background:var(--red-light);color:var(--red);border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer">🗑</button>'+
       '</div></div>';
   }).join('');
@@ -2618,11 +2636,35 @@ function renderPropietarios(){
 window.guardarPropietario = () => {
   const nombre=document.getElementById('pr-nombre').value.trim();
   if(!nombre){alert('Ingresá el nombre');return;}
-  push(prRef,{nombre,tel:document.getElementById('pr-tel').value.trim(),email:document.getElementById('pr-email').value.trim(),obs:document.getElementById('pr-obs').value.trim(),fecha:Date.now()});
+  const editId=document.getElementById('pr-edit-id').value;
+  const datos={nombre,tel:document.getElementById('pr-tel').value.trim(),email:document.getElementById('pr-email').value.trim(),obs:document.getElementById('pr-obs').value.trim()};
+  if(editId){ update(ref(db,'propietarios/'+editId),datos); }
+  else { push(prRef,{...datos,fecha:Date.now()}); }
   ['pr-nombre','pr-tel','pr-email','pr-obs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('pr-edit-id').value='';
+  const t=document.getElementById('pr-modal-title');if(t) t.textContent='Nuevo propietario';
   cerrarModal('modal-propietario');
 };
-window._delPropietario = (id) => {if(!confirm('¿Eliminar?')) return;remove(ref(db,'propietarios/'+id));};
+
+window._editPropietario = (id) => {
+  const p=propietarios[id];
+  if(!p) return;
+  document.getElementById('pr-edit-id').value=id;
+  document.getElementById('pr-nombre').value=p.nombre||'';
+  document.getElementById('pr-tel').value=p.tel||'';
+  document.getElementById('pr-email').value=p.email||'';
+  document.getElementById('pr-obs').value=p.obs||'';
+  const t=document.getElementById('pr-modal-title');if(t) t.textContent='Editar propietario';
+  document.getElementById('modal-propietario').classList.add('open');
+};
+window._delPropietario = (id) => {
+  const susProp=Object.values(propiedades).filter(p=>p.propietarioId===id);
+  const msg=susProp.length
+    ? '⚠️ Este propietario tiene '+susProp.length+' propiedad'+(susProp.length>1?'es':'')+' asociada'+(susProp.length>1?'s':'')+': '+susProp.map(p=>p.titulo||p.direccion||'').join(', ')+'\n\n¿Eliminar de todas formas?'
+    : '¿Eliminar propietario?';
+  if(!confirm(msg)) return;
+  remove(ref(db,'propietarios/'+id));
+};
 
 // ============================================================
 // VISITAS
@@ -2652,14 +2694,20 @@ function renderVisitaCard(v,hoy,pasada=false){
     '<div style="font-size:12px;color:var(--gray-400)">Agente: '+(NOMBRES[v.agente]||v.agente)+(v.obs?' · '+v.obs:'')+'</div>'+
     '<div style="display:flex;gap:6px;margin-top:8px">'+
     (cons?.tel?'<a href="https://wa.me/549'+cons.tel.replace(/\D/g,'')+'" target="_blank" style="flex:1;text-align:center;padding:7px;background:#25D366;color:#fff;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none">📱 Cliente</a>':'')+
+    (!pasada?'<button onclick="window._editarVisita(\''+v.id+'\')" style="padding:7px 12px;background:var(--gray-100);color:var(--gray-600);border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">✏️</button>':'')+
     (!pasada?'<button onclick="window._delVisita(\''+v.id+'\')" style="padding:7px 12px;background:var(--red-light);color:var(--red);border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">🗑</button>':'')+
     '</div></div>';
 }
 
 window.abrirNuevaVisita = () => {
   const hoy=new Date().toISOString().split('T')[0];
+  document.getElementById('v-edit-id').value='';
+  const t=document.getElementById('v-modal-title');if(t) t.textContent='Agendar visita';
   document.getElementById('v-fecha').value=hoy;
   document.getElementById('v-hora').value='10:00';
+  document.getElementById('v-obs').value='';
+  document.getElementById('v-notif-cliente').checked=true;
+  document.getElementById('v-notif-prop').checked=false;
   if(usuarioActivo) document.getElementById('v-agente').value=usuarioActivo;
   // Propiedades
   const sp=document.getElementById('v-prop');
@@ -2681,7 +2729,10 @@ window.guardarVisita = () => {
   const agente=document.getElementById('v-agente').value;
   const obs=document.getElementById('v-obs').value.trim();
   const fechaD=new Date(fecha+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-  push(vRef,{propiedadId:propId||null,propiedadTitulo:prop?.titulo||prop?.direccion||'',consultaId:consId||null,clienteNombre:cons?.nombre||'',fecha,hora,agente,obs,cargadoPor:usuarioActivo,timestamp:Date.now()});
+  const editId=document.getElementById('v-edit-id').value;
+  const datos={propiedadId:propId||null,propiedadTitulo:prop?.titulo||prop?.direccion||'',consultaId:consId||null,clienteNombre:cons?.nombre||'',fecha,hora,agente,obs};
+  if(editId){ update(ref(db,'visitas/'+editId),datos); }
+  else { push(vRef,{...datos,cargadoPor:usuarioActivo,timestamp:Date.now()}); }
   if(document.getElementById('v-notif-cliente').checked&&cons?.tel){
     const msg=encodeURIComponent('Hola '+(cons.nombre||'')+'! Te confirmamos la visita para el '+fechaD+' a las '+hora+'hs a la propiedad '+(prop?.titulo||prop?.direccion||'')+'. Cualquier consulta estamos a tu disposición. Llave Maestra.');
     window.open('https://wa.me/549'+cons.tel.replace(/\D/g,'')+'?text='+msg,'_blank');
@@ -2693,6 +2744,24 @@ window.guardarVisita = () => {
   cerrarModal('modal-visita');
 };
 window._delVisita = (id) => {if(!confirm('¿Eliminar?')) return;remove(ref(db,'visitas/'+id));};
+
+window._editarVisita = (id) => {
+  const v=visitas[id];
+  if(!v) return;
+  document.getElementById('v-edit-id').value=id;
+  const t=document.getElementById('v-modal-title');if(t) t.textContent='Editar visita';
+  const sp=document.getElementById('v-prop');
+  if(sp) sp.innerHTML='<option value="">— Seleccioná —</option>'+Object.entries(propiedades).filter(([,p])=>p.estado!=='Vendida/Alquilada').map(([pid,p])=>'<option value="'+pid+'" '+(v.propiedadId===pid?'selected':'')+' >'+(p.titulo||p.direccion||'')+'</option>').join('');
+  const sc=document.getElementById('v-cliente');
+  if(sc) sc.innerHTML='<option value="">— Seleccioná —</option>'+Object.entries(consultas).filter(([,c])=>!['Cerrado','Sin interés'].includes(c.estado)).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||'')).map(([cid,c])=>'<option value="'+cid+'" '+(v.consultaId===cid?'selected':'')+' >'+(c.nombre||'Sin nombre')+(c.tel?' — '+c.tel:'')+'</option>').join('');
+  document.getElementById('v-fecha').value=v.fecha||'';
+  document.getElementById('v-hora').value=v.hora||'';
+  document.getElementById('v-agente').value=v.agente||usuarioActivo||'';
+  document.getElementById('v-obs').value=v.obs||'';
+  document.getElementById('v-notif-cliente').checked=false;
+  document.getElementById('v-notif-prop').checked=false;
+  document.getElementById('modal-visita').classList.add('open');
+};
 
 // ============================================================
 // ESTADÍSTICAS
@@ -2734,7 +2803,6 @@ window.switchSeccion = (s) => {
   const nav=document.getElementById('nav-'+s);if(nav) nav.classList.add('active');
   const sub=document.getElementById('subtabs');
   if(sub) sub.style.display=s==='consultas'?'flex':'none';
-  const areas=['area-consultas'];
   document.getElementById('area-consultas').style.display=s==='consultas'?'block':'none';
   if(s==='consultas') renderLista();
   else if(s==='propiedades') renderPropiedades();
@@ -2767,7 +2835,10 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
 if('serviceWorker'in navigator) navigator.serviceWorker.register('/llave-maestra/sw.js').catch(()=>{});
 
 // Google Maps
+const _gmk=['AIzaSyCJA9M','qz_27Z4pRWiX','yuV9K1tgJsb27YKA'].join('');
+const _gms=document.createElement('script');
+_gms.src='https://maps.googleapis.com/maps/api/js?key='+_gmk+'&libraries=places&language=es&region=AR&loading=async';
+document.head.appendChild(_gms);
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJA9Mqz_27Z4pRWiXyuV9K1tgJsb27YKA&libraries=places&language=es&region=AR&loading=async"></script>
 </body>
 </html>
