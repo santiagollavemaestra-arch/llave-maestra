@@ -259,9 +259,13 @@ if(typeof ResizeObserver!=='undefined'){
   new ResizeObserver(_updateStickyTops).observe(document.querySelector('.header'));
 }
 
-// SW — desregistrar cualquier SW viejo y no registrar nuevo hasta resolver el bug
+// SW — desregistrar cualquier SW viejo y forzar recarga para que no interfiera
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    if (regs.length > 0) {
+      Promise.all(regs.map(r => r.unregister())).then(() => window.location.reload());
+    }
+  });
 }
 
 // Google Maps
