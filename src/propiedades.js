@@ -111,8 +111,23 @@ window.importarDesdePortal = async () => {
     // PASO 2: limpiar HTML y extraer texto + imágenes
     const parser=new DOMParser();
     const doc=parser.parseFromString(html,'text/html');
+    // Extraer JSON-LD ANTES de borrar scripts (ZonaProp/Argenprop guardan datos ahí)
+    let jsonLdTexto='';
+    doc.querySelectorAll('script[type="application/ld+json"]').forEach(el=>{
+      try{ const d=JSON.parse(el.textContent||''); jsonLdTexto+=JSON.stringify(d)+'\n'; }catch(e){}
+    });
+    // Extraer también cualquier JSON de window.__INITIAL_STATE__ o similar
+    let initState='';
+    doc.querySelectorAll('script:not([src])').forEach(el=>{
+      const t=el.textContent||'';
+      if(t.includes('price')||t.includes('precio')||t.includes('ambientes')||t.includes('dormitorio')){
+        const m=t.match(/\{[\s\S]{100,}\}/);
+        if(m) initState+=(m[0].substring(0,3000)+'\n');
+      }
+    });
     doc.querySelectorAll('script,style,nav,footer,header,iframe,noscript').forEach(el=>el.remove());
-    const texto=(doc.body?.innerText||'').replace(/\n{3,}/g,'\n\n').trim().substring(0,10000);
+    const textoVisible=(doc.body?.innerText||'').replace(/\n{3,}/g,'\n\n').trim().substring(0,5000);
+    const texto=(jsonLdTexto+initState+textoVisible).substring(0,10000);
 
     // Deduplicación inteligente: agrupa por stem de URL, prefiere versión "big"
     const imgMap=new Map();
