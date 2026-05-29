@@ -4,3 +4,4 @@ dist/
 .env.local
 functions/node_modules/
 .vercel
+landing-v0/
