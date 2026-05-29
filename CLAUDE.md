@@ -71,6 +71,7 @@ onAuthStateChanged
 | `propiedades.js` | Sección propiedades: render, importación desde portal, Cloudinary, matching inverso |
 | `propietarios.js` | Sección propietarios |
 | `visitas.js` | Sección visitas |
+| `propiedad.js` | Ficha pública de propiedad (ruta `/propiedad/:id`); se carga lazy, no requiere auth |
 | `style.css` | Design system completo |
 
 ### Firebase Functions (`functions/index.js`)
@@ -92,7 +93,7 @@ Región `us-central1`. Dos estilos según el caller:
 
 `importarDesdePortal()` en `propiedades.js`. Flujo:
 
-1. **Descarga HTML** → `fetchPortal` (Function). ZonaProp/Argenprop están detrás de **Cloudflare**, que bloquea toda IP de datacenter (incluidas las de Google Cloud) y los proxies CORS gratuitos. **Solo IPs residenciales pasan**, por eso `fetchPortal` usa **Bright Data Web Unlocker** (`POST api.brightdata.com/request`, zona `keynet_unlocker`, `country:'ar'`). No reintroducir proxies gratuitos: están muertos o devuelven el desafío "Just a moment" de Cloudflare. Costo: pay-as-you-go (~1,5 USD/1000 requests exitosos).
+1. **Descarga HTML** → `fetchPortal` (Function). ZonaProp/Argenprop están detrás de **Cloudflare**, que bloquea toda IP de datacenter (incluidas las de Google Cloud) y los proxies CORS gratuitos. **Solo IPs residenciales pasan**, por eso `fetchPortal` usa **Bright Data Web Unlocker** (`POST api.brightdata.com/request`, zona `keynet_unlocker`, `country:'ar'`). No reintroducir proxies gratuitos: están muertos o devuelven el desafío "Just a moment" de Cloudflare. Costo: pay-as-you-go (~1,5 USD/1000 requests exitosos). El cliente limpia la URL (`split('?')[0]`) antes de enviarla: los links de "Compartir" de ZonaProp incluyen `?utm_source=share` que Bright Data rechaza por robots.txt.
 2. **Parseo** → DOMParser extrae `__NEXT_DATA__` (Next.js), `application/ld+json` y texto visible. Se le manda a Gemini **los tres combinados** (no excluyente): el precio y los baños suelen estar solo en el texto visible.
 3. **Extracción** → `geminiCall` devuelve JSON estructurado (con reintentos). Reglas en el prompt: baños = completos + toilette (suite cuenta su baño), nunca rangos/estimaciones.
 4. **Fotos** → Cloudinary fetch remoto de las URLs (fallback: blob vía proxy de imágenes). Miniaturas 68×68.
@@ -104,7 +105,9 @@ La descripción IA (`generarDescripcionIA` / `generarDescripcionEditIA`, prompt 
 `aplicarBrand(agenciaId)` en `main.js`:
 1. Lee `colorPrimario` de `/keynet/agencias/{agenciaId}`
 2. Setea `--brand` y `--brand-ring` como CSS custom properties en `:root`
-3. Todos los elementos interactivos usan `var(--brand)`; se resetea a `#1C1917` en logout
+3. Todos los elementos interactivos usan `var(--brand)`; se resetea a `#C47A2E` (copper) en logout
+
+El valor por defecto CSS de `--brand` en `style.css` es `#C47A2E` (copper). Si una agencia tiene `colorPrimario` guardado en Firebase, ese valor lo overridea en el momento del login.
 
 ### Estado compartido (`st`)
 
@@ -129,7 +132,7 @@ Todas las funciones llamadas desde `onclick`/`onchange` en HTML deben asignarse 
 4. **IA solo bajo demanda** — nunca automática al cargar; siempre detrás de botón explícito.
 5. **`overscroll-behavior-x:none`** en `html` y `body` — evita swipe-back en iOS.
 6. **Fotos en miniaturas 68×68px** en listas; tamaño completo solo en lightbox.
-7. **Gemini siempre vía Firebase Function** `geminiProxy` — nunca fetch directo al cliente.
+7. **Gemini siempre vía Firebase Function** `geminiProxy` — nunca fetch directo al cliente. **No agregar `VITE_GEMINI_KEY` en las env vars de Vercel**: Vite la incrustaría en el bundle de producción y el cliente saltearía `geminiProxy` exponiendo la key.
 8. **Sin React/Vue/Svelte** — módulos ES6 vanilla con Vite como bundler.
 
 ## Servicios externos
@@ -148,12 +151,12 @@ Todas las funciones llamadas desde `onclick`/`onchange` en HTML deben asignarse 
 
 - `landing.html` — Landing page standalone (vanilla HTML/CSS/JS, sin build). No depende del CRM.
 - `database.rules.json` — Firebase Security Rules; deploy con `firebase deploy --only database`
-- `landing-v0/` — proyecto Next.js de referencia, no se usa en producción
+- `landing-v0/` — proyecto Next.js de referencia; **ignorado por git** (gitignored), solo existe en disco local
 
 ## Design System
 
 - **Font**: DM Sans único, pesos 400/500/600/700/800. Sin fuentes serif en ningún componente.
-- **Paleta CRM**: warm stone (`--stone-50` → `--stone-900`) + `--brand` configurable por agencia
+- **Paleta CRM**: warm stone (`--stone-50` → `--stone-900`) + `--brand` configurable por agencia (default `#C47A2E` copper). Fondo base: `#FAF8F5` (cream).
 - **Paleta landing**: copper `#C47A2E` + warm cream `#FAF8F5` + dark `#100C08`
 - **Stats bar**: fondo oscuro con números blancos — no usar tarjetas blancas para esta sección
 - **Iconos**: SVGs Lucide-style en `src/icons.js`; sin emojis como iconos estructurales
