@@ -642,6 +642,23 @@ function _doGuardarPropiedad(){
   cerrarModal('modal-propiedad');
 }
 
+window._cancelarNuevaPropiedad = () => {
+  ['p-dir','p-titulo','p-barrio','p-desc','p-sup-total','p-sup-cub','p-piso','p-precio',
+   'p-amb','p-dorm','p-ban','import-url'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['p-toilette','p-cochera','p-asc','p-calef','p-orient','p-antig'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('p-fotos-preview').innerHTML='';
+  document.getElementById('p-precio-preview').textContent='';
+  document.getElementById('p-ciudad-badge').style.display='none';
+  document.querySelectorAll('#p-am-grid .am-chip').forEach(el=>el.classList.remove('sel'));
+  const ct=document.getElementById('p-am-custom-tags');if(ct)ct.innerHTML='';
+  const ci=document.getElementById('p-am-custom-inp');if(ci)ci.value='';
+  const is=document.getElementById('import-status');if(is)is.style.display='none';
+  const ir=document.getElementById('import-resultado');if(ir)ir.style.display='none';
+  fotosSubidas=[];propDirCompleta='';propCiudad='';autocomplete=null;
+  window.setModoPropiedad('manual');
+  cerrarModal('modal-propiedad');
+};
+
 window._cambiarEstadoProp = (id,estado) => update(agRef('propiedades',id),{estado});
 window._delProp = (id) => {if(!confirm('¿Eliminar propiedad?')) return;remove(agRef('propiedades',id));};
 
@@ -651,7 +668,7 @@ window._delProp = (id) => {if(!confirm('¿Eliminar propiedad?')) return;remove(a
 export function renderPropiedades(){
   const lista=document.getElementById('lista');
   const arr=Object.entries(st.propiedades).map(([id,p])=>({...p,id}));
-  let html='<button class="btn-nueva" onclick="document.getElementById(\'modal-propiedad\').classList.add(\'open\')">+ Nueva propiedad</button>';
+  let html='<button class="btn-nueva" onclick="window._cancelarNuevaPropiedad();document.getElementById(\'modal-propiedad\').classList.add(\'open\')">+ Nueva propiedad</button>';
   html+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
   html+='<input id="prop-search" class="search-input" placeholder="🔍 Buscar propiedad..." oninput="renderPropiedades()" style="flex:1;min-width:200px">';
   html+='<select id="prop-filter-op" class="form-select" onchange="renderPropiedades()" style="width:130px;flex-shrink:0"><option value="">Operación</option><option>Venta</option><option>Alquiler</option><option>Alquiler temporal</option></select>';
