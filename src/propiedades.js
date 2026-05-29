@@ -352,9 +352,9 @@ window.importarDesdePortal = async () => {
           div.className='foto-container';
           div.style.cssText='position:relative;display:inline-block';
           const idx=fotosSubidas.length-1;
-          div.innerHTML='<img src="'+uploadedUrl+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;display:block">'+
+          div.innerHTML='<img src="'+uploadedUrl+'" style="width:110px;height:110px;object-fit:cover;border-radius:8px;display:block">'+
             '<button onclick="window.quitarFoto('+idx+',this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer">&#x2715;</button>'+
-            '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 6px 6px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ Editar con IA</button>';
+            '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 8px 8px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ IA</button>';
           preview.appendChild(div);
           status.textContent='Importando fotos ('+subidas+'/'+maxFotos+')...';
         }
@@ -487,7 +487,7 @@ window.subirFotos = async (input) => {
       const div=document.createElement('div');
       div.style.cssText='position:relative;display:inline-block';
       div.id=tmpId;
-      div.innerHTML='<img src="'+e.target.result+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;opacity:0.5"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:rgba(0,0,0,.4);border-radius:6px">···</div>';
+      div.innerHTML='<img src="'+e.target.result+'" style="width:110px;height:110px;object-fit:cover;border-radius:8px;opacity:0.5"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:rgba(0,0,0,.4);border-radius:8px">···</div>';
       preview.appendChild(div);
     };
     reader.readAsDataURL(file);
@@ -503,9 +503,9 @@ window.subirFotos = async (input) => {
       if(el){
         const idx=fotosSubidas.length-1;
         el.className='foto-container';
-        el.innerHTML='<img src="'+url+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;display:block">'+
+        el.innerHTML='<img src="'+url+'" style="width:110px;height:110px;object-fit:cover;border-radius:8px;display:block">'+
           '<button onclick="window.quitarFoto('+idx+',this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'+
-          '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 6px 6px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ Editar con IA</button>';
+          '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 8px 8px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ IA</button>';
       }
     } catch(e){console.log('Error foto:',e);}
   }
@@ -513,6 +513,19 @@ window.subirFotos = async (input) => {
 };
 
 window.quitarFoto = (idx,el) => {fotosSubidas.splice(idx,1);el.remove();};
+
+window.embellecerTodasNuevas = () => {
+  if(!fotosSubidas.length) return;
+  const preview=document.getElementById('p-fotos-preview');
+  fotosSubidas.forEach((f,i)=>{
+    if(f.includes('e_improve')) return;
+    const nu=_buildMejUrl(f,true,false);
+    fotosSubidas[i]=nu;
+    const containers=preview?preview.querySelectorAll('.foto-container'):[];
+    if(containers[i]){const img=containers[i].querySelector('img');if(img)img.src=nu;}
+  });
+  window.toast('✨ Fotos embellecidas');
+};
 
 // ========= MEJORA DE FOTOS =========
 
@@ -1008,7 +1021,17 @@ window._guardarEdicionProp = () => {
   setTimeout(() => renderPropiedades(), 500);
 };
 
+// exponer renderPropiedades en window (necesario para onchange/oninput inline en HTML)
+window.renderPropiedades = renderPropiedades;
+
 // ========= EDICIÓN DE FOTOS =========
+
+window.embellecerTodasEdit = () => {
+  if(!_editFotos.length) return;
+  _editFotos=_editFotos.map(f=>f.includes('e_improve')?f:_buildMejUrl(f,true,false));
+  _renderEditFotos();
+  window.toast('✨ Fotos embellecidas');
+};
 
 function _renderEditFotos(){
   const grid=document.getElementById('edit-fotos-grid');
@@ -1019,7 +1042,7 @@ function _renderEditFotos(){
     const desp=f.includes('e_gen_remove');
     const isFirst=i===0;
     return '<div style="position:relative;display:inline-block">'+
-      '<img src="'+f+'" onclick="window.abrirLightbox(\'__edit\','+i+')" style="width:68px;height:68px;object-fit:cover;border-radius:6px;display:block;cursor:pointer'+(isFirst?';box-shadow:0 0 0 2.5px var(--purple)':'')+'">'+
+      '<img src="'+f+'" onclick="window.abrirLightbox(\'__edit\','+i+')" style="width:110px;height:110px;object-fit:cover;border-radius:8px;display:block;cursor:pointer'+(isFirst?';box-shadow:0 0 0 2.5px var(--purple)':'')+'">'+
       (isFirst?'<span style="position:absolute;top:-4px;left:-4px;background:var(--purple);color:#fff;border-radius:4px;padding:1px 4px;font-size:9px;font-weight:700">⭐</span>':'')+
       (emb||desp?'<div style="position:absolute;bottom:2px;left:2px;display:flex;gap:2px">'+
         (emb?'<span class="ai-badge-pill" style="background:var(--purple);color:#fff">✨</span>':'')+

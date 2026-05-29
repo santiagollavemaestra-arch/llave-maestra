@@ -20,7 +20,7 @@ export const CHECKS = [
   {key:'vis', label:'Visita',     short:'Visita'},
 ];
 export const DIAS = 3;
-export const AMENITY_INFO={'pileta':'🏊 Pileta','gimnasio':'💪 Gimnasio','quincho':'🍖 Quincho','laundry':'👕 Laundry','sum':'🎉 SUM','jardin':'🌿 Jardín','terraza':'🌅 Terraza','balcon':'🏙️ Balcón','seguridad':'🔒 Seguridad 24hs','vista-mar':'🌊 Vista al mar','amoblado':'🛋️ Amoblado','coworking':'💼 Coworking','apto-credito':'💳 Apto crédito','apto-mascotas':'🐾 Apto mascotas','apto-profesional':'👔 Apto profesional','jacuzzi':'🛁 Jacuzzi','baulera':'📦 Baulera','playroom':'🎮 Playroom','parrilla-propia':'🔥 Parrilla propia','jardin-privado':'🌳 Jardín privado'};
+export const AMENITY_INFO={'pileta':'Pileta','gimnasio':'Gimnasio','quincho':'Quincho','laundry':'Laundry','sum':'SUM','jardin':'Jardín','terraza':'Terraza','balcon':'Balcón','seguridad':'Seguridad 24hs','vista-mar':'Vista al mar','amoblado':'Amoblado','coworking':'Coworking','apto-credito':'Apto crédito','apto-mascotas':'Apto mascotas','apto-profesional':'Apto profesional','jacuzzi':'Jacuzzi','baulera':'Baulera','playroom':'Playroom','parrilla-propia':'Parrilla propia','jardin-privado':'Jardín privado'};
 
 export const st = {
   consultas: {},
