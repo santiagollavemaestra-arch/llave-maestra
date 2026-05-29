@@ -143,7 +143,8 @@ exports.generarLinkPago = onCall(
           failure: 'https://llave-maestra.vercel.app',
           pending: 'https://llave-maestra.vercel.app'
         },
-        auto_return: 'approved'
+        auto_return: 'approved',
+        notification_url: 'https://us-central1-llave-maestra.cloudfunctions.net/mpWebhook'
       })
     });
     const data = await res.json();
