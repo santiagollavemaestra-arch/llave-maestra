@@ -259,8 +259,10 @@ if(typeof ResizeObserver!=='undefined'){
   new ResizeObserver(_updateStickyTops).observe(document.querySelector('.header'));
 }
 
-// SW
-if('serviceWorker'in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+// SW — desregistrar cualquier SW viejo y no registrar nuevo hasta resolver el bug
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+}
 
 // Google Maps
 const _gmk=['AIzaSyCJA9M','qz_27Z4pRWiX','yuV9K1tgJsb27YKA'].join('');
