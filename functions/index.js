@@ -8,19 +8,34 @@ const GEMINI_KEY = defineSecret('GEMINI_KEY');
 const MP_ACCESS_TOKEN = defineSecret('MP_ACCESS_TOKEN');
 
 // ── Proxy Gemini ──────────────────────────────────────────────
-exports.geminiProxy = onCall(
-  { secrets: [GEMINI_KEY], region: 'us-central1' },
-  async (request) => {
-    if (!request.auth) throw new HttpsError('unauthenticated', 'Se requiere autenticación');
-    const { prompt, maxOutputTokens = 2000, temperature = 0.7 } = request.data;
-    if (!prompt || typeof prompt !== 'string') throw new HttpsError('invalid-argument', 'Falta el prompt');
+exports.geminiProxy = onRequest(
+  { secrets: [GEMINI_KEY], region: 'us-central1', cors: true },
+  async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') { res.status(204).send(''); return; }
+    if (req.method !== 'POST') { res.status(405).send('Method not allowed'); return; }
+
+    // Verificar token de Firebase Auth
+    const authHeader = req.headers.authorization || '';
+    if (!authHeader.startsWith('Bearer ')) { res.status(401).json({ error: 'Unauthorized' }); return; }
+    try {
+      await admin.auth().verifyIdToken(authHeader.slice(7));
+    } catch(e) {
+      res.status(401).json({ error: 'Invalid token' }); return;
+    }
+
+    const { prompt, maxOutputTokens = 2000, temperature = 0.7 } = req.body || {};
+    if (!prompt || typeof prompt !== 'string') { res.status(400).json({ error: 'Falta el prompt' }); return; }
+
     const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY.value();
-    const res = await fetch(url, {
+    const gemRes = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens, temperature } })
     });
-    return await res.json();
+    res.json(await gemRes.json());
   }
 );
 
