@@ -136,7 +136,7 @@ exports.generarLinkPago = onCall(
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + MP_ACCESS_TOKEN.value() },
       body: JSON.stringify({
-        items: [{ title: 'Keynet CRM — ' + agencia.nombre, quantity: 1, currency_id: 'ARS', unit_price: Number(monto) }],
+        items: [{ title: 'Keynet CRM', quantity: 1, currency_id: 'ARS', unit_price: Number(monto) }],
         external_reference: agenciaId,
         back_urls: {
           success: 'https://llave-maestra.vercel.app',
