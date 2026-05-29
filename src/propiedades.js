@@ -118,50 +118,68 @@ window.importarDesdePortal = async () => {
 
     status.textContent='🔍 Analizando con IA...';
 
-    // PASO 2: limpiar HTML y extraer texto + imágenes
+    // PASO 2: extraer datos estructurados del HTML
     const parser=new DOMParser();
     const doc=parser.parseFromString(html,'text/html');
-    // Extraer JSON-LD ANTES de borrar scripts (ZonaProp/Argenprop guardan datos ahí)
+
+    // __NEXT_DATA__ (Next.js): contiene TODOS los datos de la página
+    let nextData='';
+    const nextDataEl=doc.querySelector('#__NEXT_DATA__');
+    if(nextDataEl){
+      try{
+        const nd=JSON.parse(nextDataEl.textContent||'');
+        // Extraer la parte relevante (props.pageProps suele tener la propiedad)
+        const pp=nd?.props?.pageProps||nd?.props||nd;
+        nextData=JSON.stringify(pp).substring(0,8000);
+        // Extraer fotos de __NEXT_DATA__
+        const ndStr=JSON.stringify(nd);
+        const imgRgx=/"(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/gi;
+        let m2;
+        while((m2=imgRgx.exec(ndStr))!==null) addImgEarly(m2[1].replace(/\\u002F/g,'/').replace(/\\/g,''));
+      }catch(e){}
+    }
+
+    // JSON-LD (schema.org)
     let jsonLdTexto='';
     doc.querySelectorAll('script[type="application/ld+json"]').forEach(el=>{
       try{ const d=JSON.parse(el.textContent||''); jsonLdTexto+=JSON.stringify(d)+'\n'; }catch(e){}
     });
-    // Extraer también cualquier JSON de window.__INITIAL_STATE__ o similar
-    let initState='';
-    doc.querySelectorAll('script:not([src])').forEach(el=>{
-      const t=el.textContent||'';
-      if(t.includes('price')||t.includes('precio')||t.includes('ambientes')||t.includes('dormitorio')){
-        const m=t.match(/\{[\s\S]{100,}\}/);
-        if(m) initState+=(m[0].substring(0,3000)+'\n');
-      }
-    });
-    doc.querySelectorAll('script,style,nav,footer,header,iframe,noscript').forEach(el=>el.remove());
-    const textoVisible=(doc.body?.innerText||'').replace(/\n{3,}/g,'\n\n').trim().substring(0,5000);
-    const texto=(jsonLdTexto+initState+textoVisible).substring(0,10000);
 
-    // Deduplicación inteligente: agrupa por stem de URL, prefiere versión "big"
-    const imgMap=new Map();
+    // Imagen helper (necesita declararse antes de usarse en __NEXT_DATA__)
+    const imgMapEarly=new Map();
     const skipW=['logo','icon','placeholder','avatar','sprite','banner','map','profile','user','marca','watermark'];
     const imgSc=u=>/big|large|full|orig|original|1280|1024|800/i.test(u)?3:/medium|med|normal|640|480/i.test(u)?2:/small|thumb|mini|tiny|160|240|320/i.test(u)?1:2;
     const imgStem=u=>u.split('/').pop().replace(/\?.*$/,'').replace(/[-_](?:big|large|full|orig|original|medium|med|small|thumb|mini|tiny|\d+x\d+|\d{3,4}(?:px)?)(?=[.-])/gi,'').toLowerCase();
+    function addImgEarly(u){
+      if(!u||!u.startsWith('http')||!u.match(/\.(jpg|jpeg|png|webp)/i)) return;
+      if(skipW.some(w=>u.toLowerCase().includes(w))) return;
+      const base=u.split('?')[0];
+      const stem=imgStem(base);
+      if(!imgMapEarly.has(stem)||imgSc(base)>imgSc(imgMapEarly.get(stem))) imgMapEarly.set(stem,base);
+    }
+
+    doc.querySelectorAll('script,style,nav,footer,header,iframe,noscript').forEach(el=>el.remove());
+    const textoVisible=(doc.body?.innerText||'').replace(/\n{3,}/g,'\n\n').trim().substring(0,3000);
+    const texto=(nextData||jsonLdTexto||textoVisible).substring(0,10000);
+
+    // Combinar imágenes de __NEXT_DATA__ con las del DOM y HTML raw
     const addImg=u=>{
       if(!u||!u.startsWith('http')||!u.match(/\.(jpg|jpeg|png|webp)/i)) return;
       if(skipW.some(w=>u.toLowerCase().includes(w))) return;
       const base=u.split('?')[0];
       const stem=imgStem(base);
-      if(!imgMap.has(stem)||imgSc(base)>imgSc(imgMap.get(stem))) imgMap.set(stem,base);
+      if(!imgMapEarly.has(stem)||imgSc(base)>imgSc(imgMapEarly.get(stem))) imgMapEarly.set(stem,base);
     };
     const attrs=['src','data-src','data-lazy-src','data-original','data-url','data-image','data-lazy','data-zoom-image','data-full-url'];
     doc.querySelectorAll('img,[data-src],[data-lazy-src],[data-original],[data-zoom-image]').forEach(el=>{
       for(const a of attrs){ addImg(el.getAttribute(a)||''); }
     });
-    // Búsqueda en HTML raw: captura imágenes en JSON-LD, JS vars, etc.
     const rgx=/https?:\/\/[^\s"'<>\\]+\.(?:jpg|jpeg|png|webp)/gi;
     let rm;
     while((rm=rgx.exec(html))!==null){
       addImg(rm[0].replace(/\\u002F/g,'/').replace(/\\/g,''));
     }
-    const imgUrls=[...imgMap.values()].slice(0,40);
+    const imgUrls=[...imgMapEarly.values()].slice(0,40);
 
     // PASO 3: Gemini extrae los datos (con retry si el JSON viene mal)
     const promptBase='Analizá este texto de una publicación inmobiliaria argentina y extraé TODOS los datos. '+
