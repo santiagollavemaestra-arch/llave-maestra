@@ -6,4 +6,9 @@ self.addEventListener('activate', e => {
     .then(() => clients.claim())
   );
 });
-self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));
+self.addEventListener('fetch', e => {
+  // Solo interceptar assets del mismo origen — nunca APIs externas ni Firebase Functions
+  if (e.request.url.startsWith(self.location.origin) && e.request.method === 'GET') {
+    e.respondWith(fetch(e.request));
+  }
+});
