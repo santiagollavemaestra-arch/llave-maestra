@@ -134,11 +134,26 @@ body{
 /* ── USER SCREEN (Login) ── */
 .user-screen{
   position:fixed;inset:0;
-  background:var(--stone-900);
+  background:#100C08;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   z-index:998;padding:var(--space-6);
+  overflow:hidden;
 }
+.user-screen::before{
+  content:'';position:absolute;inset:0;z-index:0;
+  background-image:url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1600&q=80');
+  background-size:cover;background-position:center 40%;
+  animation:slowZoom 22s ease-in-out infinite alternate;
+}
+.user-screen::after{
+  content:'';position:absolute;inset:0;z-index:1;
+  background:
+    linear-gradient(to bottom,rgba(16,12,8,.82) 0%,rgba(16,12,8,.7) 50%,rgba(16,12,8,.9) 100%),
+    radial-gradient(ellipse 70% 60% at 50% 38%,rgba(196,122,46,.2) 0%,transparent 62%);
+}
+.user-screen > div{position:relative;z-index:2}
+@keyframes slowZoom{from{transform:scale(1)}to{transform:scale(1.06)}}
 .user-screen.oculto{display:none}
 .oculto{display:none}
 .user-title{
@@ -177,10 +192,11 @@ body{
 .email-input:focus{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1)}
 .email-input::placeholder{color:var(--stone-500)}
 .email-btn{
-  width:100%;background:#fff;color:var(--stone-900);
+  width:100%;background:var(--brand);color:#fff;
   border:none;border-radius:var(--radius-sm);padding:14px;
   font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;
   cursor:pointer;transition:opacity .15s,transform .12s;
+  box-shadow:0 4px 24px rgba(196,122,46,.4);
 }
 .email-btn:hover{opacity:.92}
 .email-btn:active{transform:scale(.98)}
