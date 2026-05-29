@@ -78,7 +78,7 @@ window.setModoPropiedad = (modo) => {
 };
 
 window.importarDesdePortal = async () => {
-  const url = document.getElementById('import-url').value.trim();
+  const url = document.getElementById('import-url').value.trim().split('?')[0].trim();
   if(!url || !url.startsWith('http')) { window.toast('Ingresá una URL válida de Zonaprop o Argenprop','err'); return; }
 
   const status = document.getElementById('import-status');
@@ -99,6 +99,7 @@ window.importarDesdePortal = async () => {
     // Una respuesta "buena" debe contener __NEXT_DATA__ o datos estructurados.
     let html='';
     const esHtmlValido=(h)=>h && h.length>15000 && (h.includes('__NEXT_DATA__')||h.includes('application/ld+json')||h.includes('"price"')||h.includes('avisoId'));
+    let _fetchErr=null;
     try{
       const r=await Promise.race([
         fetch('https://us-central1-llave-maestra.cloudfunctions.net/fetchPortal',{
@@ -107,9 +108,10 @@ window.importarDesdePortal = async () => {
         timeout(110000)
       ]);
       const d=await r.json();
-      if(d.error) throw new Error(d.error);
-      html=d.html||'';
+      if(d.error) _fetchErr=d.error;
+      else html=d.html||'';
     }catch(e){ console.log('fetchPortal falló:',e.message); }
+    if(_fetchErr) throw new Error('No se pudo leer la publicación: '+_fetchErr.substring(0,120));
     console.log('Import — html length:',html.length,'válido:',esHtmlValido(html),'url:',url.substring(0,60));
     if(html.length<1000 || (!esHtmlValido(html) && html.includes('Just a moment')))
       throw new Error('No se pudo leer la publicación (el portal la bloqueó). Esperá unos segundos y probá de nuevo, o cargá los datos manualmente.');
