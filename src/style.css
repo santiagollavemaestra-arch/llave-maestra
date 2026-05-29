@@ -46,9 +46,16 @@
   --gold:          #B45309;
   --gold-light:    #FEF3C7;
 
-  /* Brand — override por agencia */
-  --brand:      #1C1917;
-  --brand-ring: rgba(28,25,23,0.12);
+  /* Brand — override por agencia. Default copper (lenguaje de la landing) */
+  --brand:      #C47A2E;
+  --brand-ring: rgba(196,122,46,0.18);
+
+  /* Copper — paleta de la landing */
+  --copper:       #C47A2E;
+  --copper-light: #D4943E;
+  --copper-dark:  #A86424;
+  --gold:         #D4A843;
+  --cream:        #FAF8F5;
 
   /* Shadows — warm-tinted, tres niveles */
   --shadow:       0 1px 2px rgba(12,10,9,0.04), 0 3px 12px rgba(12,10,9,0.07);
@@ -72,7 +79,7 @@
 html{overscroll-behavior-x:none}
 body{
   font-family:'DM Sans',sans-serif;
-  background:var(--stone-50);
+  background:var(--cream);
   color:var(--black);
   font-size:15px;
   line-height:1.5;

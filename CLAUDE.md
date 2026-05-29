@@ -75,12 +75,29 @@ onAuthStateChanged
 
 ### Firebase Functions (`functions/index.js`)
 
-Todas usan `onCall` + validan `rol === 'keynet-admin'` server-side:
+Región `us-central1`. Dos estilos según el caller:
 
-- `geminiProxy` — proxy de Gemini API (oculta la key; requiere secret `GEMINI_KEY`)
+**`onCall` (admin SDK) — validan `rol === 'keynet-admin'` server-side:**
 - `crearAgencia` — crea Firebase Auth user + escribe en `/usuarios`, `/keynet/agencias`, `/agencias/{id}/emails`
-- `editarAgencia` — actualiza nombre/plan/activa/colorPrimario
+- `editarAgencia` — actualiza nombre/plan/activa/colorPrimario/whatsapp
 - `borrarAgencia` — elimina el registro de `/keynet/agencias` (datos de la agencia quedan intactos)
+- `generarLinkPago` — crea preferencia de Mercado Pago (secret `MP_ACCESS_TOKEN`)
+
+**`onRequest` (HTTP + CORS) — llamadas vía `fetch` desde el cliente:**
+- `geminiProxy` — proxy de Gemini API (oculta la key; secret `GEMINI_KEY`). Verifica el ID token de Firebase Auth (Bearer), no el rol.
+- `fetchPortal` — descarga el HTML de una publicación de portal vía Bright Data Web Unlocker (secret `SCRAPER_KEY`). Ver "Importación por link". Sin auth.
+- `mpWebhook` — recibe notificaciones IPN de Mercado Pago y marca la agencia como `activa`/`plan:'activo'` al aprobarse un pago.
+
+### Importación por link (ZonaProp / Argenprop)
+
+`importarDesdePortal()` en `propiedades.js`. Flujo:
+
+1. **Descarga HTML** → `fetchPortal` (Function). ZonaProp/Argenprop están detrás de **Cloudflare**, que bloquea toda IP de datacenter (incluidas las de Google Cloud) y los proxies CORS gratuitos. **Solo IPs residenciales pasan**, por eso `fetchPortal` usa **Bright Data Web Unlocker** (`POST api.brightdata.com/request`, zona `keynet_unlocker`, `country:'ar'`). No reintroducir proxies gratuitos: están muertos o devuelven el desafío "Just a moment" de Cloudflare. Costo: pay-as-you-go (~1,5 USD/1000 requests exitosos).
+2. **Parseo** → DOMParser extrae `__NEXT_DATA__` (Next.js), `application/ld+json` y texto visible. Se le manda a Gemini **los tres combinados** (no excluyente): el precio y los baños suelen estar solo en el texto visible.
+3. **Extracción** → `geminiCall` devuelve JSON estructurado (con reintentos). Reglas en el prompt: baños = completos + toilette (suite cuenta su baño), nunca rangos/estimaciones.
+4. **Fotos** → Cloudinary fetch remoto de las URLs (fallback: blob vía proxy de imágenes). Miniaturas 68×68.
+
+La descripción IA (`generarDescripcionIA` / `generarDescripcionEditIA`, prompt duplicado) tiene reglas de negocio: prohibido inventar/estimar/usar rangos; omitir lo desconocido; prioridad a m² totales, calefacción, toilette, suite, piso, cocina, ambientes, cochera, parrilla.
 
 ### Sistema de branding
 
@@ -119,7 +136,9 @@ Todas las funciones llamadas desde `onclick`/`onchange` en HTML deben asignarse 
 
 - **Firebase Realtime DB** — `llave-maestra-default-rtdb.firebaseio.com`
 - **Firebase Auth** — email/password
-- **Firebase Functions** — región `us-central1`; secret `GEMINI_KEY` en Secret Manager
+- **Firebase Functions** — región `us-central1`; secrets en Secret Manager: `GEMINI_KEY`, `SCRAPER_KEY` (token Bright Data), `MP_ACCESS_TOKEN`
+- **Bright Data Web Unlocker** — pasa Cloudflare para importar propiedades; zona `keynet_unlocker`, token en secret `SCRAPER_KEY`. Ver "Importación por link"
+- **Mercado Pago** — links de pago + webhook IPN; token en secret `MP_ACCESS_TOKEN`
 - **Cloudinary** — cloud `dgaixfvxa`, preset `keynet_props` (unsigned upload)
 - **EmailJS** — service `service_iorm3vh`, template `template_lqgp3ki`
 - **Google Maps Places** — cargado dinámicamente al final de `main.js`

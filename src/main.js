@@ -13,7 +13,7 @@ const IS_PROPIEDAD = window.location.pathname.startsWith('/propiedad/');
 async function aplicarBrand(agenciaId) {
   try {
     const snap = await get(ref(db, 'keynet/agencias/' + agenciaId));
-    const color = (snap.val() || {}).colorPrimario || '#0a0a0a';
+    const color = (snap.val() || {}).colorPrimario || '#C47A2E';
     document.documentElement.style.setProperty('--brand', color);
     const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
     document.documentElement.style.setProperty('--brand-ring', `rgba(${r},${g},${b},0.15)`);
@@ -143,8 +143,8 @@ initAuth(
   },
   () => {
     stopListeners();
-    document.documentElement.style.setProperty('--brand', '#0a0a0a');
-    document.documentElement.style.setProperty('--brand-ring', 'rgba(10,10,10,0.12)');
+    document.documentElement.style.setProperty('--brand', '#C47A2E');
+    document.documentElement.style.setProperty('--brand-ring', 'rgba(196,122,46,0.18)');
     document.getElementById('user-screen').classList.remove('oculto');
     document.getElementById('cambiar-wrap').classList.remove('visible');
     document.getElementById('loading').classList.add('hidden');
