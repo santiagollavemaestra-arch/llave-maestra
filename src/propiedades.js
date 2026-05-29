@@ -736,15 +736,27 @@ window._delProp = (id) => {if(!confirm('¿Eliminar propiedad?')) return;remove(a
 export function renderPropiedades(){
   const lista=document.getElementById('lista');
   const arr=Object.entries(st.propiedades).map(([id,p])=>({...p,id}));
-  let html='<button class="btn-nueva" onclick="window._cancelarNuevaPropiedad();document.getElementById(\'modal-propiedad\').classList.add(\'open\')">+ Nueva propiedad</button>';
-  html+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
-  html+='<input id="prop-search" class="search-input" placeholder="🔍 Buscar propiedad..." oninput="renderPropiedades()" style="flex:1;min-width:200px">';
-  html+='<select id="prop-filter-op" class="form-select" onchange="renderPropiedades()" style="width:130px;flex-shrink:0"><option value="">Operación</option><option>Venta</option><option>Alquiler</option><option>Alquiler temporal</option></select>';
-  html+='<select id="prop-filter-estado" class="form-select" onchange="renderPropiedades()" style="width:130px;flex-shrink:0"><option value="">Estado</option><option>Disponible</option><option>Reservada</option><option>Vendida/Alquilada</option></select>';
-  html+='</div>';
+  // leer valores actuales ANTES de re-renderizar los controles
   const q=(document.getElementById('prop-search')?.value||'').toLowerCase();
   const fOp=document.getElementById('prop-filter-op')?.value||'';
   const fEst=document.getElementById('prop-filter-estado')?.value||'';
+  const sel=(v,opt)=>v===opt?' selected':'';
+  let html='<button class="btn-nueva" onclick="window._cancelarNuevaPropiedad();document.getElementById(\'modal-propiedad\').classList.add(\'open\')">+ Nueva propiedad</button>';
+  html+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
+  html+='<input id="prop-search" class="search-input" placeholder="🔍 Buscar propiedad..." oninput="renderPropiedades()" value="'+q.replace(/"/g,'&quot;')+'" style="flex:1;min-width:200px">';
+  html+='<select id="prop-filter-op" class="form-select" onchange="renderPropiedades()" style="width:130px;flex-shrink:0">'+
+    '<option value=""'+sel(fOp,'')+'> Operación</option>'+
+    '<option'+sel(fOp,'Venta')+'>Venta</option>'+
+    '<option'+sel(fOp,'Alquiler')+'>Alquiler</option>'+
+    '<option'+sel(fOp,'Alquiler temporal')+'>Alquiler temporal</option>'+
+    '</select>';
+  html+='<select id="prop-filter-estado" class="form-select" onchange="renderPropiedades()" style="width:130px;flex-shrink:0">'+
+    '<option value=""'+sel(fEst,'')+'>Estado</option>'+
+    '<option'+sel(fEst,'Disponible')+'>Disponible</option>'+
+    '<option'+sel(fEst,'Reservada')+'>Reservada</option>'+
+    '<option'+sel(fEst,'Vendida/Alquilada')+'>Vendida/Alquilada</option>'+
+    '</select>';
+  html+='</div>';
   let filtered=arr;
   if(q) filtered=filtered.filter(p=>(p.titulo||'').toLowerCase().includes(q)||(p.direccion||'').toLowerCase().includes(q)||(p.barrio||'').toLowerCase().includes(q)||(p.tipo||'').toLowerCase().includes(q));
   if(fOp) filtered=filtered.filter(p=>p.operacion===fOp);
