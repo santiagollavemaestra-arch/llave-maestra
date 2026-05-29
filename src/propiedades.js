@@ -998,74 +998,28 @@ window.generarDescripcionEditIA = async () => {
 };
 
 window.compartirPropiedad = (id) => {
-  const url = window.location.origin + '/?prop='+id;
-  if(navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(()=>alert('✅ Link copiado: '+url));
+  const url = window.location.origin + '/propiedad/' + st.agenciaId + '/' + id;
+  if(navigator.share) {
+    const p = st.propiedades[id];
+    navigator.share({ title: p?.titulo || p?.direccion || 'Propiedad', url });
+  } else if(navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      const t = document.createElement('div');
+      t.textContent = '¡Link copiado!';
+      t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1c1917;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:9999;font-family:\'DM Sans\',sans-serif';
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2000);
+    });
   } else {
     prompt('Copiá este link:', url);
   }
 };
 
-// Verificar si hay una propiedad en la URL — modo público
+// Legacy: links viejos con ?prop= redirigen al nuevo formato
 const urlParams = new URLSearchParams(window.location.search);
 const propParam = urlParams.get('prop');
-if(propParam) {
-  // Ocultar TODO el CRM y mostrar solo la propiedad
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('user-screen').classList.add('oculto');
-  document.querySelector('.tabs-main').style.display = 'none';
-  document.querySelector('.subtabs').style.display = 'none';
-  document.querySelector('.content').style.display = 'none';
-  document.querySelector('.header').style.display = 'none';
-  document.getElementById('cambiar-wrap').style.display = 'none';
-  
-  // Crear contenedor público
-  const pub = document.createElement('div');
-  pub.id = 'vista-publica';
-  pub.style.cssText = 'max-width:680px;margin:0 auto;padding:16px;padding-bottom:40px';
-  const pubHeader = document.createElement('div');
-  pubHeader.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #000';
-  pubHeader.innerHTML = '<img src="/icon-192.png" style="height:40px;width:40px;border-radius:8px"><div><div style="font-size:18px;font-weight:700">Llave Maestra</div><div style="font-size:11px;color:#999;letter-spacing:2px">DESARROLLOS INMOBILIARIOS</div></div>';
-  const pubContent = document.createElement('div');
-  pubContent.id = 'pub-content';
-  pubContent.innerHTML = '<div style="text-align:center;padding:40px;color:#999">Cargando propiedad...</div>';
-  pub.appendChild(pubHeader);
-  pub.appendChild(pubContent);
-  document.body.appendChild(pub);
-
-    const checkProp = setInterval(() => {
-    if(Object.keys(st.propiedades).length > 0) {
-      clearInterval(checkProp);
-      const p = st.propiedades[propParam];
-      if(!p) { document.getElementById('pub-content').innerHTML='<div style="text-align:center;padding:40px;color:#999">Propiedad no encontrada.</div>'; return; }
-      const todasFotos = p.fotos?.length ? p.fotos : p.foto ? [p.foto] : [];
-      const ams = (p.amenities||[]).map(a=>'<span class="ficha-amenity">'+_amLabel(a)+'</span>').join('');
-      const pc = document.getElementById('pub-content');
-      const op = (p.tipo||'')+' en '+(p.operacion||'')+(p.barrio?' · '+p.barrio:'');
-      let html2 = '';
-      html2 += '<div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">'+op+'</div>';
-      html2 += '<div style="font-size:24px;font-weight:900;margin-bottom:8px;line-height:1.2">'+(p.titulo||p.direccion||'')+'</div>';
-      if(p.precio) html2 += '<div style="font-size:28px;font-weight:900;color:#2d6a4f;margin-bottom:20px">'+p.precio+'</div>';
-      if(todasFotos.length) {
-        html2 += '<div class="galeria-prop" style="margin-bottom:20px">';
-        todasFotos.forEach((f,i) => { html2 += '<div><img src="'+f+'" onclick="window.abrirLightbox(\''+propParam+'\','+i+')" loading="lazy"></div>'; });
-        html2 += '</div>';
-      }
-      html2 += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px">';
-      if(p.ambientes) html2 += '<div style="background:#f8f8f8;border-radius:10px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900">'+p.ambientes+'</div><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Ambientes</div></div>';
-      if(p.dormitorios) html2 += '<div style="background:#f8f8f8;border-radius:10px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900">'+p.dormitorios+'</div><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Dormitorios</div></div>';
-      if(p.banos) html2 += '<div style="background:#f8f8f8;border-radius:10px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900">'+p.banos+'</div><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Baños</div></div>';
-      const sup2 = p.supCubierta||p.supTotal;
-      if(sup2) html2 += '<div style="background:#f8f8f8;border-radius:10px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900">'+sup2+'</div><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">m² cubiertos</div></div>';
-      html2 += '</div>';
-      if(ams) html2 += '<div style="margin-bottom:16px">'+ams+'</div>';
-      if(p.desc) html2 += '<div style="font-size:15px;color:#555;line-height:1.7;margin-bottom:24px;white-space:pre-wrap">'+p.desc+'</div>';
-      html2 += '<a href="https://wa.me/5492235249121" target="_blank" style="display:block;text-align:center;padding:14px;background:#25D366;color:#fff;border-radius:12px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:16px">📱 Consultar por WhatsApp</a>';
-      html2 += '<div style="text-align:center;font-size:12px;color:#999">Llave Maestra Desarrollos Inmobiliarios · Mar del Plata</div>';
-      pc.innerHTML = html2;
-        }
-  }, 200);
-  setTimeout(()=>clearInterval(checkProp), 8000);
+if (propParam && st.agenciaId) {
+  window.location.replace(window.location.origin + '/propiedad/' + st.agenciaId + '/' + propParam);
 }
 
 window.abrirLightbox = (fotosOrId,idx) => {

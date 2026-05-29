@@ -8,6 +8,7 @@ import { renderPropietarios } from './propietarios.js';
 import { renderVisitas } from './visitas.js';
 
 const IS_ADMIN = window.location.pathname === '/admin';
+const IS_PROPIEDAD = window.location.pathname.startsWith('/propiedad/');
 
 async function aplicarBrand(agenciaId) {
   try {
@@ -17,6 +18,13 @@ async function aplicarBrand(agenciaId) {
     const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
     document.documentElement.style.setProperty('--brand-ring', `rgba(${r},${g},${b},0.15)`);
   } catch(e) {}
+}
+
+// Ruta pública de propiedad — no requiere auth
+if (IS_PROPIEDAD) {
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('ficha-publica').style.display = 'block';
+  import('./propiedad.js').then(({ initPropiedad }) => initPropiedad());
 }
 
 // Failsafe global: la pantalla de carga nunca se queda pegada más de 8s
@@ -90,6 +98,7 @@ function startCRM(agenciaId, agenciaNombre) {
 }
 
 // ── Auth ──
+if (!IS_PROPIEDAD)
 initAuth(
   async () => {
     document.getElementById('user-screen').classList.add('oculto');

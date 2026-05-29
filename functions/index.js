@@ -78,13 +78,14 @@ exports.editarAgencia = onCall(
       throw new HttpsError('permission-denied', 'Solo keynet-admin puede editar agencias');
     }
 
-    const { agenciaId, nombre, plan, activa, colorPrimario } = request.data;
+    const { agenciaId, nombre, plan, activa, colorPrimario, whatsapp } = request.data;
     if (!agenciaId || !nombre) {
       throw new HttpsError('invalid-argument', 'Faltan campos requeridos');
     }
 
     const updates = { nombre, plan, activa, actualizada: Date.now() };
     if (colorPrimario) updates.colorPrimario = colorPrimario;
+    if (whatsapp !== undefined) updates.whatsapp = whatsapp;
 
     await admin.database().ref('keynet/agencias/' + agenciaId).update(updates);
 
