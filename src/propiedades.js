@@ -122,7 +122,7 @@ window.importarDesdePortal = async () => {
 
     // Imagen helper — declarado ANTES de ser usado
     const imgMap=new Map();
-    const skipW=['logo','icon','placeholder','avatar','sprite','banner','map','profile','user','marca','watermark','favicon','loading'];
+    const skipW=['logo','icon','placeholder','avatar','sprite','banner','map','profile','user','marca','watermark','favicon','loading','qr','naventcdn'];
     const imgSc=u=>/big|large|full|orig|original|1280|1024|800/i.test(u)?3:/medium|med|normal|640|480/i.test(u)?2:/small|thumb|mini|tiny|160|240|320/i.test(u)?1:2;
     const imgStem=u=>u.split('/').pop().replace(/\?.*$/,'').replace(/[-_](?:big|large|full|orig|original|medium|med|small|thumb|mini|tiny|\d+x\d+|\d{3,4}(?:px)?)(?=[.-])/gi,'').toLowerCase();
     const addImg=u=>{
