@@ -208,7 +208,7 @@ body{
   padding:10px var(--space-4);
   display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:100;
-  border-bottom:1px solid rgba(196,122,46,.14);
+  border-bottom:1px solid rgba(196,122,46,.22);
   box-shadow:0 1px 0 rgba(0,0,0,.3),0 2px 16px rgba(0,0,0,.2);
 }
 .version{font-size:9px;color:var(--stone-600);position:absolute;top:3px;left:4px}
@@ -293,6 +293,7 @@ body{
 
 /* ── BOTONES ── */
 .btn-nueva{
+  position:relative;overflow:hidden;
   width:100%;background:var(--brand);color:#fff;
   border:none;border-radius:var(--radius-md);
   padding:15px;font-family:'DM Sans',sans-serif;
@@ -300,7 +301,16 @@ body{
   margin-bottom:var(--space-4);
   letter-spacing:.01em;
   transition:opacity .15s,transform .12s;
+  box-shadow:0 4px 20px rgba(196,122,46,.35);
 }
+.btn-nueva::after{
+  content:'';position:absolute;top:0;left:-100%;
+  width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
+  transform:skewX(-15deg);
+  animation:shimmerSweep 3.5s 1s infinite;
+}
+@keyframes shimmerSweep{0%{left:-100%}60%{left:150%}100%{left:150%}}
 .btn-nueva:hover{opacity:.88}
 .btn-nueva:active{transform:scale(.98)}
 
@@ -311,6 +321,7 @@ body{
   padding:14px;font-family:'DM Sans',sans-serif;
   font-size:15px;font-weight:700;cursor:pointer;
   transition:opacity .15s,transform .12s;
+  box-shadow:0 4px 16px rgba(196,122,46,.3);
 }
 .btn-primary:hover{opacity:.88}
 .btn-primary:active{transform:scale(.98)}
@@ -448,7 +459,7 @@ body{
   background:linear-gradient(90deg,transparent,rgba(0,0,0,.03),transparent);
   border-radius:var(--radius) var(--radius) 0 0;
 }
-.cons-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}
+.cons-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover);border-color:rgba(196,122,46,.35)}
 .cons-card:active{transform:scale(.99)}
 .cons-card.santiago{border-left-color:#E74C3C}
 .cons-card.mariana{border-left-color:#3498DB}
