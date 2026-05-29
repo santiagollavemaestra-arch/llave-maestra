@@ -6,9 +6,4 @@ self.addEventListener('activate', e => {
     .then(() => clients.claim())
   );
 });
-self.addEventListener('fetch', e => {
-  // Solo interceptar assets del mismo origen — nunca APIs externas ni Firebase Functions
-  if (e.request.url.startsWith(self.location.origin) && e.request.method === 'GET') {
-    e.respondWith(fetch(e.request));
-  }
-});
+// Sin fetch handler — el browser maneja todas las peticiones normalmente
