@@ -79,7 +79,7 @@ window.setModoPropiedad = (modo) => {
 
 window.importarDesdePortal = async () => {
   const url = document.getElementById('import-url').value.trim();
-  if(!url || !url.startsWith('http')) { alert('Ingresá una URL válida de Zonaprop o Argenprop'); return; }
+  if(!url || !url.startsWith('http')) { window.toast('Ingresá una URL válida de Zonaprop o Argenprop','err'); return; }
 
   const status = document.getElementById('import-status');
   const resultado = document.getElementById('import-resultado');
@@ -625,7 +625,7 @@ export function actualizarSelPropietarios(){
 window.guardarPropiedad = () => {
   const dir=document.getElementById('p-dir').value.trim();
   const titulo=document.getElementById('p-titulo').value.trim();
-  if(!dir&&!titulo){alert('Ingresá la dirección');return;}
+  if(!dir&&!titulo){window.toast('Ingresá la dirección','err');return;}
   if(fotosSubidas.length>0){
     document.getElementById('check-derechos-1').checked=false;
     document.getElementById('check-derechos-2').checked=false;
@@ -637,7 +637,7 @@ window.guardarPropiedad = () => {
 
 window.confirmarGuardarPropiedad = () => {
   if(!document.getElementById('check-derechos-1').checked||!document.getElementById('check-derechos-2').checked){
-    alert('Debés aceptar ambas declaraciones para continuar.');
+    window.toast('Debés aceptar ambas declaraciones para continuar.','err');
     return;
   }
   cerrarModal('modal-derechos');

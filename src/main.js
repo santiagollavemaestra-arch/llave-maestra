@@ -227,6 +227,17 @@ window.setFiltro = (estado,btn) => {
 
 window.cerrarModal = (id) => document.getElementById(id).classList.remove('open');
 
+// Toast cálido — reemplaza los alert() nativos
+window.toast = (msg, tipo) => {
+  const wrap = document.getElementById('toast-wrap');
+  if(!wrap){ alert(msg); return; }
+  const t = document.createElement('div');
+  t.className = 'toast' + (tipo === 'err' ? ' err' : '');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.transition = 'opacity .3s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2600);
+};
+
 window._addAmTag = (prefix) => {
   const inp=document.getElementById(prefix+'-am-custom-inp');
   const v=(inp?.value||'').trim();

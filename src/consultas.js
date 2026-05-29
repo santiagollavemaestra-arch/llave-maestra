@@ -367,7 +367,7 @@ window._delNota = (cId,nId) => {
   setTimeout(()=>window._abrirDetalle(cId),300);
 };
 window._delConsulta = (id) => {
-  if(st.usuarioRol!=='admin'){alert('Solo el administrador puede eliminar.');return;}
+  if(st.usuarioRol!=='admin'){window.toast('Solo el administrador puede eliminar.','err');return;}
   if(!confirm('¿Eliminar esta consulta? Esta acción no se puede deshacer.')) return;
   remove(agRef('consultas',id));
   cerrarModal('modal-detalle');
@@ -454,7 +454,7 @@ window.abrirNuevaConsulta = () => {
 
 window.guardarConsulta = () => {
   const nombre=document.getElementById('c-nombre').value.trim();
-  if(!nombre){alert('Ingresá el nombre');return;}
+  if(!nombre){window.toast('Ingresá el nombre','err');return;}
   const telInput=document.getElementById('c-tel').value.trim();
   if(telInput){
     const telN=telInput.replace(/\D/g,'');

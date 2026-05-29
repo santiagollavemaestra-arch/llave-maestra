@@ -78,7 +78,7 @@ window._cambiarPassword = async () => {
     await reauthenticateWithCredential(user, cred);
     await updatePassword(user, nueva);
     document.getElementById('modal-cambiar-pass').classList.remove('open');
-    alert('✅ Contraseña actualizada correctamente');
+    window.toast('Contraseña actualizada correctamente');
   } catch(e) {
     if(e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password') {
       err.textContent = 'La contraseña actual es incorrecta';

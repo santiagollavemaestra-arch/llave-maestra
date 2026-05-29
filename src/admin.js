@@ -230,7 +230,7 @@ window._confirmarBorrarAgencia = async () => {
     await _borrarAgenciaFn({ agenciaId: _agenciaActualEdit });
     document.getElementById('modal-borrar-agencia').classList.remove('open');
   } catch (e) {
-    alert('Error al borrar: ' + (e.message || 'Intenta de nuevo'));
+    window.toast('Error al borrar: ' + (e.message || 'Intenta de nuevo'),'err');
   } finally {
     btn.disabled = false; btn.textContent = 'Borrar';
   }

@@ -59,7 +59,7 @@ window.guardarVisita = () => {
   const consId=document.getElementById('v-cliente').value;
   const fecha=document.getElementById('v-fecha').value;
   const hora=document.getElementById('v-hora').value;
-  if(!fecha||!hora){alert('Ingresá fecha y hora');return;}
+  if(!fecha||!hora){window.toast('Ingresá fecha y hora','err');return;}
   const prop=propId&&st.propiedades[propId]?st.propiedades[propId]:null;
   const cons=consId&&st.consultas[consId]?st.consultas[consId]:null;
   const agente=document.getElementById('v-agente').value;

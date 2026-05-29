@@ -29,7 +29,7 @@ export function renderPropietarios(){
 
 window.guardarPropietario = () => {
   const nombre=document.getElementById('pr-nombre').value.trim();
-  if(!nombre){alert('Ingresá el nombre');return;}
+  if(!nombre){window.toast('Ingresá el nombre','err');return;}
   const editId=document.getElementById('pr-edit-id').value;
   const datos={nombre,tel:document.getElementById('pr-tel').value.trim(),email:document.getElementById('pr-email').value.trim(),obs:document.getElementById('pr-obs').value.trim()};
   if(editId){ update(agRef('propietarios',editId),datos); }
