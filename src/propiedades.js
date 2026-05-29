@@ -91,18 +91,28 @@ window.importarDesdePortal = async () => {
   resultado.style.display='none';
 
   try {
-    // PASO 1: fetch del HTML via proxies con fallback
+    // PASO 1: fetch del HTML via Firebase Function propia (sin CORS, headers reales)
     let html='';
     const timeout=(ms)=>new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms));
-    const proxies=[
-      ()=>fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url)).then(r=>r.json()).then(d=>d.contents||''),
-      ()=>fetch('https://corsproxy.io/?'+encodeURIComponent(url)).then(r=>r.text()),
-      ()=>fetch('https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url)).then(r=>r.text()),
-      ()=>fetch('https://thingproxy.freeboard.io/fetch/'+url).then(r=>r.text()),
-    ];
-    for(const proxy of proxies){
-      try { html=await Promise.race([proxy(),timeout(12000)]); if(html&&html.length>1000) break; html=''; }
-      catch(e){ html=''; console.log('Proxy falló:',e.message); }
+    const FETCH_PORTAL_URL='https://us-central1-llave-maestra.cloudfunctions.net/fetchPortal';
+    try {
+      const r=await Promise.race([
+        fetch(FETCH_PORTAL_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})}),
+        timeout(20000)
+      ]);
+      const d=await r.json();
+      html=d.html||'';
+    } catch(e){ html=''; console.log('fetchPortal falló:',e.message); }
+    // Fallback a proxies externos si la función propia falla
+    if(html.length<1000){
+      const proxies=[
+        ()=>fetch('https://corsproxy.io/?'+encodeURIComponent(url)).then(r=>r.text()),
+        ()=>fetch('https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url)).then(r=>r.text()),
+      ];
+      for(const proxy of proxies){
+        try { html=await Promise.race([proxy(),timeout(12000)]); if(html&&html.length>1000) break; html=''; }
+        catch(e){ html=''; }
+      }
     }
     if(html.length<1000) throw new Error('No se pudo leer la publicación. El portal puede tener protección. Probá con otra URL o copiá la URL directamente del navegador.');
 

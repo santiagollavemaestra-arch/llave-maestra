@@ -169,6 +169,35 @@ exports.generarLinkPago = onCall(
   }
 );
 
+// ── Fetch portal inmobiliario (proxy server-side sin CORS) ───
+exports.fetchPortal = onRequest(
+  { region: 'us-central1', cors: true, timeoutSeconds: 30 },
+  async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') { res.status(204).send(''); return; }
+
+    const { url } = req.body || {};
+    if (!url || !url.startsWith('http')) { res.status(400).json({ error: 'URL inválida' }); return; }
+
+    try {
+      const r = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'es-AR,es;q=0.9',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      const html = await r.text();
+      res.json({ html, status: r.status });
+    } catch(e) {
+      res.status(500).json({ error: e.message });
+    }
+  }
+);
+
 // ── Webhook Mercado Pago ─────────────────────────────────────
 // URL de este endpoint: se obtiene al deployar con `firebase deploy --only functions:mpWebhook`
 // Configurar en MP Dashboard → Notificaciones IPN con esa URL
