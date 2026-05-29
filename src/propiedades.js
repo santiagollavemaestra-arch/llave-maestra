@@ -192,8 +192,10 @@ window.importarDesdePortal = async () => {
 
     doc.querySelectorAll('script,style,nav,footer,header,iframe,noscript').forEach(el=>el.remove());
     // textContent (no innerText) porque DOMParser no hace layout — innerText retorna vacío
-    const textoVisible=(doc.body?.textContent||'').replace(/\n{3,}/g,'\n\n').replace(/\s{3,}/g,' ').trim().substring(0,4000);
-    const texto=(nextData||jsonLdTexto||textoVisible).substring(0,12000);
+    const textoVisible=(doc.body?.textContent||'').replace(/\n{3,}/g,'\n\n').replace(/\s{3,}/g,' ').trim().substring(0,7000);
+    // Combinar TODAS las fuentes (no excluyente): el precio y los baños suelen estar
+    // en el texto visible aunque el JSON-LD/__NEXT_DATA__ no los tengan.
+    const texto=[nextData,jsonLdTexto,textoVisible].filter(Boolean).join('\n\n---\n\n').substring(0,16000);
 
     console.log('Import — html:',html.length,'nextData:',nextData.length,'jsonLd:',jsonLdTexto.length,'textoVisible:',textoVisible.length,'imgUrls:',imgUrls.length);
     console.log('Import — has __NEXT_DATA__:',!!doc.querySelector('#__NEXT_DATA__'),'texto:',texto.substring(0,200));
@@ -209,7 +211,13 @@ window.importarDesdePortal = async () => {
       '"ambientes":"solo numero","dormitorios":"solo numero","banos":"solo numero",'+
       '"supTotal":"solo numero sin m2","supCubierta":"solo numero sin m2","piso":"",'+
       '"ascensor":"Si|No","calefaccion":"","orientacion":"","antiguedad":"","cochera":"No|descripcion",'+
-      '"toilette":"Si|No","amenities":["array","de","amenities"],"desc":"descripcion completa"}\n\nContenido:\n';
+      '"toilette":"Si|No","amenities":["array","de","amenities"],"desc":"descripcion completa"}\n\n'+
+      'Reglas importantes:\n'+
+      '- PRECIO: buscalo SIEMPRE, suele estar en el texto visible (ej: "USD 120.000", "U$S 95000", "$ 350.000"). Si hay precio en dólares y en pesos, usá el de dólares. Incluí la moneda.\n'+
+      '- BAÑOS: contá el TOTAL de baños = baños completos + toilettes. Un "dormitorio en suite" tiene su propio baño completo, así que cuéntalo. Ej: 1 baño completo + 1 toilette = "banos":"2". Si dice "suite" sumá ese baño.\n'+
+      '- TOILETTE: poné "Si" solo si se menciona explícitamente un toilette o baño de cortesía.\n'+
+      '- ANTIGÜEDAD: solo un número de años exacto o "a estrenar"/"en construcción". NUNCA pongas rangos ni estimaciones ("entre 5 y 15 años", "varios años"); si no hay dato exacto, dejá "".\n'+
+      '- Cualquier campo que no aparezca con certeza, dejalo como "" (string vacío). No inventes ni estimes.\n\nContenido:\n';
 
     let prop=null;
     for(let intento=0;intento<3;intento++){
@@ -248,7 +256,12 @@ window.importarDesdePortal = async () => {
     [['p-amb',prop.ambientes],['p-dorm',prop.dormitorios],['p-ban',prop.banos]].forEach(([id,v])=>{
       if(!v) return;
       const el=document.getElementById(id); if(!el) return;
-      const opt=[...el.options].find(o=>o.value===String(v)||o.text===String(v));
+      let opt=[...el.options].find(o=>o.value===String(v)||o.text===String(v));
+      // Si el número supera el máximo, caer en la opción tope "N+" (ej: 5 baños → "4+")
+      if(!opt){
+        const n=parseInt(String(v));
+        if(n>0) opt=[...el.options].find(o=>/\+$/.test(o.text)&&n>=parseInt(o.text));
+      }
       if(opt) el.value=opt.value;
     });
     if(prop.precio){
@@ -443,7 +456,9 @@ window.generarDescripcionIA = async () => {
     '- Español argentino, tono profesional pero cercano\n'+
     '- 3 párrafos: 1ro presenta y destaca los puntos fuertes, 2do describe ambientes y características, 3ro habla de la ubicación y ventajas del barrio\n'+
     '- No incluyas el precio en la descripción\n'+
-    '- No inventes datos que no se te dieron\n'+
+    '- REGLA CRÍTICA: NO inventes, NO estimes y NO uses rangos. Si un dato no está en la lista de arriba, NO lo menciones en absoluto. Jamás escribas cosas como "entre 5 y 15 años", "aproximadamente", "varios años" o "edificio relativamente nuevo". Si no sabés la antigüedad, no hables de antigüedad.\n'+
+    '- Datos que conviene destacar SI están disponibles (en este orden de importancia): metros cuadrados totales, tipo de calefacción, toilette, dormitorio en suite, piso, tipo de cocina (a gas o eléctrica), cantidad de ambientes, cochera y parrilla.\n'+
+    '- "Dormitorio en suite" significa un dormitorio con baño propio y placard; si la propiedad lo tiene, mencionalo así.\n'+
     '- Devolvé solo el texto, sin títulos ni aclaraciones extra';
 
   try {
@@ -1079,7 +1094,9 @@ window.generarDescripcionEditIA = async () => {
     '- Español argentino, tono profesional pero cercano\n'+
     '- 3 párrafos: 1ro presenta y destaca los puntos fuertes, 2do describe ambientes y características, 3ro habla de la ubicación y ventajas del barrio\n'+
     '- No incluyas el precio en la descripción\n'+
-    '- No inventes datos que no se te dieron\n'+
+    '- REGLA CRÍTICA: NO inventes, NO estimes y NO uses rangos. Si un dato no está en la lista de arriba, NO lo menciones en absoluto. Jamás escribas cosas como "entre 5 y 15 años", "aproximadamente", "varios años" o "edificio relativamente nuevo". Si no sabés la antigüedad, no hables de antigüedad.\n'+
+    '- Datos que conviene destacar SI están disponibles (en este orden de importancia): metros cuadrados totales, tipo de calefacción, toilette, dormitorio en suite, piso, tipo de cocina (a gas o eléctrica), cantidad de ambientes, cochera y parrilla.\n'+
+    '- "Dormitorio en suite" significa un dormitorio con baño propio y placard; si la propiedad lo tiene, mencionalo así.\n'+
     '- Devolvé solo el texto, sin títulos ni aclaraciones extra';
 
   try {
