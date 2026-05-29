@@ -6,6 +6,7 @@ if (!admin.apps.length) admin.initializeApp();
 
 const GEMINI_KEY = defineSecret('GEMINI_KEY');
 const MP_ACCESS_TOKEN = defineSecret('MP_ACCESS_TOKEN');
+const SCRAPER_KEY = defineSecret('SCRAPER_KEY');
 
 // ── Proxy Gemini ──────────────────────────────────────────────
 exports.geminiProxy = onRequest(
@@ -169,9 +170,16 @@ exports.generarLinkPago = onCall(
   }
 );
 
-// ── Fetch portal inmobiliario (proxy server-side sin CORS) ───
+// ── Fetch portal inmobiliario (vía scraping API: pasa Cloudflare) ───
+// ZonaProp/Argenprop están detrás de Cloudflare y bloquean todas las IPs de
+// datacenter (incluidas las de Google Cloud) y los proxies CORS gratuitos.
+// Usamos ScrapingAnt con browser=true (Chrome real que resuelve el desafío JS),
+// así devuelve el HTML real con __NEXT_DATA__. El token va en el secret SCRAPER_KEY.
+//   firebase functions:secrets:set SCRAPER_KEY     (pegar el API token de Bright Data)
+// Requiere crear una zona "Web Unlocker" en Bright Data llamada BRD_ZONE (ver abajo).
+const BRD_ZONE = 'keynet_unlocker'; // nombre EXACTO de la zona Web Unlocker en Bright Data
 exports.fetchPortal = onRequest(
-  { region: 'us-central1', cors: true, timeoutSeconds: 30 },
+  { secrets: [SCRAPER_KEY], region: 'us-central1', cors: true, timeoutSeconds: 120 },
   async (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -181,16 +189,22 @@ exports.fetchPortal = onRequest(
     const { url } = req.body || {};
     if (!url || !url.startsWith('http')) { res.status(400).json({ error: 'URL inválida' }); return; }
 
+    const token = SCRAPER_KEY.value();
+    if (!token) { res.status(500).json({ error: 'Falta configurar SCRAPER_KEY' }); return; }
+
+    // Bright Data Web Unlocker API: resuelve Cloudflare + render con IPs residenciales.
+    // format:'raw' devuelve el body de la página directo; country:'ar' geo-targetea AR.
     try {
-      const r = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'es-AR,es;q=0.9',
-          'Cache-Control': 'no-cache'
-        }
+      const r = await fetch('https://api.brightdata.com/request', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ zone: BRD_ZONE, url, format: 'raw', country: 'ar' })
       });
       const html = await r.text();
+      // Si Bright Data devolvió un error JSON (zona mal nombrada, sin saldo, etc.) lo propagamos
+      if (!html.trim().toLowerCase().startsWith('<') && (html.includes('error') || html.includes('"message"'))) {
+        res.json({ error: html.substring(0, 300), status: r.status }); return;
+      }
       res.json({ html, status: r.status });
     } catch(e) {
       res.status(500).json({ error: e.message });

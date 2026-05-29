@@ -91,110 +91,130 @@ window.importarDesdePortal = async () => {
   resultado.style.display='none';
 
   try {
-    // PASO 1: fetch del HTML via Firebase Function propia (sin CORS, headers reales)
-    let html='';
     const timeout=(ms)=>new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms));
-    const FETCH_PORTAL_URL='https://us-central1-llave-maestra.cloudfunctions.net/fetchPortal';
-    try {
+
+    // PASO 1: fetch del HTML via fetchPortal (ScraperAPI: IPs residenciales + render
+    // JS, único camino que pasa el Cloudflare de ZonaProp/Argenprop). Los proxies CORS
+    // gratuitos están muertos o devuelven el desafío de Cloudflare en vez de datos.
+    // Una respuesta "buena" debe contener __NEXT_DATA__ o datos estructurados.
+    let html='';
+    const esHtmlValido=(h)=>h && h.length>15000 && (h.includes('__NEXT_DATA__')||h.includes('application/ld+json')||h.includes('"price"')||h.includes('avisoId'));
+    try{
       const r=await Promise.race([
-        fetch(FETCH_PORTAL_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})}),
-        timeout(20000)
+        fetch('https://us-central1-llave-maestra.cloudfunctions.net/fetchPortal',{
+          method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})
+        }),
+        timeout(110000)
       ]);
       const d=await r.json();
+      if(d.error) throw new Error(d.error);
       html=d.html||'';
-    } catch(e){ html=''; console.log('fetchPortal falló:',e.message); }
-    // Fallback a proxies externos si la función propia falla
-    if(html.length<1000){
-      const proxies=[
-        ()=>fetch('https://corsproxy.io/?'+encodeURIComponent(url)).then(r=>r.text()),
-        ()=>fetch('https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url)).then(r=>r.text()),
-      ];
-      for(const proxy of proxies){
-        try { html=await Promise.race([proxy(),timeout(12000)]); if(html&&html.length>1000) break; html=''; }
-        catch(e){ html=''; }
-      }
-    }
-    if(html.length<1000) throw new Error('No se pudo leer la publicación. El portal puede tener protección. Probá con otra URL o copiá la URL directamente del navegador.');
+    }catch(e){ console.log('fetchPortal falló:',e.message); }
+    console.log('Import — html length:',html.length,'válido:',esHtmlValido(html),'url:',url.substring(0,60));
+    if(html.length<1000 || (!esHtmlValido(html) && html.includes('Just a moment')))
+      throw new Error('No se pudo leer la publicación (el portal la bloqueó). Esperá unos segundos y probá de nuevo, o cargá los datos manualmente.');
 
-    status.textContent='🔍 Analizando con IA...';
-
-    // PASO 2: extraer datos estructurados del HTML
+    // PASO 2: extraer datos del HTML
     const parser=new DOMParser();
     const doc=parser.parseFromString(html,'text/html');
 
-    // __NEXT_DATA__ (Next.js): contiene TODOS los datos de la página
+    // Imagen helper — declarado ANTES de ser usado
+    const imgMap=new Map();
+    const skipW=['logo','icon','placeholder','avatar','sprite','banner','map','profile','user','marca','watermark','favicon','loading'];
+    const imgSc=u=>/big|large|full|orig|original|1280|1024|800/i.test(u)?3:/medium|med|normal|640|480/i.test(u)?2:/small|thumb|mini|tiny|160|240|320/i.test(u)?1:2;
+    const imgStem=u=>u.split('/').pop().replace(/\?.*$/,'').replace(/[-_](?:big|large|full|orig|original|medium|med|small|thumb|mini|tiny|\d+x\d+|\d{3,4}(?:px)?)(?=[.-])/gi,'').toLowerCase();
+    const addImg=u=>{
+      if(!u) return;
+      const uc=u.replace(/\\u002F/g,'/').replace(/\\/g,'').split('?')[0];
+      if(!uc.startsWith('http')) return;
+      if(!uc.match(/\.(jpg|jpeg|png|webp)$/i)) return;
+      if(skipW.some(w=>uc.toLowerCase().includes(w))) return;
+      const stem=imgStem(uc);
+      if(!imgMap.has(stem)||imgSc(uc)>imgSc(imgMap.get(stem))) imgMap.set(stem,uc);
+    };
+
+    // __NEXT_DATA__ (Next.js) — fuente principal para ZonaProp/Argenprop
     let nextData='';
     const nextDataEl=doc.querySelector('#__NEXT_DATA__');
     if(nextDataEl){
       try{
         const nd=JSON.parse(nextDataEl.textContent||'');
-        // Extraer la parte relevante (props.pageProps suele tener la propiedad)
-        const pp=nd?.props?.pageProps||nd?.props||nd;
-        nextData=JSON.stringify(pp).substring(0,8000);
-        // Extraer fotos de __NEXT_DATA__
+        const pp=nd?.props?.pageProps||{};
+
+        // Navegar al objeto de la propiedad principal (no incluir listados relacionados)
+        const propKeys=['realEstate','posting','property','listing','deRealEstateResult','propertyData','realEstatePosting'];
+        let propObj=null;
+        for(const k of propKeys){
+          if(pp[k]&&typeof pp[k]==='object'&&!Array.isArray(pp[k])){propObj=pp[k];break;}
+        }
+        nextData=JSON.stringify(propObj||pp).substring(0,12000);
+
+        // Extraer fotos de rutas conocidas
+        const photos=propObj?.photos||propObj?.images||propObj?.multimedia?.photos||propObj?.pictures||pp?.photos||pp?.images||[];
+        if(Array.isArray(photos)){
+          photos.forEach(ph=>{
+            const u=typeof ph==='string'?ph:(ph?.url||ph?.src||ph?.original||ph?.full||ph?.big||ph?.image||ph?.highResolution||'');
+            if(u) addImg(u.startsWith('http')?u:'https:'+u);
+          });
+        }
+        // Extraer todas las URLs de imagen del JSON completo (fallback)
         const ndStr=JSON.stringify(nd);
         const imgRgx=/"(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/gi;
         let m2;
-        while((m2=imgRgx.exec(ndStr))!==null) addImgEarly(m2[1].replace(/\\u002F/g,'/').replace(/\\/g,''));
-      }catch(e){}
+        while((m2=imgRgx.exec(ndStr))!==null) addImg(m2[1]);
+      }catch(e){ console.log('__NEXT_DATA__ parse error:',e.message); }
     }
 
     // JSON-LD (schema.org)
     let jsonLdTexto='';
     doc.querySelectorAll('script[type="application/ld+json"]').forEach(el=>{
-      try{ const d=JSON.parse(el.textContent||''); jsonLdTexto+=JSON.stringify(d)+'\n'; }catch(e){}
+      try{
+        const d=JSON.parse(el.textContent||'');
+        jsonLdTexto+=JSON.stringify(d)+'\n';
+        // Extraer imágenes del JSON-LD
+        const imgs=d.image||d.images||[];
+        (Array.isArray(imgs)?imgs:[imgs]).forEach(img=>{
+          const u=typeof img==='string'?img:(img?.url||img?.contentUrl||'');
+          if(u) addImg(u);
+        });
+      }catch(e){}
     });
 
-    // Imagen helper (necesita declararse antes de usarse en __NEXT_DATA__)
-    const imgMapEarly=new Map();
-    const skipW=['logo','icon','placeholder','avatar','sprite','banner','map','profile','user','marca','watermark'];
-    const imgSc=u=>/big|large|full|orig|original|1280|1024|800/i.test(u)?3:/medium|med|normal|640|480/i.test(u)?2:/small|thumb|mini|tiny|160|240|320/i.test(u)?1:2;
-    const imgStem=u=>u.split('/').pop().replace(/\?.*$/,'').replace(/[-_](?:big|large|full|orig|original|medium|med|small|thumb|mini|tiny|\d+x\d+|\d{3,4}(?:px)?)(?=[.-])/gi,'').toLowerCase();
-    function addImgEarly(u){
-      if(!u||!u.startsWith('http')||!u.match(/\.(jpg|jpeg|png|webp)/i)) return;
-      if(skipW.some(w=>u.toLowerCase().includes(w))) return;
-      const base=u.split('?')[0];
-      const stem=imgStem(base);
-      if(!imgMapEarly.has(stem)||imgSc(base)>imgSc(imgMapEarly.get(stem))) imgMapEarly.set(stem,base);
-    }
-
-    doc.querySelectorAll('script,style,nav,footer,header,iframe,noscript').forEach(el=>el.remove());
-    const textoVisible=(doc.body?.innerText||'').replace(/\n{3,}/g,'\n\n').trim().substring(0,3000);
-    const texto=(nextData||jsonLdTexto||textoVisible).substring(0,10000);
-
-    // Combinar imágenes de __NEXT_DATA__ con las del DOM y HTML raw
-    const addImg=u=>{
-      if(!u||!u.startsWith('http')||!u.match(/\.(jpg|jpeg|png|webp)/i)) return;
-      if(skipW.some(w=>u.toLowerCase().includes(w))) return;
-      const base=u.split('?')[0];
-      const stem=imgStem(base);
-      if(!imgMapEarly.has(stem)||imgSc(base)>imgSc(imgMapEarly.get(stem))) imgMapEarly.set(stem,base);
-    };
+    // Imágenes del DOM y HTML raw
     const attrs=['src','data-src','data-lazy-src','data-original','data-url','data-image','data-lazy','data-zoom-image','data-full-url'];
     doc.querySelectorAll('img,[data-src],[data-lazy-src],[data-original],[data-zoom-image]').forEach(el=>{
       for(const a of attrs){ addImg(el.getAttribute(a)||''); }
     });
     const rgx=/https?:\/\/[^\s"'<>\\]+\.(?:jpg|jpeg|png|webp)/gi;
     let rm;
-    while((rm=rgx.exec(html))!==null){
-      addImg(rm[0].replace(/\\u002F/g,'/').replace(/\\/g,''));
-    }
-    const imgUrls=[...imgMapEarly.values()].slice(0,40);
+    while((rm=rgx.exec(html))!==null) addImg(rm[0]);
+    const imgUrls=[...imgMap.values()].slice(0,40);
 
-    // PASO 3: Gemini extrae los datos (con retry si el JSON viene mal)
-    const promptBase='Analizá este texto de una publicación inmobiliaria argentina y extraé TODOS los datos. '+
-      'Respondé SOLO JSON puro y válido, sin markdown, sin bloques de código, sin texto antes ni después:\n'+
+    doc.querySelectorAll('script,style,nav,footer,header,iframe,noscript').forEach(el=>el.remove());
+    // textContent (no innerText) porque DOMParser no hace layout — innerText retorna vacío
+    const textoVisible=(doc.body?.textContent||'').replace(/\n{3,}/g,'\n\n').replace(/\s{3,}/g,' ').trim().substring(0,4000);
+    const texto=(nextData||jsonLdTexto||textoVisible).substring(0,12000);
+
+    console.log('Import — html:',html.length,'nextData:',nextData.length,'jsonLd:',jsonLdTexto.length,'textoVisible:',textoVisible.length,'imgUrls:',imgUrls.length);
+    console.log('Import — has __NEXT_DATA__:',!!doc.querySelector('#__NEXT_DATA__'),'texto:',texto.substring(0,200));
+
+    // PASO 3: Gemini extrae los datos
+    status.textContent='Analizando con IA...';
+    const promptBase='URL de la publicación: '+url+'\n\n'+
+      'Analizá el siguiente contenido de esa publicación inmobiliaria argentina. '+
+      'Extraé SOLO los datos de LA PROPIEDAD PRINCIPAL (la del link, no las relacionadas ni recomendadas).\n'+
+      'Respondé SOLO JSON puro y válido, sin markdown, sin bloques de código:\n'+
       '{"titulo":"","operacion":"Venta|Alquiler|Alquiler temporal","tipo":"Departamento|Casa|PH|Local comercial|Oficina|Terreno|Otro",'+
       '"precio":"incluir moneda, ej: USD 120000 o $350000","barrio":"","direccion":"calle y numero",'+
       '"ambientes":"solo numero","dormitorios":"solo numero","banos":"solo numero",'+
       '"supTotal":"solo numero sin m2","supCubierta":"solo numero sin m2","piso":"",'+
       '"ascensor":"Si|No","calefaccion":"","orientacion":"","antiguedad":"","cochera":"No|descripcion",'+
-      '"toilette":"Si|No","amenities":["array","de","amenities"],"desc":"descripcion completa"}\n\nTexto:\n';
+      '"toilette":"Si|No","amenities":["array","de","amenities"],"desc":"descripcion completa"}\n\nContenido:\n';
 
     let prop=null;
     for(let intento=0;intento<3;intento++){
       if(intento>0){
-        status.textContent='🔄 Reintentando extracción ('+(intento+1)+'/3)...';
+        status.textContent='Reintentando ('+(intento+1)+'/3)...';
         await new Promise(r=>setTimeout(r,1500));
       }
       try{
@@ -208,7 +228,7 @@ window.importarDesdePortal = async () => {
         prop=null;
       } catch(e){ prop=null; }
     }
-    if(!prop) throw new Error('Gemini no pudo extraer los datos. El texto del portal puede ser insuficiente. Probá con otra URL o cargá manualmente.');
+    if(!prop) throw new Error('Gemini no pudo extraer los datos. Probá con otra URL o cargá manualmente.');
 
     // PASO 4: llenar formulario
     setModoPropiedad('manual');
@@ -218,16 +238,13 @@ window.importarDesdePortal = async () => {
     setv('p-piso',prop.piso); setv('p-calef',prop.calefaccion); setv('p-orient',prop.orientacion);
     setv('p-toilette',prop.toilette); setv('p-cochera',prop.cochera); setv('p-antig',prop.antiguedad);
     setv('p-asc',prop.ascensor); setv('p-op',prop.operacion);
-    // Normalizar tipo
     const tipoMap={'departamento':'Departamento','depto':'Departamento','casa':'Casa','ph':'PH','local':'Local comercial','local comercial':'Local comercial','oficina':'Oficina','terreno':'Terreno'};
     if(prop.tipo){const tn=tipoMap[prop.tipo.toLowerCase()]||prop.tipo;const te=document.getElementById('p-tipo');if(te)te.value=tn;actualizarCamposTipo();}
-    // Normalizar cochera
     if(prop.cochera&&prop.cochera!=='No'){
       const cv=prop.cochera.toLowerCase();
       const cocheraVal=cv.includes('2')||cv.includes('dos')?'2 cocheras':cv.includes('desc')||cv.includes('abierta')?'1 descubierta':'1 cubierta';
       const ce=document.getElementById('p-cochera');if(ce)ce.value=cocheraVal;
     }
-    // Selects con opciones fijas
     [['p-amb',prop.ambientes],['p-dorm',prop.dormitorios],['p-ban',prop.banos]].forEach(([id,v])=>{
       if(!v) return;
       const el=document.getElementById(id); if(!el) return;
@@ -245,66 +262,87 @@ window.importarDesdePortal = async () => {
       prop.amenities.forEach(a=>{
         const k=Object.keys(mapAm).find(key=>a.toLowerCase().includes(key));
         const val=k?mapAm[k]:null;
-        if(val){
-          const el=document.querySelector('#p-am-grid .am-chip[data-v="'+val+'"]');
-          if(el)el.classList.add('sel');
-        }
+        if(val){const el=document.querySelector('#p-am-grid .am-chip[data-v="'+val+'"]');if(el)el.classList.add('sel');}
       });
     }
     actualizarCamposTipo(); actualizarMoneda();
 
     // PASO 5: importar fotos
+    // Método principal: Cloudinary hace el fetch remoto directamente (sin proxy)
+    // Método fallback: descargar blob via proxy y subir
     const preview=document.getElementById('p-fotos-preview');
     let subidas=0;
     if(imgUrls.length>0){
-      const maxFotos=Math.min(imgUrls.length,25);
+      const maxFotos=Math.min(imgUrls.length,20);
       status.textContent='Importando fotos (0/'+maxFotos+')...';
-      const imgProxies=(u)=>[
-        'https://images.weserv.nl/?url='+encodeURIComponent(u)+'&output=jpg&q=95&maxage=1d',
-        'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
-        'https://corsproxy.io/?'+encodeURIComponent(u),
-      ];
-      // Intenta construir URL de alta resolución reemplazando dimensiones pequeñas en el path
       const hiResUrl=u=>u.replace(/\/(\d{2,3}x\d{2,3})\//g,(m,d)=>parseInt(d)<800?'/1024x768/':m)
                          .replace(/\/(360|480|240|320|160|150|100|75|50)\//g,'/1024/');
       for(const imgUrl of imgUrls.slice(0,maxFotos)){
         const hi=hiResUrl(imgUrl);
-        const tries=hi!==imgUrl?[hi,imgUrl]:[imgUrl];
-        let blob=null;
-        tryLoop: for(const tu of tries){
-          for(const proxyUrl of imgProxies(tu)){
+        const urlsToTry=hi!==imgUrl?[hi,imgUrl]:[imgUrl];
+        let uploadedUrl=null;
+
+        // Intento 1: Cloudinary remote URL fetch (no proxy necesario)
+        for(const tu of urlsToTry){
+          try{
+            const fd=new FormData();
+            fd.append('file',tu);
+            fd.append('upload_preset',CLOUD.preset);
+            const up=await Promise.race([
+              fetch('https://api.cloudinary.com/v1_1/'+CLOUD.name+'/image/upload',{method:'POST',body:fd}),
+              timeout(20000)
+            ]);
+            const ud=await up.json();
+            if(ud.secure_url){uploadedUrl=ud.secure_url;break;}
+          }catch(e){ console.log('Cloudinary remote URL falló:',e.message); }
+        }
+
+        // Intento 2: proxy + blob
+        if(!uploadedUrl){
+          const proxies=(u)=>[
+            'https://images.weserv.nl/?url='+encodeURIComponent(u)+'&output=jpg&q=90',
+            'https://corsproxy.io/?'+encodeURIComponent(u),
+            'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
+          ];
+          let blob=null;
+          tryLoop: for(const tu of urlsToTry){
+            for(const pu of proxies(tu)){
+              try{
+                const ir=await Promise.race([fetch(pu),timeout(10000)]);
+                if(!ir.ok) continue;
+                const b=await ir.blob();
+                if(b.size<5000) continue;
+                blob=b; break tryLoop;
+              }catch(e){}
+            }
+          }
+          if(blob){
             try{
-              const ir=await Promise.race([fetch(proxyUrl),timeout(10000)]);
-              if(!ir.ok) continue;
-              const b=await ir.blob();
-              if(b.size<5000) continue;
-              blob=b; break tryLoop;
-            } catch(e){ console.log('Proxy img falló:',proxyUrl,e.message); }
+              const fd=new FormData();
+              fd.append('file',blob,'foto.jpg');
+              fd.append('upload_preset',CLOUD.preset);
+              const up=await Promise.race([
+                fetch('https://api.cloudinary.com/v1_1/'+CLOUD.name+'/image/upload',{method:'POST',body:fd}),
+                timeout(15000)
+              ]);
+              const ud=await up.json();
+              if(ud.secure_url) uploadedUrl=ud.secure_url;
+            }catch(e){}
           }
         }
-        if(!blob) continue;
-        try{
-          const fd=new FormData();
-          fd.append('file',blob,'foto.jpg');
-          fd.append('upload_preset',CLOUD.preset);
-          const up=await Promise.race([
-            fetch('https://api.cloudinary.com/v1_1/'+CLOUD.name+'/image/upload',{method:'POST',body:fd}),
-            timeout(15000)
-          ]);
-          const ud=await up.json();
-          if(ud.secure_url){
-            fotosSubidas.push(ud.secure_url); subidas++;
-            const div=document.createElement('div');
-            div.className='foto-container';
-            div.style.cssText='position:relative;display:inline-block';
-            const idx=fotosSubidas.length-1;
-            div.innerHTML='<img src="'+ud.secure_url+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;display:block">'+
-              '<button onclick="window.quitarFoto('+idx+',this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer">&#x2715;</button>'+
-              '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 6px 6px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ Editar con IA</button>';
-            preview.appendChild(div);
-            status.textContent='Importando fotos ('+subidas+'/'+maxFotos+')...';
-          }
-        } catch(e){ console.log('Cloudinary error:',imgUrl,e.message); }
+
+        if(uploadedUrl){
+          fotosSubidas.push(uploadedUrl); subidas++;
+          const div=document.createElement('div');
+          div.className='foto-container';
+          div.style.cssText='position:relative;display:inline-block';
+          const idx=fotosSubidas.length-1;
+          div.innerHTML='<img src="'+uploadedUrl+'" style="width:68px;height:68px;object-fit:cover;border-radius:6px;display:block">'+
+            '<button onclick="window.quitarFoto('+idx+',this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer">&#x2715;</button>'+
+            '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 6px 6px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ Editar con IA</button>';
+          preview.appendChild(div);
+          status.textContent='Importando fotos ('+subidas+'/'+maxFotos+')...';
+        }
       }
     }
 
@@ -644,7 +682,7 @@ function _doGuardarPropiedad(){
 
 window._cancelarNuevaPropiedad = () => {
   ['p-dir','p-titulo','p-barrio','p-desc','p-sup-total','p-sup-cub','p-piso','p-precio',
-   'p-amb','p-dorm','p-ban','import-url'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+   'p-amb','p-dorm','p-ban','import-url','import-texto'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['p-toilette','p-cochera','p-asc','p-calef','p-orient','p-antig'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('p-fotos-preview').innerHTML='';
   document.getElementById('p-precio-preview').textContent='';
