@@ -201,8 +201,9 @@ exports.fetchPortal = onRequest(
         body: JSON.stringify({ zone: BRD_ZONE, url, format: 'raw', country: 'ar' })
       });
       const html = await r.text();
-      // Si Bright Data devolvió un error JSON (zona mal nombrada, sin saldo, etc.) lo propagamos
-      if (!html.trim().toLowerCase().startsWith('<') && (html.includes('error') || html.includes('"message"'))) {
+      // Si Bright Data devolvió algo que no es HTML (error de zona, saldo, robots.txt, etc.) lo propagamos.
+      // Los errores de BRD son siempre texto plano o JSON, nunca empiezan con '<'.
+      if (!html.trim().startsWith('<')) {
         res.json({ error: html.substring(0, 300), status: r.status }); return;
       }
       res.json({ html, status: r.status });
