@@ -212,12 +212,13 @@ window.importarDesdePortal = async () => {
       '"precio":"incluir moneda, ej: USD 120000 o $350000","barrio":"","direccion":"calle y numero",'+
       '"ambientes":"solo numero","dormitorios":"solo numero","banos":"solo numero",'+
       '"supTotal":"solo numero sin m2","supCubierta":"solo numero sin m2","piso":"",'+
-      '"ascensor":"Si|No","calefaccion":"","orientacion":"","antiguedad":"","cochera":"No|descripcion",'+
+      '"ascensor":"Si|No","calefaccion":"","cocina":"A gas|Eléctrica|","orientacion":"","antiguedad":"","cochera":"No|descripcion",'+
       '"toilette":"Si|No","amenities":["array","de","amenities"],"desc":"descripcion completa"}\n\n'+
       'Reglas importantes:\n'+
       '- PRECIO: buscalo SIEMPRE, suele estar en el texto visible (ej: "USD 120.000", "U$S 95000", "$ 350.000"). Si hay precio en dólares y en pesos, usá el de dólares. Incluí la moneda.\n'+
       '- BAÑOS: contá el TOTAL de baños = baños completos + toilettes. Un "dormitorio en suite" tiene su propio baño completo, así que cuéntalo. Ej: 1 baño completo + 1 toilette = "banos":"2". Si dice "suite" sumá ese baño.\n'+
       '- TOILETTE: poné "Si" solo si se menciona explícitamente un toilette o baño de cortesía.\n'+
+      '- COCINA: si se menciona "a gas" o "gas" usá "A gas"; si dice "eléctrica" usá "Eléctrica"; si no hay dato, dejá "".\n'+
       '- ANTIGÜEDAD: solo un número de años exacto o "a estrenar"/"en construcción". NUNCA pongas rangos ni estimaciones ("entre 5 y 15 años", "varios años"); si no hay dato exacto, dejá "".\n'+
       '- Cualquier campo que no aparezca con certeza, dejalo como "" (string vacío). No inventes ni estimes.\n\nContenido:\n';
 
@@ -245,7 +246,7 @@ window.importarDesdePortal = async () => {
     const setv=(id,v)=>{if(v){const e=document.getElementById(id);if(e)e.value=v;}};
     setv('p-titulo',prop.titulo); setv('p-barrio',prop.barrio); setv('p-dir',prop.direccion);
     setv('p-desc',prop.desc); setv('p-sup-total',prop.supTotal); setv('p-sup-cub',prop.supCubierta);
-    setv('p-piso',prop.piso); setv('p-calef',prop.calefaccion); setv('p-orient',prop.orientacion);
+    setv('p-piso',prop.piso); setv('p-calef',prop.calefaccion); setv('p-cocina',prop.cocina); setv('p-orient',prop.orientacion);
     setv('p-toilette',prop.toilette); setv('p-cochera',prop.cochera); setv('p-antig',prop.antiguedad);
     setv('p-asc',prop.ascensor); setv('p-op',prop.operacion);
     const tipoMap={'departamento':'Departamento','depto':'Departamento','casa':'Casa','ph':'PH','local':'Local comercial','local comercial':'Local comercial','oficina':'Oficina','terreno':'Terreno'};
@@ -420,6 +421,7 @@ window.generarDescripcionIA = async () => {
   const piso=document.getElementById('p-piso')?.value||'';
   const asc=document.getElementById('p-asc')?.value||'';
   const calef=document.getElementById('p-calef')?.value||'';
+  const cocina=document.getElementById('p-cocina')?.value||'';
   const orient=document.getElementById('p-orient')?.value||'';
   const antig=document.getElementById('p-antig')?.value||'';
   const ams=['pileta','gimnasio','quincho','laundry','sum','jardin','terraza','balcon','seguridad','vista-mar','amoblado','coworking']
@@ -447,6 +449,7 @@ window.generarDescripcionIA = async () => {
   if(cochera&&cochera!=='No') datos+='Cochera: '+cochera+'\n';
   if(piso) datos+='Piso: '+piso+(asc?' — Ascensor: '+asc:'')+'\n';
   if(calef) datos+='Calefacción: '+calef+'\n';
+  if(cocina) datos+='Cocina: '+cocina+'\n';
   if(orient) datos+='Orientación: '+orient+'\n';
   if(antig) datos+='Antigüedad: '+antig+'\n';
   if(ams) datos+='Amenities: '+ams+'\n';
@@ -687,6 +690,7 @@ function _doGuardarPropiedad(){
     piso:document.getElementById('p-piso')?.value||'',
     ascensor:document.getElementById('p-asc')?.value||'',
     calefaccion:document.getElementById('p-calef').value||'',
+    cocina:document.getElementById('p-cocina').value||'',
     orientacion:document.getElementById('p-orient').value||'',
     amenities:ams,
     desc:document.getElementById('p-desc').value.trim(),
@@ -713,7 +717,7 @@ function _doGuardarPropiedad(){
 window._cancelarNuevaPropiedad = () => {
   ['p-dir','p-titulo','p-barrio','p-desc','p-sup-total','p-sup-cub','p-piso','p-precio',
    'p-amb','p-dorm','p-ban','import-url','import-texto'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  ['p-toilette','p-cochera','p-asc','p-calef','p-orient','p-antig'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['p-toilette','p-cochera','p-asc','p-calef','p-cocina','p-orient','p-antig'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('p-fotos-preview').innerHTML='';
   document.getElementById('p-precio-preview').textContent='';
   document.getElementById('p-ciudad-badge').style.display='none';
@@ -846,6 +850,7 @@ window.abrirFichaProp = (id) => {
       if(p.piso) rows.push(['Piso',p.piso+(p.ascensor&&p.ascensor!=='No'?' · Ascensor: '+p.ascensor:'')]);
       if(p.supCubierta&&p.supTotal&&p.supTotal!==p.supCubierta) rows.push(['Sup. total',p.supTotal+' m²']);
       if(p.calefaccion) rows.push(['Calefacción',p.calefaccion]);
+      if(p.cocina) rows.push(['Cocina',p.cocina]);
       if(p.orientacion) rows.push(['Orientación',p.orientacion]);
       if(p.antiguedad) rows.push(['Antigüedad',p.antiguedad]);
       if(p.toilette==='Sí') rows.push(['Toilette','Sí']);
@@ -983,6 +988,7 @@ window._abrirEditarProp = (id) => {
   document.getElementById('edit-piso').value = p.piso||'';
   document.getElementById('edit-asc').value = p.ascensor||'Sí';
   document.getElementById('edit-calef').value = p.calefaccion||'';
+  document.getElementById('edit-cocina').value = p.cocina||'';
   document.getElementById('edit-orient').value = p.orientacion||'';
   _restoreAmenities(p.amenities,'eam-grid','eam-custom-tags');
   document.getElementById('edit-desc').value = p.desc||'';
@@ -1021,6 +1027,7 @@ window._guardarEdicionProp = () => {
     piso: document.getElementById('edit-piso').value||'',
     ascensor: document.getElementById('edit-asc').value||'',
     calefaccion: document.getElementById('edit-calef').value||'',
+    cocina: document.getElementById('edit-cocina').value||'',
     orientacion: document.getElementById('edit-orient').value||'',
     amenities: eAms,
     desc: document.getElementById('edit-desc').value.trim(),
@@ -1120,6 +1127,7 @@ window.generarDescripcionEditIA = async () => {
   if(p.cochera&&p.cochera!=='No') datos+='Cochera: '+p.cochera+'\n';
   if(p.piso) datos+='Piso: '+p.piso+(p.ascensor?' — Ascensor: '+p.ascensor:'')+'\n';
   if(p.calefaccion) datos+='Calefacción: '+p.calefaccion+'\n';
+  if(p.cocina) datos+='Cocina: '+p.cocina+'\n';
   if(p.orientacion) datos+='Orientación: '+p.orientacion+'\n';
   if(p.antiguedad) datos+='Antigüedad: '+p.antiguedad+'\n';
   if(p.amenities?.length) datos+='Amenities: '+p.amenities.join(', ')+'\n';
