@@ -778,7 +778,7 @@ export function renderPropiedades(){
     const todasFotos=p.fotos?.length?p.fotos:p.foto?[p.foto]:[];
     const estadoCls=p.estado==='Disponible'?'prop-disponible':p.estado==='Reservada'?'prop-reservada':'prop-vendida';
     const pr=st.propietarios[p.propietarioId];
-    return '<div class="prop-ficha" onclick="window.abrirFichaProp(\''+p.id+'\')">'+
+    return '<div class="prop-ficha" data-id="'+p.id+'" onclick="window.abrirFichaProp(\''+p.id+'\')">'+
       '<span class="prop-estado-badge '+estadoCls+'">'+(p.estado||'Disponible')+'</span>'+
       (todasFotos.length?
         '<div class="prop-cover"><img src="'+todasFotos[0]+'" loading="lazy"></div>':
@@ -800,6 +800,26 @@ export function renderPropiedades(){
       '</div></div></div>';
   }).join('')+'</div>';
   lista.innerHTML=html;
+  if(_propSortable){_propSortable.destroy();_propSortable=null;}
+  const _sinFiltros=!q&&!fOp&&!fEst;
+  const _grid=lista.querySelector('.prop-grid');
+  if(_grid&&_sinFiltros){
+    _propSortable=Sortable.create(_grid,{
+      animation:150, delay:150, delayOnTouchOnly:true,
+      onEnd:()=>{
+        _suppressClickUntil=Date.now()+350;
+        const cards=[..._grid.querySelectorAll('.prop-ficha')];
+        const base=Date.now(), N=cards.length, updates={};
+        cards.forEach((card,idx)=>{
+          const id=card.dataset.id;
+          const orden=base+(N-idx);
+          updates[id+'/orden']=orden;
+          if(st.propiedades[id]) st.propiedades[id].orden=orden;
+        });
+        update(agRef('propiedades'),updates);
+      }
+    });
+  }
 }
 
 // ============================================================
@@ -809,6 +829,7 @@ export function renderPropiedades(){
 // FICHA DE PROPIEDAD
 // ============================================================
 window.abrirFichaProp = (id) => {
+  if(Date.now()<_suppressClickUntil) return;
   const p = st.propiedades[id];
   if(!p) return;
   const todasFotos = p.fotos?.length ? p.fotos : p.foto ? [p.foto] : [];
