@@ -1097,10 +1097,20 @@ function _renderEditFotos(){
         '</div>':'')+
       '<button onclick="window._editEliminarFoto('+i+')" style="position:absolute;top:-5px;right:-5px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'+
       '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 6px 6px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ Editar con IA</button>'+
-      (i>0?'<button onclick="window._editMoverFoto('+i+',-1)" style="position:absolute;bottom:-6px;left:-6px;background:var(--gray-600);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center">◀</button>':'')+
-      (i<_editFotos.length-1?'<button onclick="window._editMoverFoto('+i+',1)" style="position:absolute;bottom:-6px;right:-6px;background:var(--gray-600);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center">▶</button>':'')+
       '</div>';
   }).join('');
+  if(_editFotosSortable){_editFotosSortable.destroy();_editFotosSortable=null;}
+  _editFotosSortable=Sortable.create(grid,{
+    animation:150, delay:150, delayOnTouchOnly:true,
+    onEnd:(evt)=>{
+      _suppressClickUntil=Date.now()+350;
+      const {oldIndex,newIndex}=evt;
+      if(oldIndex===newIndex) return;
+      const moved=_editFotos.splice(oldIndex,1)[0];
+      _editFotos.splice(newIndex,0,moved);
+      _renderEditFotos();
+    }
+  });
 }
 
 window._editEliminarFoto = (idx) => {
@@ -1108,12 +1118,6 @@ window._editEliminarFoto = (idx) => {
   _renderEditFotos();
 };
 
-window._editMoverFoto = (idx,dir) => {
-  const ni=idx+dir;
-  if(ni<0||ni>=_editFotos.length) return;
-  const tmp=_editFotos[idx];_editFotos[idx]=_editFotos[ni];_editFotos[ni]=tmp;
-  _renderEditFotos();
-};
 
 window._editSubirFotos = async (input) => {
   const files=Array.from(input.files).slice(0,10);
@@ -1211,6 +1215,7 @@ if (propParam && st.agenciaId) {
 }
 
 window.abrirLightbox = (fotosOrId,idx) => {
+  if(Date.now()<_suppressClickUntil) return;
   if(typeof fotosOrId==='string'){
     lbFotos=fotosOrId==='__edit'?_editFotos:
       (st.propiedades[fotosOrId]?.fotos?.length?st.propiedades[fotosOrId].fotos:
