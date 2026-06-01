@@ -270,12 +270,6 @@ window.importarDesdePortal = async () => {
       }
       if(opt) el.value=opt.value;
     });
-    if(prop.precio){
-      const pn=prop.precio.replace(/[^\d]/g,'');
-      if(pn){ document.getElementById('p-precio').value=parseInt(pn).toLocaleString('es-AR');
-        document.getElementById('p-moneda').value=prop.precio.match(/usd|u\$s|dolar|dollar/i)?'USD':'ARS';
-        window.formatearPrecio(); }
-    }
     if(prop.amenities?.length){
       const mapAm={pileta:'pileta',piscina:'pileta',pool:'pileta',gimnasio:'gimnasio',parrilla:'quincho',quincho:'quincho',laundry:'laundry',sum:'sum',jardin:'jardin','jardín':'jardin',terraza:'terraza',balcon:'balcon','balcón':'balcon',seguridad:'seguridad','vista al mar':'vista-mar',amoblado:'amoblado',coworking:'coworking','apto crédito':'apto-credito','apto credito':'apto-credito','apto mascotas':'apto-mascotas','apto profesional':'apto-profesional',jacuzzi:'jacuzzi',baulera:'baulera',playroom:'playroom','parrilla propia':'parrilla-propia','jardín privado':'jardin-privado','jardin privado':'jardin-privado'};
       prop.amenities.forEach(a=>{
@@ -285,6 +279,15 @@ window.importarDesdePortal = async () => {
       });
     }
     actualizarCamposTipo(); actualizarMoneda();
+    // aplicar moneda+precio detectados DESPUÉS de actualizarMoneda (que setea el default por operación)
+    if(prop.precio){
+      const pn=prop.precio.replace(/[^\d]/g,'');
+      if(pn){
+        document.getElementById('p-precio').value=parseInt(pn).toLocaleString('es-AR');
+        document.getElementById('p-moneda').value=prop.precio.match(/usd|u\$s|d[oó]lar|dollar/i)?'USD':'ARS';
+        window.formatearPrecio();
+      }
+    }
 
     // PASO 5: importar fotos
     // Método principal: Cloudinary hace el fetch remoto directamente (sin proxy)

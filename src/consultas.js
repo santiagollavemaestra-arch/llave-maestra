@@ -360,6 +360,7 @@ window._addNota = (id) => {
   if(!txt||!st.usuarioActivo) return;
   push(agRef('consultas',id,'notas'),{texto:txt,autor:st.usuarioActivo,fecha:Date.now()});
   if(inp) inp.value='';
+  setTimeout(()=>window._abrirDetalle(id),300);
 };
 window._editNota = (cId,nId,btn) => {
   const cur=btn.closest('.nota-item').querySelector('.nota-txt').textContent;
