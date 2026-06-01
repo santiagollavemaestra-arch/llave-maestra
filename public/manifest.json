@@ -1,6 +1,6 @@
 {
-  "name": "Llave Maestra",
-  "short_name": "Llave Maestra",
+  "name": "Keynet",
+  "short_name": "Keynet",
   "description": "Gestión de consultas inmobiliarias",
   "start_url": "/",
   "display": "standalone",
