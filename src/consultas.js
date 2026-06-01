@@ -57,10 +57,10 @@ export function renderStats(){
     return f.getMonth()===now.getMonth()&&f.getFullYear()===now.getFullYear();
   });
   document.getElementById('stats-bar').innerHTML=
-    '<div class="stat-card"><div class="stat-num" style="color:var(--brand)">'+act.length+'</div><div class="stat-name">Activas</div></div>'+
-    '<div class="stat-card"><div class="stat-num" style="color:#5FB87E">'+conVisita.length+'</div><div class="stat-name">En visita</div></div>'+
-    '<div class="stat-card"><div class="stat-num" style="color:#E07856">'+venc.length+'</div><div class="stat-name">Vencidas</div></div>'+
-    '<div class="stat-card"><div class="stat-num" style="color:rgba(255,255,255,.55)">'+cerradasMes.length+'</div><div class="stat-name">Cerradas/mes</div></div>';
+    '<div class="stat-card"><div class="stat-num" style="color:#fff">'+act.length+'</div><div class="stat-name">Activas</div></div>'+
+    '<div class="stat-card"><div class="stat-num" style="color:#E6B24A">'+conVisita.length+'</div><div class="stat-name">En visita</div></div>'+
+    '<div class="stat-card"><div class="stat-num" style="color:#DD5C46">'+venc.length+'</div><div class="stat-name">Vencidas</div></div>'+
+    '<div class="stat-card"><div class="stat-num" style="color:#9DAE63">'+cerradasMes.length+'</div><div class="stat-name">Cerradas/mes</div></div>';
 }
 
 export function renderCounts(){
