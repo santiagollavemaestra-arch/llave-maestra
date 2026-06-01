@@ -1,5 +1,6 @@
 {
   "routes": [
+    { "src": "/(.*)", "has": [{ "type": "host", "value": "www.keynetcrm.com" }], "dest": "/landing.html" },
     { "src": "/(.*)", "has": [{ "type": "host", "value": "keynetcrm.com" }], "dest": "/landing.html" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
