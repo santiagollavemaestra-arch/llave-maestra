@@ -673,6 +673,8 @@ function _doGuardarPropiedad(){
   const per=document.getElementById('p-periodo')?.textContent||'';
   const precioFmt=precioRaw?(mon==='USD'?'USD '+parseInt(precioRaw).toLocaleString('es-AR')+per:'$'+parseInt(precioRaw).toLocaleString('es-AR')+per):'';
   const ams=_collectAmenities('p-am-grid','p-am-custom-tags');
+  const _claves=Object.values(st.propiedades).map(p=>p.orden??p.fecha??0);
+  const _maxClave=_claves.length?Math.max(..._claves):0;
   push(agRef('propiedades'),{
     titulo:titulo||propDirCompleta||dir,
     direccion:propDirCompleta||dir,
@@ -702,6 +704,7 @@ function _doGuardarPropiedad(){
     propietarioId:document.getElementById('p-propietario').value||null,
     estado:'Disponible',
     fecha:Date.now(),
+    orden:_maxClave+1,
     cargadoPor:st.usuarioActivo
   });
   ['p-dir','p-titulo','p-barrio','p-desc','p-sup-total','p-sup-cub','p-piso'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
@@ -743,6 +746,7 @@ window._delProp = (id) => {if(!confirm('¿Eliminar propiedad?')) return;remove(a
 export function renderPropiedades(){
   const lista=document.getElementById('lista');
   const arr=Object.entries(st.propiedades).map(([id,p])=>({...p,id}));
+  arr.sort((a,b)=>((b.orden??b.fecha??0)-(a.orden??a.fecha??0)));
   // leer valores actuales ANTES de re-renderizar los controles
   const q=(document.getElementById('prop-search')?.value||'').toLowerCase();
   const fOp=document.getElementById('prop-filter-op')?.value||'';
