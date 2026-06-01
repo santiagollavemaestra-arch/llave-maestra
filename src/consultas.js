@@ -327,11 +327,12 @@ window._editIG = (id) => {
   const el=document.getElementById('det-ig');if(el) el.textContent=n.trim()||'—';
 };
 window._editObs = (id) => {
-  const n=prompt('¿Qué busca?',st.consultas[id]?.obs||'');
-  if(n===null) return;
-  if(st.consultas[id]) st.consultas[id].obs=n.trim();
-  update(agRef('consultas',id),{obs:n.trim()});
-  window._abrirDetalle(id);
+  const c=st.consultas[id];
+  if(!c) return;
+  const busca=c.busca||_parseObs(c.obs||'');
+  document.getElementById('eb-id').value=id;
+  _fillBuscaForm('eb',busca);
+  document.getElementById('modal-editar-busca').classList.add('open');
 };
 window._editPropiedad = (id) => {
   const n=prompt('Propiedad consultada:',st.consultas[id]?.propiedad||'');
@@ -417,6 +418,62 @@ window._addExtraTag = (prefix) => {
 
 window._delExtraTag = (el) => { if(el) el.remove(); };
 
+function _parseObs(str){
+  const busca={op:'',tipo:'',tipoOtro:'',amb:'',zona:'',precio:'',moneda:'USD',extras:[],extrasCustom:[],nota:''};
+  if(!str) return busca;
+  const OPS=['Venta','Alquiler','Alq. temporal'];
+  const TIPOS=['Departamento','Casa','PH','Local','Oficina','Terreno'];
+  const EXTRAS=['balcón','cochera','pileta','patio','ascensor','vista al mar','amoblado','luminoso'];
+  const notas=[];
+  str.split(' · ').forEach(tok=>{
+    tok=tok.trim(); if(!tok) return;
+    if(OPS.includes(tok)){busca.op=tok;return;}
+    if(TIPOS.includes(tok)){busca.tipo=tok;return;}
+    const mAmb=tok.match(/^(\d\+?|\d)\s*amb\.?$/i);
+    if(mAmb){busca.amb=mAmb[1];return;}
+    if(/^Zona\s+/i.test(tok)){busca.zona=tok.replace(/^Zona\s+/i,'').trim();return;}
+    const mPre=tok.match(/^Hasta\s+(USD|ARS)\s+([\d.,]+)$/i);
+    if(mPre){busca.moneda=mPre[1].toUpperCase();busca.precio=mPre[2].replace(/\D/g,'');return;}
+    if(/^Con\s+/i.test(tok)){
+      tok.replace(/^Con\s+/i,'').split(',').map(s=>s.trim()).filter(Boolean).forEach(x=>{
+        if(EXTRAS.includes(x)) busca.extras.push(x); else busca.extrasCustom.push(x);
+      });
+      return;
+    }
+    notas.push(tok);
+  });
+  busca.nota=notas.join(' · ');
+  return busca;
+}
+
+function _fillBuscaForm(prefix,busca){
+  busca=busca||{};
+  const $=id=>document.getElementById(prefix+'-'+id);
+  ['op','tipo','amb','extras'].forEach(c=>{
+    document.querySelectorAll('#'+prefix+'-'+c+' .obs-pill').forEach(p=>p.classList.remove('sel'));
+  });
+  ['tipo-otro','zona','precio','extra-txt','extra-new'].forEach(id=>{const e=$(id);if(e)e.value='';});
+  const mon=$('moneda'); if(mon) mon.value=busca.moneda||'USD';
+  const custom=$('extras-custom'); if(custom) custom.innerHTML='';
+  const pick=(c,v)=>{if(!v)return;const el=document.querySelector('#'+prefix+'-'+c+' .obs-pill[data-v="'+v+'"]');if(el)el.classList.add('sel');};
+  pick('op',busca.op);
+  pick('tipo',busca.tipo);
+  pick('amb',busca.amb);
+  (busca.extras||[]).forEach(v=>pick('extras',v));
+  if($('tipo-otro')) $('tipo-otro').value=busca.tipoOtro||'';
+  if($('zona')) $('zona').value=busca.zona||'';
+  if($('precio')) $('precio').value=busca.precio?parseInt(busca.precio).toLocaleString('es-AR'):'';
+  if($('extra-txt')) $('extra-txt').value=busca.nota||'';
+  if(custom){
+    (busca.extrasCustom||[]).forEach(v=>{
+      const tag=document.createElement('span');
+      tag.className='am-chip-custom'; tag.dataset.v=v;
+      tag.innerHTML=v+'<button type="button" onclick="window._delExtraTag(this.parentElement)">×</button>';
+      custom.appendChild(tag);
+    });
+  }
+}
+
 function _buildObs(prefix){
   prefix=prefix||'obs';
   const $=id=>document.getElementById(prefix+'-'+id);
@@ -476,5 +533,15 @@ window.guardarConsulta = () => {
     fecha:Date.now(),estado:'Activo',checks:{},checkTs:{},cargadoPor:st.usuarioActivo
   });
   cerrarModal('modal-consulta');
+};
+
+window._guardarBusca = () => {
+  const id=document.getElementById('eb-id').value;
+  if(!id||!st.consultas[id]) return;
+  const {obs,busca}=_buildObs('eb');
+  st.consultas[id].obs=obs; st.consultas[id].busca=busca;
+  update(agRef('consultas',id),{obs,busca});
+  cerrarModal('modal-editar-busca');
+  window._abrirDetalle(id);
 };
 
