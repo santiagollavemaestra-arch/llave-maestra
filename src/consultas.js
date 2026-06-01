@@ -332,7 +332,13 @@ window._editObs = (id) => {
   const busca=c.busca||_parseObs(c.obs||'');
   document.getElementById('eb-id').value=id;
   _fillBuscaForm('eb',busca);
+  cerrarModal('modal-detalle');
   document.getElementById('modal-editar-busca').classList.add('open');
+};
+window._cancelarBusca = () => {
+  const id=document.getElementById('eb-id').value;
+  cerrarModal('modal-editar-busca');
+  if(id&&st.consultas[id]) window._abrirDetalle(id);
 };
 window._editPropiedad = (id) => {
   const n=prompt('Propiedad consultada:',st.consultas[id]?.propiedad||'');
@@ -494,7 +500,6 @@ function _buildObs(prefix){
   busca.extras=extras; busca.extrasCustom=extrasCustom;
   const todosExtras=[...extras,...extrasCustom];
   if(todosExtras.length) parts.push('Con '+todosExtras.join(', '));
-  const nota=($('extra-txt')?.value||'').trim(); if(nota){busca.nota=nota;parts.push(nota);}
   return {obs:parts.join(' · '), busca};
 }
 
@@ -505,7 +510,7 @@ window.abrirNuevaConsulta = () => {
   document.getElementById('c-propiedad-sel').value='';
   document.getElementById('c-propiedad-manual-wrap').style.display='none';
   document.querySelectorAll('#obs-op .obs-pill,#obs-tipo .obs-pill,#obs-amb .obs-pill,#obs-extras .obs-pill').forEach(p=>p.classList.remove('sel'));
-  ['obs-zona','obs-precio','obs-extra-txt','obs-tipo-otro','obs-extra-new','c-prop-buscar'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
+  ['obs-zona','obs-precio','c-nota','obs-tipo-otro','obs-extra-new','c-prop-buscar'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
   const m=document.getElementById('obs-moneda');if(m)m.value='USD';
   const oc=document.getElementById('obs-extras-custom');if(oc)oc.innerHTML='';
   document.getElementById('modal-consulta').classList.add('open');
@@ -525,13 +530,15 @@ window.guardarConsulta = () => {
   const asigSel=document.getElementById('c-asignado').value;
   const asignado=asigSel==='auto'?sigRotacion():asigSel;
   const {obs,busca}=_buildObs('obs');
-  push(agRef('consultas'),{nombre,asignado,propiedad,
+  const ref=push(agRef('consultas'),{nombre,asignado,propiedad,
     tel:telInput,
     instagram:document.getElementById('c-instagram').value.trim(),
     canal:document.getElementById('c-canal').value,
     obs, busca,
     fecha:Date.now(),estado:'Activo',checks:{},checkTs:{},cargadoPor:st.usuarioActivo
   });
+  const notaTxt=(document.getElementById('c-nota')?.value||'').trim();
+  if(notaTxt&&ref?.key&&st.usuarioActivo) push(agRef('consultas',ref.key,'notas'),{texto:notaTxt,autor:st.usuarioActivo,fecha:Date.now()});
   cerrarModal('modal-consulta');
 };
 

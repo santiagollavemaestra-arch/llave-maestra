@@ -540,17 +540,35 @@ window.quitarFoto = (el) => {
   if(el) el.remove();
 };
 
-window.embellecerTodasNuevas = () => {
+function _stripEmb(url){
+  const parts=url.split('/upload/');
+  if(parts.length!==2) return url;
+  const segs=parts[1].split('/');
+  const keep=[];
+  let i=0;
+  for(; i<segs.length-1; i++){
+    const s=segs[i];
+    if(/^(e_|q_|f_)/.test(s)){
+      if(/e_improve|e_auto_brightness|e_auto_contrast|e_sharpen|e_vibrance|q_auto|f_auto/.test(s)) continue;
+      keep.push(s);
+    } else break;
+  }
+  return parts[0]+'/upload/'+[...keep,...segs.slice(i)].join('/');
+}
+
+window.embellecerTodasNuevas = (btn) => {
   if(!fotosSubidas.length) return;
   const preview=document.getElementById('p-fotos-preview');
-  fotosSubidas.forEach((f,i)=>{
-    if(f.includes('e_improve')) return;
-    const nu=_buildMejUrl(f,true,false);
-    fotosSubidas[i]=nu;
-    const containers=preview?preview.querySelectorAll('.foto-container'):[];
-    if(containers[i]){const img=containers[i].querySelector('img');if(img)img.src=nu;}
+  const yaEmb=fotosSubidas.every(f=>f.includes('e_improve'));
+  fotosSubidas=fotosSubidas.map(f=>yaEmb?_stripEmb(f):(f.includes('e_improve')?f:_buildMejUrl(f,true,false)));
+  const containers=preview?[...preview.querySelectorAll('.foto-container')]:[];
+  containers.forEach((c,i)=>{
+    if(fotosSubidas[i]===undefined) return;
+    const img=c.querySelector('img'); if(img) img.src=fotosSubidas[i];
+    c.dataset.url=fotosSubidas[i];
   });
-  window.toast('✨ Fotos embellecidas');
+  if(btn) btn.textContent=yaEmb?'✨ Embellecer todas':'↩︎ Quitar embellecido';
+  window.toast(yaEmb?'Embellecido quitado':'✨ Fotos embellecidas');
 };
 
 // ========= MEJORA DE FOTOS =========
@@ -640,6 +658,7 @@ window.aplicarMejora = () => {
   if(_mejoraContainer){
     const img=_mejoraContainer.querySelector('img');
     if(img) img.src=newUrl;
+    if(_mejoraContainer.dataset.url!==undefined) _mejoraContainer.dataset.url=newUrl;
     _mejoraContainer.querySelectorAll('.ai-badge').forEach(b=>b.remove());
     if(_mejState.embellecer||_mejState.despejar){
       const badge=document.createElement('div');
@@ -1095,11 +1114,13 @@ window.renderPropiedades = renderPropiedades;
 
 // ========= EDICIÓN DE FOTOS =========
 
-window.embellecerTodasEdit = () => {
+window.embellecerTodasEdit = (btn) => {
   if(!_editFotos.length) return;
-  _editFotos=_editFotos.map(f=>f.includes('e_improve')?f:_buildMejUrl(f,true,false));
+  const yaEmb=_editFotos.every(f=>f.includes('e_improve'));
+  _editFotos=_editFotos.map(f=>yaEmb?_stripEmb(f):(f.includes('e_improve')?f:_buildMejUrl(f,true,false)));
   _renderEditFotos();
-  window.toast('✨ Fotos embellecidas');
+  if(btn) btn.textContent=yaEmb?'✨ Embellecer todas':'↩︎ Quitar embellecido';
+  window.toast(yaEmb?'Embellecido quitado':'✨ Fotos embellecidas');
 };
 
 function _renderEditFotos(){
