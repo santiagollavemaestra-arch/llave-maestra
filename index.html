@@ -226,8 +226,8 @@ document.addEventListener('touchstart', function(e) {
         <span class="obs-pill" data-v="luminoso" onclick="window._togglePill(this,true)">Luminoso</span>
       </div>
       <div style="display:flex;gap:6px;margin-top:8px">
-        <input class="form-input" id="obs-extra-new" placeholder="Otro extra..." type="text" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();window._addExtraTag();}">
-        <button type="button" onclick="window._addExtraTag()" style="padding:8px 14px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">+</button>
+        <input class="form-input" id="obs-extra-new" placeholder="Otro extra..." type="text" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();window._addExtraTag('obs');}">
+        <button type="button" onclick="window._addExtraTag('obs')" style="padding:8px 14px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">+</button>
       </div>
       <div id="obs-extras-custom" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
       <span class="obs-lbl">Notas adicionales</span>
@@ -236,6 +236,75 @@ document.addEventListener('touchstart', function(e) {
     <div class="btn-row">
       <button class="btn-secondary" onclick="cerrarModal('modal-consulta')">Cancelar</button>
       <button class="btn-primary" onclick="guardarConsulta()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-editar-busca">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar qué busca</div>
+    <input type="hidden" id="eb-id">
+    <div class="form-group">
+      <span class="obs-lbl" style="margin-top:0">Operación</span>
+      <div class="obs-pills" id="eb-op">
+        <span class="obs-pill" data-v="Venta" onclick="window._togglePill(this,false)">Venta</span>
+        <span class="obs-pill" data-v="Alquiler" onclick="window._togglePill(this,false)">Alquiler</span>
+        <span class="obs-pill" data-v="Alq. temporal" onclick="window._togglePill(this,false)">Alq. temporal</span>
+      </div>
+      <span class="obs-lbl">Tipo</span>
+      <div class="obs-pills" id="eb-tipo">
+        <span class="obs-pill" data-v="Departamento" onclick="window._togglePill(this,false)">Depto</span>
+        <span class="obs-pill" data-v="Casa" onclick="window._togglePill(this,false)">Casa</span>
+        <span class="obs-pill" data-v="PH" onclick="window._togglePill(this,false)">PH</span>
+        <span class="obs-pill" data-v="Local" onclick="window._togglePill(this,false)">Local</span>
+        <span class="obs-pill" data-v="Oficina" onclick="window._togglePill(this,false)">Oficina</span>
+        <span class="obs-pill" data-v="Terreno" onclick="window._togglePill(this,false)">Terreno</span>
+      </div>
+      <input class="form-input" id="eb-tipo-otro" placeholder="Otro tipo..." type="text" style="margin-top:6px">
+      <span class="obs-lbl">Ambientes</span>
+      <div class="obs-pills" id="eb-amb">
+        <span class="obs-pill" data-v="1" onclick="window._togglePill(this,false)">1</span>
+        <span class="obs-pill" data-v="2" onclick="window._togglePill(this,false)">2</span>
+        <span class="obs-pill" data-v="3" onclick="window._togglePill(this,false)">3</span>
+        <span class="obs-pill" data-v="4" onclick="window._togglePill(this,false)">4</span>
+        <span class="obs-pill" data-v="4+" onclick="window._togglePill(this,false)">4+</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <div style="flex:1">
+          <span class="obs-lbl" style="margin-top:0">Zona / Barrio</span>
+          <input class="form-input" id="eb-zona" placeholder="Güemes, Centro..." type="text">
+        </div>
+        <div style="flex:1">
+          <span class="obs-lbl" style="margin-top:0">Precio máximo</span>
+          <div style="display:flex;gap:4px">
+            <select class="form-select" id="eb-moneda" style="width:68px;flex-shrink:0"><option>USD</option><option>ARS</option></select>
+            <input class="form-input" id="eb-precio" placeholder="80.000" type="text">
+          </div>
+        </div>
+      </div>
+      <span class="obs-lbl">Extras</span>
+      <div class="obs-pills" id="eb-extras">
+        <span class="obs-pill" data-v="balcón" onclick="window._togglePill(this,true)">Balcón</span>
+        <span class="obs-pill" data-v="cochera" onclick="window._togglePill(this,true)">Cochera</span>
+        <span class="obs-pill" data-v="pileta" onclick="window._togglePill(this,true)">Pileta</span>
+        <span class="obs-pill" data-v="patio" onclick="window._togglePill(this,true)">Patio</span>
+        <span class="obs-pill" data-v="ascensor" onclick="window._togglePill(this,true)">Ascensor</span>
+        <span class="obs-pill" data-v="vista al mar" onclick="window._togglePill(this,true)">Vista al mar</span>
+        <span class="obs-pill" data-v="amoblado" onclick="window._togglePill(this,true)">Amoblado</span>
+        <span class="obs-pill" data-v="luminoso" onclick="window._togglePill(this,true)">Luminoso</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input class="form-input" id="eb-extra-new" placeholder="Otro extra..." type="text" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();window._addExtraTag('eb');}">
+        <button type="button" onclick="window._addExtraTag('eb')" style="padding:8px 14px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">+</button>
+      </div>
+      <div id="eb-extras-custom" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
+      <span class="obs-lbl">Notas adicionales</span>
+      <textarea class="form-textarea" id="eb-extra-txt" placeholder="Cualquier detalle extra..." style="min-height:56px"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="cerrarModal('modal-editar-busca')">Cancelar</button>
+      <button class="btn-primary" onclick="window._guardarBusca()">Guardar</button>
     </div>
   </div>
 </div>

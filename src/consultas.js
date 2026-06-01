@@ -399,12 +399,13 @@ window._togglePill = (el, isMulti) => {
 
 window._filtrarProps = (q) => { actualizarSelPropiedades(); };
 
-window._addExtraTag = () => {
-  const inp = document.getElementById('obs-extra-new');
+window._addExtraTag = (prefix) => {
+  prefix=prefix||'obs';
+  const inp = document.getElementById(prefix+'-extra-new');
   if(!inp) return;
   const v = inp.value.trim();
   if(!v) return;
-  const cont = document.getElementById('obs-extras-custom');
+  const cont = document.getElementById(prefix+'-extras-custom');
   if(!cont) return;
   const tag = document.createElement('span');
   tag.className = 'am-chip-custom';
