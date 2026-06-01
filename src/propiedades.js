@@ -355,11 +355,12 @@ window.importarDesdePortal = async () => {
           const div=document.createElement('div');
           div.className='foto-container';
           div.style.cssText='position:relative;display:inline-block';
-          const idx=fotosSubidas.length-1;
+          div.dataset.url=uploadedUrl;
           div.innerHTML='<img src="'+uploadedUrl+'" style="width:110px;height:110px;object-fit:cover;border-radius:8px;display:block">'+
-            '<button onclick="window.quitarFoto('+idx+',this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer">&#x2715;</button>'+
+            '<button onclick="window.quitarFoto(this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer">&#x2715;</button>'+
             '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 8px 8px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ IA</button>';
           preview.appendChild(div);
+          _ensurePreviewSortable();
           status.textContent='Importando fotos ('+subidas+'/'+maxFotos+')...';
         }
       }
@@ -507,18 +508,37 @@ window.subirFotos = async (input) => {
       fotosSubidas.push(url);
       const el=document.getElementById(tmpId);
       if(el){
-        const idx=fotosSubidas.length-1;
         el.className='foto-container';
+        el.dataset.url=url;
         el.innerHTML='<img src="'+url+'" style="width:110px;height:110px;object-fit:cover;border-radius:8px;display:block">'+
-          '<button onclick="window.quitarFoto('+idx+',this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'+
+          '<button onclick="window.quitarFoto(this.parentElement)" style="position:absolute;top:-4px;right:-4px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'+
           '<button onclick="window.abrirMejoraFoto(this.parentElement)" style="position:absolute;bottom:0;left:0;right:0;background:rgba(99,22,163,.82);color:#fff;border:none;border-radius:0 0 8px 8px;font-size:9px;font-weight:700;padding:3px 2px;cursor:pointer;font-family:\'DM Sans\',sans-serif">✨ IA</button>';
       }
     } catch(e){console.log('Error foto:',e);}
   }
+  _ensurePreviewSortable();
   input.value='';
 };
 
-window.quitarFoto = (idx,el) => {fotosSubidas.splice(idx,1);el.remove();};
+function _ensurePreviewSortable(){
+  const preview=document.getElementById('p-fotos-preview');
+  if(!preview||_previewSortable) return;
+  _previewSortable=Sortable.create(preview,{
+    animation:150, delay:150, delayOnTouchOnly:true,
+    onEnd:()=>{
+      _suppressClickUntil=Date.now()+350;
+      const tiles=[...preview.querySelectorAll('[data-url]')];
+      fotosSubidas=tiles.map(t=>t.dataset.url);
+    }
+  });
+}
+
+window.quitarFoto = (el) => {
+  const url=el?.dataset?.url;
+  const i=fotosSubidas.indexOf(url);
+  if(i!==-1) fotosSubidas.splice(i,1);
+  if(el) el.remove();
+};
 
 window.embellecerTodasNuevas = () => {
   if(!fotosSubidas.length) return;
@@ -711,6 +731,7 @@ function _doGuardarPropiedad(){
   document.getElementById('p-precio').value='';
   document.getElementById('p-precio-preview').textContent='';
   document.getElementById('p-fotos-preview').innerHTML='';
+  if(_previewSortable){_previewSortable.destroy();_previewSortable=null;}
   document.getElementById('p-ciudad-badge').style.display='none';
   document.querySelectorAll('#p-am-grid .am-chip').forEach(el=>el.classList.remove('sel'));
   const pCustomTags=document.getElementById('p-am-custom-tags');if(pCustomTags)pCustomTags.innerHTML='';
@@ -725,6 +746,7 @@ window._cancelarNuevaPropiedad = () => {
    'p-amb','p-dorm','p-ban','import-url','import-texto'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['p-toilette','p-cochera','p-asc','p-calef','p-cocina','p-orient','p-antig'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('p-fotos-preview').innerHTML='';
+  if(_previewSortable){_previewSortable.destroy();_previewSortable=null;}
   document.getElementById('p-precio-preview').textContent='';
   document.getElementById('p-ciudad-badge').style.display='none';
   document.querySelectorAll('#p-am-grid .am-chip').forEach(el=>el.classList.remove('sel'));
