@@ -666,6 +666,8 @@ body{
 /* ── PROPIEDADES ── */
 .prop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:480px){.prop-grid{grid-template-columns:1fr}}
+/* Mobile: liberar el centro del header para el wordmark Keynet — ocultar texto del logo de agencia y nombre del perfil (quedan los íconos/avatar) */
+@media(max-width:640px){#logo-texto{display:none}.perfil-nombre{display:none}}
 
 .prop-ficha{
   background:#fff;border-radius:var(--radius);
