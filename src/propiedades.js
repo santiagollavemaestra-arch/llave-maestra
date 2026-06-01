@@ -2,6 +2,7 @@ import { st, CLOUD, NOMBRES, AMENITY_INFO } from './state.js';
 import { agRef, push, update, remove } from './firebase.js';
 import { geminiCall } from './gemini.js';
 import { _amLabel, _propLabel } from './utils.js';
+import Sortable from 'sortablejs';
 
 const cerrarModal = (id) => document.getElementById(id).classList.remove('open');
 
@@ -29,6 +30,8 @@ function _restoreAmenities(amenities,gridId,customId){
 }
 
 let fotosSubidas = [], propDirCompleta = '', propCiudad = '';
+let _suppressClickUntil = 0;
+let _propSortable = null, _editFotosSortable = null, _previewSortable = null;
 let lbFotos = [], lbIdx = 0;
 let _editFotos = [];
 let autocomplete = null;
