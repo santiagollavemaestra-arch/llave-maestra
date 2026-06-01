@@ -1,12 +1,14 @@
 const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
+const crypto = require('crypto'); // eslint-disable-line no-unused-vars
 
 if (!admin.apps.length) admin.initializeApp();
 
 const GEMINI_KEY = defineSecret('GEMINI_KEY');
 const MP_ACCESS_TOKEN = defineSecret('MP_ACCESS_TOKEN');
 const SCRAPER_KEY = defineSecret('SCRAPER_KEY');
+const KEYNET_WORKER_SECRET = defineSecret('KEYNET_WORKER_SECRET');
 
 // ── Proxy Gemini ──────────────────────────────────────────────
 exports.geminiProxy = onRequest(
@@ -210,6 +212,169 @@ exports.fetchPortal = onRequest(
     } catch(e) {
       res.status(500).json({ error: e.message });
     }
+  }
+);
+
+// ── parseLeadEmail — inbound email de ZonaProp vía Cloudflare Email Worker ───
+// El Cloudflare Worker recibe el email, extrae el HTML y lo manda acá como JSON.
+// Setup:
+//   firebase functions:secrets:set KEYNET_WORKER_SECRET
+//   (pegar el mismo valor que pusiste en SHARED_SECRET en el Worker de Cloudflare)
+
+// Convierte el HTML del mail a texto plano para extraer campos "etiqueta: valor".
+// ZonaProp pone el valor en el <span> SIGUIENTE a la etiqueta (ej:
+// "Teléfono:</span> <span>542236630000</span>"), así que stripear los tags
+// colapsa todo a "Teléfono: 542236630000" y los regex simples matchean igual,
+// sirviendo tanto para mails iso-8859-1 (con spans) como UTF-8 (texto plano).
+function htmlToText(html) {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/[ \t ]+/g, ' ');
+}
+
+function parseZonaPropEmail(bodyHtml, fromHeader) {
+  const text = htmlToText(bodyHtml);
+
+  // Nombre: del fromHeader si viene directo de ZonaProp, si no del cuerpo (*Nombre*)
+  const nombreHeaderMatch = fromHeader.match(/^(.+?)\s+mediante ZonaProp/i);
+  const nombreBodyMatch = text.match(/lo que busca\s*\*?\s*([A-Za-zÁÉÍÓÚáéíóúÑñ' ]+?)\s*\*?\s+en una propiedad/i)
+                       || text.match(/busca\s*\*([^*]+)\*/i);
+  const nombre = nombreHeaderMatch ? nombreHeaderMatch[1].trim()
+               : nombreBodyMatch ? nombreBodyMatch[1].trim()
+               : null;
+
+  // Teléfono: tolera tags/espacios entre la etiqueta y el número
+  const telMatch = text.match(/Tel[eé]fono\s*:?\s*(\d[\d\s().+\-]{6,}\d)/i);
+  const telefonoRaw = telMatch ? telMatch[1].replace(/[^\d+]/g, '') : null;
+  const telefono = telefonoRaw
+    ? (telefonoRaw.startsWith('+') ? telefonoRaw : '+' + telefonoRaw)
+    : null;
+
+  // Email: link mailto (más fiable) o texto plano "E-mail: xxx@xxx"
+  const emailHrefMatch = bodyHtml.match(/href="mailto:([^"@?]+@[^"?]+)"/i);
+  const emailPlainMatch = text.match(/E-?mail\s*:?\s*([\w.+%-]+@[\w.-]+\.[a-z]{2,})/i);
+  const emailInteresado = emailPlainMatch ? emailPlainMatch[1]
+                        : emailHrefMatch ? emailHrefMatch[1]
+                        : null;
+
+  // Código de aviso: "Código de aviso: 59220019"
+  const codigoMatch = text.match(/C[oó]digo de aviso\s*:?\s*(\d+)/i);
+  const codigoAviso = codigoMatch ? codigoMatch[1] : null;
+
+  // Código del anunciante: "Código del anunciante: LAP6793625"
+  const codAnuncianteMatch = text.match(/C[oó]digo del anunciante\s*:?\s*([A-Za-z0-9]+)/i);
+  const codigoAnunciante = codAnuncianteMatch ? codAnuncianteMatch[1].trim() : null;
+
+  const propiedadUrl = codigoAviso
+    ? 'https://www.zonaprop.com.ar/propiedades/-' + codigoAviso + '.html'
+    : null;
+
+  // Dirección del aviso. ZonaProp la muestra como calle (span font-size:16px) +
+  // zona/ciudad (span siguiente, que SIEMPRE trae coma "Barrio, Ciudad"). La coma
+  // del 2º span filtra spans que no son dirección, sin depender del color del
+  // template. Verificado contra dos templates distintos de ZonaProp.
+  let direccion = null;
+  const dirSpan = bodyHtml.match(/font-size:16px;[^"]*"[^>]*>([^<]{2,55})<\/span>\s*<span[^>]*>([^<]{2,60},[^<]{2,40})<\/span>/i);
+  if (dirSpan) {
+    direccion = (dirSpan[1].trim() + ', ' + dirSpan[2].trim()).replace(/\s+/g, ' ');
+  } else {
+    // Fallback (parte text/plain): línea con coma justo antes de un link de ZonaProp.
+    const dirTxt = bodyHtml.match(/\n\s*([^\n<>]{4,55}?,\s*[A-Za-zÁÉÍÓÚáéíóúñ ]{3,30})\s*\r?\n\s*<https?:\/\/link\.zonaprop/i);
+    if (dirTxt) direccion = dirTxt[1].replace(/\s+/g, ' ').trim();
+  }
+
+  // Lo que se muestra en la columna "Propiedad": dirección real > código.
+  const propiedad = direccion || (codigoAviso ? 'ZonaProp #' + codigoAviso : null);
+
+  const perfilMatch = text.match(/Tu contacto busca:([\s\S]*?)(?:Ver perfil|Este es el mensaje)/i);
+  const perfilBuscador = perfilMatch
+    ? perfilMatch[1].replace(/\s+/g, ' ').trim().substring(0, 500)
+    : null;
+
+  return { nombre, telefono, emailInteresado, codigoAviso, codigoAnunciante, propiedadUrl, perfilBuscador, propiedad };
+}
+
+// Devuelve el username del agente con menos consultas activas (Cerrado/Sin interés
+// no cuentan), empate → orden del equipo. Replica sigRotacion() del frontend.
+async function asignarPorRotacion(agenciaId) {
+  const equipoSnap = await admin.database().ref('/agencias/' + agenciaId + '/equipo').get();
+  const equipo = equipoSnap.val();
+  if (!Array.isArray(equipo) || !equipo.length) return null;
+
+  const consSnap = await admin.database().ref('/agencias/' + agenciaId + '/consultas').get();
+  const consultas = consSnap.val() || {};
+
+  const cnt = {};
+  equipo.forEach((m) => { cnt[m] = 0; });
+  Object.values(consultas).forEach((c) => {
+    if (c && c.asignado && cnt[c.asignado] !== undefined &&
+        c.estado !== 'Cerrado' && c.estado !== 'Sin interés') {
+      cnt[c.asignado]++;
+    }
+  });
+  return equipo.reduce((a, b) => (cnt[a] <= cnt[b] ? a : b));
+}
+
+exports.parseLeadEmail = onRequest(
+  { secrets: [KEYNET_WORKER_SECRET], region: 'us-central1', cors: false },
+  async (req, res) => {
+    if (req.method !== 'POST') { res.status(405).send(''); return; }
+
+    const receivedSecret = req.headers['x-keynet-secret'] || '';
+    const expectedSecret = KEYNET_WORKER_SECRET.value().trim();
+    if (receivedSecret !== expectedSecret) { res.status(403).send(''); return; }
+
+    const { agenciaId, from: fromHeader = '', html: bodyHtml = '' } = req.body || {};
+    if (!agenciaId) { res.status(400).send(''); return; }
+
+    const {
+      nombre, telefono, emailInteresado,
+      codigoAviso, codigoAnunciante, propiedadUrl, perfilBuscador, propiedad
+    } = parseZonaPropEmail(bodyHtml, fromHeader);
+
+    // Componemos "obs" (campo "Qué busca" que muestra la app) con el perfil del
+    // buscador + datos de contacto/aviso que no tienen columna propia en la UI.
+    const obsPartes = [];
+    if (perfilBuscador) obsPartes.push(perfilBuscador);
+    if (emailInteresado) obsPartes.push('✉️ ' + emailInteresado);
+    if (propiedadUrl) obsPartes.push('🔗 ' + propiedadUrl);
+
+    // IMPORTANTE: usar los MISMOS nombres de campo que el frontend (consultas.js):
+    // tel, obs, propiedad, canal, fecha, estado:'Activo'. Si no, la consulta
+    // aparece "vacía" porque la UI no lee telefono/perfilBuscador/fechaCreacion.
+    const consulta = {
+      nombre: nombre || 'Lead ZonaProp',
+      estado: 'Activo',
+      canal: 'ZonaProp',
+      fecha: admin.database.ServerValue.TIMESTAMP,
+      checks: {},
+      checkTs: {},
+    };
+    if (telefono) consulta.tel = telefono;
+    if (propiedad) consulta.propiedad = propiedad;
+    if (obsPartes.length) consulta.obs = obsPartes.join('\n');
+    // Guardamos también los crudos por si se necesitan más adelante.
+    if (emailInteresado) consulta.emailInteresado = emailInteresado;
+    if (codigoAnunciante) consulta.codigoAnunciante = codigoAnunciante;
+    if (propiedadUrl) consulta.propiedadUrl = propiedadUrl;
+
+    if (!nombre && !telefono && !emailInteresado) {
+      consulta.obs = bodyHtml.substring(0, 1500);
+    }
+
+    // Asignación automática por rotación (igual que sigRotacion en el frontend):
+    // al agente con MENOS consultas activas; empate → orden del equipo. El equipo
+    // se lee de /agencias/{id}/equipo (array de usernames). Si no existe, queda sin
+    // asignar y aparece en "Todas" para que el equipo la tome a mano.
+    const asignado = await asignarPorRotacion(agenciaId);
+    if (asignado) consulta.asignado = asignado;
+
+    await admin.database().ref('/agencias/' + agenciaId + '/consultas').push(consulta);
+    res.status(200).send('OK');
   }
 );
 
