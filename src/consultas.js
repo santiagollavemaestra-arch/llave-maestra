@@ -416,27 +416,28 @@ window._addExtraTag = () => {
 
 window._delExtraTag = (el) => { if(el) el.remove(); };
 
-function _buildObs(){
+function _buildObs(prefix){
+  prefix=prefix||'obs';
+  const $=id=>document.getElementById(prefix+'-'+id);
+  const selPill=cid=>document.querySelector('#'+prefix+'-'+cid+' .obs-pill.sel');
+  const busca={op:'',tipo:'',tipoOtro:'',amb:'',zona:'',precio:'',moneda:'USD',extras:[],extrasCustom:[],nota:''};
   const parts=[];
-  const op=document.querySelector('#obs-op .obs-pill.sel');
-  if(op) parts.push(op.dataset.v);
-  const tipo=document.querySelector('#obs-tipo .obs-pill.sel');
-  if(tipo) parts.push(tipo.dataset.v);
-  else { const tipoOtro=(document.getElementById('obs-tipo-otro')?.value||'').trim(); if(tipoOtro) parts.push(tipoOtro); }
-  const amb=document.querySelector('#obs-amb .obs-pill.sel');
-  if(amb) parts.push(amb.dataset.v+' amb.');
-  const zona=(document.getElementById('obs-zona')?.value||'').trim();
-  if(zona) parts.push('Zona '+zona);
-  const precioRaw=(document.getElementById('obs-precio')?.value||'').replace(/\D/g,'');
-  const mon=document.getElementById('obs-moneda')?.value||'USD';
-  if(precioRaw) parts.push('Hasta '+mon+' '+parseInt(precioRaw).toLocaleString('es-AR'));
-  const extras=[...document.querySelectorAll('#obs-extras .obs-pill.sel')].map(el=>el.dataset.v);
-  const extrasCustom=[...document.querySelectorAll('#obs-extras-custom .am-chip-custom')].map(el=>el.dataset.v);
+  const opEl=selPill('op'); if(opEl){busca.op=opEl.dataset.v;parts.push(busca.op);}
+  const tipoEl=selPill('tipo');
+  if(tipoEl){busca.tipo=tipoEl.dataset.v;parts.push(busca.tipo);}
+  else{const to=($('tipo-otro')?.value||'').trim();if(to){busca.tipoOtro=to;parts.push(to);}}
+  const ambEl=selPill('amb'); if(ambEl){busca.amb=ambEl.dataset.v;parts.push(busca.amb+' amb.');}
+  const zona=($('zona')?.value||'').trim(); if(zona){busca.zona=zona;parts.push('Zona '+zona);}
+  const precioRaw=($('precio')?.value||'').replace(/\D/g,'');
+  const mon=$('moneda')?.value||'USD'; busca.moneda=mon;
+  if(precioRaw){busca.precio=precioRaw;parts.push('Hasta '+mon+' '+parseInt(precioRaw).toLocaleString('es-AR'));}
+  const extras=[...document.querySelectorAll('#'+prefix+'-extras .obs-pill.sel')].map(el=>el.dataset.v);
+  const extrasCustom=[...document.querySelectorAll('#'+prefix+'-extras-custom .am-chip-custom')].map(el=>el.dataset.v);
+  busca.extras=extras; busca.extrasCustom=extrasCustom;
   const todosExtras=[...extras,...extrasCustom];
   if(todosExtras.length) parts.push('Con '+todosExtras.join(', '));
-  const nota=(document.getElementById('obs-extra-txt')?.value||'').trim();
-  if(nota) parts.push(nota);
-  return parts.join(' · ');
+  const nota=($('extra-txt')?.value||'').trim(); if(nota){busca.nota=nota;parts.push(nota);}
+  return {obs:parts.join(' · '), busca};
 }
 
 window.abrirNuevaConsulta = () => {
@@ -465,11 +466,12 @@ window.guardarConsulta = () => {
   const propiedad=selVal==='__manual__'?document.getElementById('c-propiedad-manual').value.trim():decodeURIComponent(selVal);
   const asigSel=document.getElementById('c-asignado').value;
   const asignado=asigSel==='auto'?sigRotacion():asigSel;
+  const {obs,busca}=_buildObs('obs');
   push(agRef('consultas'),{nombre,asignado,propiedad,
     tel:telInput,
     instagram:document.getElementById('c-instagram').value.trim(),
     canal:document.getElementById('c-canal').value,
-    obs:_buildObs(),
+    obs, busca,
     fecha:Date.now(),estado:'Activo',checks:{},checkTs:{},cargadoPor:st.usuarioActivo
   });
   cerrarModal('modal-consulta');
