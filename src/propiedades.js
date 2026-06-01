@@ -899,7 +899,7 @@ window.abrirFichaProp = (id) => {
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">'+
     '<div>'+
     '<div style="font-size:11px;color:var(--gray-400);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">'+(p.tipo||'')+' en '+(p.operacion||'')+(p.barrio?' · '+p.barrio:'')+'</div>'+
-    '<div style="font-family:\'DM Serif Display\',serif;font-size:22px;line-height:1.2">'+(p.titulo||p.direccion||'')+'</div>'+
+    '<div style="font-family:\'DM Sans\',sans-serif;font-size:22px;line-height:1.2;font-weight:800;letter-spacing:-.02em">'+(p.titulo||p.direccion||'')+'</div>'+
     '</div>'+
     '<span class="prop-estado-badge '+(p.estado==='Disponible'?'prop-disponible':p.estado==='Reservada'?'prop-reservada':'prop-vendida')+'">'+(p.estado||'Disponible')+'</span>'+
     '</div>'+

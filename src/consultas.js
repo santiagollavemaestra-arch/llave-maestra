@@ -2,6 +2,7 @@ import { st, EQUIPO, NOMBRES, COLORES, CHECKS, DIAS, AMENITY_INFO } from './stat
 import { agRef, push, update, remove } from './firebase.js';
 import { geminiCall } from './gemini.js';
 import { diasDesde, ultimoCheck, countdownInfo, sigRotacion, _amLabel, _propLabel } from './utils.js';
+import { IC } from './icons.js';
 
 const cerrarModal = (id) => document.getElementById(id).classList.remove('open');
 let _alarmasExpanded = true;
@@ -56,10 +57,10 @@ export function renderStats(){
     return f.getMonth()===now.getMonth()&&f.getFullYear()===now.getFullYear();
   });
   document.getElementById('stats-bar').innerHTML=
-    '<div class="stat-card"><div class="stat-num">'+act.length+'</div><div class="stat-name">Activas</div></div>'+
-    '<div class="stat-card"><div class="stat-num" style="color:var(--green)">'+conVisita.length+'</div><div class="stat-name">En visita</div></div>'+
-    '<div class="stat-card"><div class="stat-num" style="color:var(--red)">'+venc.length+'</div><div class="stat-name">Vencidas</div></div>'+
-    '<div class="stat-card"><div class="stat-num" style="color:var(--gray-400)">'+cerradasMes.length+'</div><div class="stat-name">Cerradas/mes</div></div>';
+    '<div class="stat-card"><div class="stat-num" style="color:var(--brand)">'+act.length+'</div><div class="stat-name">Activas</div></div>'+
+    '<div class="stat-card"><div class="stat-num" style="color:#5FB87E">'+conVisita.length+'</div><div class="stat-name">En visita</div></div>'+
+    '<div class="stat-card"><div class="stat-num" style="color:#E07856">'+venc.length+'</div><div class="stat-name">Vencidas</div></div>'+
+    '<div class="stat-card"><div class="stat-num" style="color:rgba(255,255,255,.55)">'+cerradasMes.length+'</div><div class="stat-name">Cerradas/mes</div></div>';
 }
 
 export function renderCounts(){
@@ -182,26 +183,26 @@ window._abrirDetalle = (id) => {
     '<div class="nota-txt">'+n.texto+'</div>'+
     '<div class="nota-fecha">'+new Date(n.fecha).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</div>'+
     '<div class="nota-acciones">'+
-    '<button class="nota-btn" onclick="window._editNota(\''+id+'\',\''+nid+'\',this)">✏️</button>'+
-    '<button class="nota-btn" onclick="window._delNota(\''+id+'\',\''+nid+'\')">🗑</button>'+
+    '<button class="nota-btn" onclick="window._editNota(\''+id+'\',\''+nid+'\',this)">'+IC.edit(13)+'</button>'+
+    '<button class="nota-btn" onclick="window._delNota(\''+id+'\',\''+nid+'\')">'+IC.trash(13)+'</button>'+
     '</div></div>').join(''):'<div style="font-size:12px;color:var(--gray-400);padding:6px 0">Sin notas.</div>';
 
   document.getElementById('detalle-content').innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">'+
     '<div style="flex:1;margin-right:12px">'+
     '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
-    '<div style="font-family:\'DM Serif Display\',serif;font-size:22px" id="det-nombre">'+(c.nombre||'Sin nombre')+'</div>'+
-    '<button onclick="window._editNombre(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;color:var(--gray-600)">✏️</button>'+
+    '<div style="font-family:\'DM Sans\',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.02em" id="det-nombre">'+(c.nombre||'Sin nombre')+'</div>'+
+    '<button onclick="window._editNombre(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;color:var(--gray-600)">'+IC.edit(13)+'</button>'+
     '</div><div style="font-size:12px;color:var(--gray-400);margin-top:2px">'+fecha+'</div></div>'+
     '<div class="avatar" style="width:40px;height:40px;font-size:16px;background:'+COLORES[c.asignado]+'">'+(NOMBRES[c.asignado]?.[0]||'?')+'</div></div>'+
     (info?'<div class="countdown-det '+info.tipo+'" style="justify-content:space-between"><span>⏰ '+info.txt+'</span><button onclick="window._resetCountdown(\''+id+'\')" style="background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.4);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;color:inherit;white-space:nowrap">↺ Ya hablé</button></div>':'')+
     (waLink?'<a href="'+waLink+'" target="_blank" class="wa-btn">📱 WhatsApp — '+c.tel+'</a>':'')+
     '<div class="detail-section"><div class="detail-section-title">Datos</div>'+
-    '<div class="detail-row"><span class="detail-key">Teléfono</span><span class="detail-val" style="display:flex;align-items:center;gap:6px"><span id="det-tel">'+(c.tel||'—')+'</span><button onclick="window._editTel(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">✏️</button></span></div>'+
-    '<div class="detail-row"><span class="detail-key">Instagram</span><span class="detail-val" style="display:flex;align-items:center;gap:6px"><span id="det-ig">'+(c.instagram||'—')+'</span><button onclick="window._editIG(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">✏️</button></span></div>'+
-    '<div class="detail-row"><span class="detail-key">Propiedad</span><span class="detail-val" style="display:flex;align-items:center;gap:6px"><span id="det-prop" style="flex:1">'+(c.propiedad||'—')+'</span><button onclick="window._editPropiedad(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0">✏️</button></span></div>'+
-    '<div class="detail-row"><span class="detail-key">Canal</span><span class="detail-val" style="display:flex;align-items:center;gap:6px"><span id="det-canal">'+(c.canal||'—')+'</span><button onclick="window._editCanal(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">✏️</button></span></div>'+
-    '<div class="detail-row"><span class="detail-key">Qué busca</span><span class="detail-val" style="display:flex;align-items:flex-start;gap:6px"><span id="det-obs" style="flex:1;line-height:1.4;color:'+(c.obs?'inherit':'var(--gray-400)')+'">'+(c.obs||'—')+'</span><button onclick="window._editObs(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0">✏️</button></span></div>'+
+    '<div class="detail-row"><span class="detail-key">Teléfono</span><span class="detail-val" style="display:flex;align-items:center;gap:6px"><span id="det-tel">'+(c.tel||'—')+'</span><button onclick="window._editTel(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">'+IC.edit(13)+'</button></span></div>'+
+    '<div class="detail-row"><span class="detail-key">Instagram</span><span class="detail-val" style="display:flex;align-items:center;gap:6px"><span id="det-ig">'+(c.instagram||'—')+'</span><button onclick="window._editIG(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">'+IC.edit(13)+'</button></span></div>'+
+    '<div class="detail-row"><span class="detail-key">Propiedad</span><span class="detail-val" style="display:flex;align-items:center;gap:6px"><span id="det-prop" style="flex:1">'+(c.propiedad||'—')+'</span><button onclick="window._editPropiedad(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0">'+IC.edit(13)+'</button></span></div>'+
+    '<div class="detail-row"><span class="detail-key">Canal</span><span class="detail-val" style="display:flex;align-items:center;gap:6px"><span id="det-canal">'+(c.canal||'—')+'</span><button onclick="window._editCanal(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">'+IC.edit(13)+'</button></span></div>'+
+    '<div class="detail-row"><span class="detail-key">Qué busca</span><span class="detail-val" style="display:flex;align-items:flex-start;gap:6px"><span id="det-obs" style="flex:1;line-height:1.4;color:'+(c.obs?'inherit':'var(--gray-400)')+'">'+(c.obs||'—')+'</span><button onclick="window._editObs(\''+id+'\')" style="background:var(--gray-100);border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0">'+IC.edit(13)+'</button></span></div>'+
     (c.cargadoPor?'<div class="detail-row"><span class="detail-key">Cargado por</span><span class="detail-val" style="color:'+COLORES[c.cargadoPor]+'">'+NOMBRES[c.cargadoPor]+'</span></div>':'')+
     '</div>'+
     '<div class="detail-section"><div class="detail-section-title">Seguimiento</div>'+checks+'</div>'+
@@ -209,7 +210,7 @@ window._abrirDetalle = (id) => {
     '<div class="nota-input-row"><input class="nota-input" id="nota-inp-'+id+'" placeholder="Escribí una nota..." type="text" onkeypress="if(event.key===\'Enter\')window._addNota(\''+id+'\')"><button class="nota-send" onclick="window._addNota(\''+id+'\')">Enviar</button></div></div>'+
     '<div class="detail-section"><div class="detail-section-title">Estado</div><select class="form-select" onchange="window._updField(\''+id+'\',\'estado\',this.value)">'+estados+'</select></div>'+
     '<div class="detail-section"><div class="detail-section-title">Reasignar</div><select class="form-select" onchange="window._updField(\''+id+'\',\'asignado\',this.value)">'+asigs+'</select></div>'+
-    (st.usuarioRol==='admin'?'<button class="btn-danger" onclick="window._delConsulta(\''+id+'\')">🗑 Eliminar consulta</button>':'<div style="font-size:12px;color:var(--gray-400);text-align:center;margin-top:10px">Solo el administrador puede eliminar</div>')+
+    (st.usuarioRol==='admin'?'<button class="btn-danger" onclick="window._delConsulta(\''+id+'\')">'+IC.trash(14)+' Eliminar consulta</button>':'<div style="font-size:12px;color:var(--gray-400);text-align:center;margin-top:10px">Solo el administrador puede eliminar</div>')+
     '<div class="btn-row"><button class="btn-primary" onclick="cerrarModal(\'modal-detalle\')">Cerrar</button></div>';
 
   document.getElementById('modal-detalle').classList.add('open');

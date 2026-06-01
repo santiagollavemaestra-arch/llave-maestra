@@ -388,12 +388,13 @@ body{
   gap:0;margin-bottom:var(--space-4);
   background:linear-gradient(135deg,#100C08 0%,#1A1210 50%,#110E09 100%);
   border-radius:var(--radius);overflow:hidden;
-  box-shadow:var(--shadow-lg);
-  border:1px solid rgba(196,122,46,.12);
+  box-shadow:0 14px 34px -14px rgba(196,122,46,.30), var(--shadow-lg);
+  border:1px solid rgba(196,122,46,.18);
+  border-top:2px solid var(--brand);
 }
 .stat-card{
   background:transparent;border-radius:0;
-  padding:18px 10px;text-align:center;
+  padding:22px 12px;text-align:center;
   border-right:1px solid rgba(255,255,255,.06);
   box-shadow:none;
 }
@@ -461,10 +462,10 @@ body{
 }
 .cons-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover);border-color:rgba(196,122,46,.35)}
 .cons-card:active{transform:scale(.99)}
-.cons-card.santiago{border-left-color:#E74C3C}
-.cons-card.mariana{border-left-color:#3498DB}
-.cons-card.milagros{border-left-color:#9B59B6}
-.cons-card.gabriel{border-left-color:#27AE60}
+.cons-card.santiago{border-left-color:#C47A2E}
+.cons-card.mariana{border-left-color:#9E4636}
+.cons-card.milagros{border-left-color:#C9A53C}
+.cons-card.gabriel{border-left-color:#6F7F4A}
 
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px}
 .card-nombre{

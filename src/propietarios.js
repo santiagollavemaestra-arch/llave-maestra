@@ -1,5 +1,6 @@
 import { st, NOMBRES } from './state.js';
 import { agRef, push, update, remove } from './firebase.js';
+import { IC } from './icons.js';
 
 const cerrarModal = (id) => document.getElementById(id).classList.remove('open');
 
@@ -20,8 +21,8 @@ export function renderPropietarios(){
       (p.obs?'<div style="font-size:12px;color:var(--gray-600);margin-top:6px">'+p.obs+'</div>':'')+
       '<div style="display:flex;gap:8px;margin-top:10px">'+
       (p.tel?'<a href="https://wa.me/549'+p.tel.replace(/\D/g,'')+'" target="_blank" class="wa-btn" style="margin:0;padding:8px 14px;font-size:12px;flex:1">📱 WhatsApp</a>':'')+
-      '<button onclick="window._editPropietario(\''+p.id+'\')" style="padding:8px 12px;background:var(--gray-100);color:var(--gray-600);border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer">✏️</button>'+
-      '<button onclick="window._delPropietario(\''+p.id+'\')" style="padding:8px 12px;background:var(--red-light);color:var(--red);border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer">🗑</button>'+
+      '<button onclick="window._editPropietario(\''+p.id+'\')" style="padding:8px 12px;background:var(--gray-100);color:var(--gray-600);border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer">'+IC.edit(13)+'</button>'+
+      '<button onclick="window._delPropietario(\''+p.id+'\')" style="padding:8px 12px;background:var(--red-light);color:var(--red);border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer">'+IC.trash(13)+'</button>'+
       '</div></div>';
   }).join('');
   lista.innerHTML=html;

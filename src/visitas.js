@@ -1,5 +1,6 @@
 import { st, NOMBRES, COLORES } from './state.js';
 import { agRef, push, update, remove } from './firebase.js';
+import { IC } from './icons.js';
 
 const cerrarModal = (id) => document.getElementById(id).classList.remove('open');
 
@@ -30,8 +31,8 @@ function renderVisitaCard(v,hoy,pasada=false){
     '<div style="font-size:12px;color:var(--gray-400)">Agente: '+(NOMBRES[v.agente]||v.agente)+(v.obs?' · '+v.obs:'')+'</div>'+
     '<div style="display:flex;gap:6px;margin-top:8px">'+
     (cons?.tel?'<a href="https://wa.me/549'+cons.tel.replace(/\D/g,'')+'" target="_blank" style="flex:1;text-align:center;padding:7px;background:#25D366;color:#fff;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none">📱 Cliente</a>':'')+
-    (!pasada?'<button onclick="window._editarVisita(\''+v.id+'\')" style="padding:7px 12px;background:var(--gray-100);color:var(--gray-600);border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">✏️</button>':'')+
-    (!pasada?'<button onclick="window._delVisita(\''+v.id+'\')" style="padding:7px 12px;background:var(--red-light);color:var(--red);border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">🗑</button>':'')+
+    (!pasada?'<button onclick="window._editarVisita(\''+v.id+'\')" style="padding:7px 12px;background:var(--gray-100);color:var(--gray-600);border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">'+IC.edit(13)+'</button>':'')+
+    (!pasada?'<button onclick="window._delVisita(\''+v.id+'\')" style="padding:7px 12px;background:var(--red-light);color:var(--red);border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">'+IC.trash(13)+'</button>':'')+
     '</div></div>';
 }
 

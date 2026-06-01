@@ -13,7 +13,7 @@ export const EMAILJS_TPL = 'template_lqgp3ki';
 export const APP_URL = window.location.origin + '/';
 export const EQUIPO = ['santiago','mariana','milagros','gabriel'];
 export const NOMBRES = {santiago:'Santiago',mariana:'Mariana',milagros:'Milagros',gabriel:'Gabriel'};
-export const COLORES = {santiago:'#e74c3c',mariana:'#3498db',milagros:'#9b59b6',gabriel:'#27ae60'};
+export const COLORES = {santiago:'#C47A2E',mariana:'#9E4636',milagros:'#C9A53C',gabriel:'#6F7F4A'};
 export const CHECKS = [
   {key:'c1',  label:'Contactado', short:'Cont.'},
   {key:'hbl', label:'Hablando',   short:'Hablando'},
